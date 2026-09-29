@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier Sonnentau — Calendar</title>
+<meta name="robots" content="noindex">
+<style>
+:root{
+  --bg:#F4EDD9; --surface:#FBF6E7; --text:#292827; --muted:#6F6A63; --border:#DBD0B6;
+  --primary:#3F466B; --primary-hover:#303653; --focus:#7A6AA8; --panel:#F0E8D2;
+  --supportive:#6F9B82; --supportive-soft:#E5F0E8;
+  --caution:#B58A4A; --caution-soft:#F5EBD7;
+  --mixed:#817A9A; --mixed-soft:#ECEAF3;
+  --sensitive:#8B4F4F; --sensitive-soft:#F3E2E0;
+  --significant:#4F5D86; --significant-soft:#E5EAF5;
+  --cat-work:#4F5D86; --cat-money:#7D8A5E; --cat-relationships:#9C6B7C; --cat-communication:#6F7F91;
+  --cat-home:#B07E5E; --cat-health:#5F8F89; --cat-travel:#6C8FA8; --cat-learning:#5E6595;
+  --cat-creativity:#C08A5A; --cat-spiritual:#6E5E8E; --cat-legal:#5F6672; --cat-community:#5E8F8A;
+  --cat-rest:#8A93A8; --cat-decisions:#4F5D86; --cat-endings:#7A6A82; --cat-remedies:#B39358; --cat-general:#7A7772;
+  --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.55}
+body{min-height:100vh}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:500;line-height:1.25;margin:0 0 .4em}
+h1{font-size:1.7rem} h2{font-size:1.3rem} h3{font-size:1.1rem} h4{font-size:1rem}
+p{margin:.3em 0 .8em}
+a{color:var(--primary)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+header.top .brand{font-family:var(--serif);font-size:1.05rem;letter-spacing:.02em;color:var(--primary);text-decoration:none}
+header.top .brand small{display:block;font-family:var(--sans);font-size:.72rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--primary);color:#fff;border:1px solid var(--primary);padding:8px 14px;border-radius:8px;font-size:.93rem}
+.btn:hover{background:var(--primary-hover)}
+.btn.ghost{background:transparent;color:var(--primary);border-color:var(--border)}
+.btn.ghost:hover{background:var(--panel)}
+.btn.small{padding:5px 10px;font-size:.85rem}
+.btn.quiet{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.quiet:hover{background:var(--panel);color:var(--text)}
+.btn:disabled{opacity:.5;cursor:default}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.card + .card{margin-top:14px}
+.note{background:var(--panel);border-radius:8px;padding:10px 12px;font-size:.9rem;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+label.f{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+label.f span{display:block;margin-bottom:3px}
+input[type=text],input[type=date],input[type=time],input[type=password],input[type=number],input[type=url],select,textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text)}
+textarea{min-height:74px;resize:vertical}
+.chk{display:flex;align-items:center;gap:8px;font-size:.92rem;margin:6px 0}
+.chk input{width:18px;height:18px;accent-color:var(--primary)}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.tag{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:999px;padding:2px 9px;font-size:.78rem;background:var(--surface)}
+.tag .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:.8rem}
+.pill.supportive{background:var(--supportive-soft);color:#3f6a51}
+.pill.caution{background:var(--caution-soft);color:#7a5a27}
+.pill.mixed{background:var(--mixed-soft);color:#554d72}
+.pill.especially_sensitive{background:var(--sensitive-soft);color:#6e3b3b}
+.pill.significant{background:var(--significant-soft);color:#3a466a}
+.pill.draft{background:var(--panel);color:var(--muted)}
+.mark{display:inline-block;width:14px;height:14px;vertical-align:-2px;flex:none}
+/* entry */
+.entry{max-width:440px;margin:8vh auto;text-align:center}
+.entry input{text-align:center;letter-spacing:.12em;font-size:1.1rem;text-transform:uppercase}
+.err{color:var(--sensitive);font-size:.9rem;margin-top:8px}
+/* calendar */
+.cal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.cal-head h2{margin:0}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center;padding:4px 0}
+.day{position:relative;min-height:62px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 5px 4px;text-align:left;display:flex;flex-direction:column;gap:4px;width:100%}
+.day.other{opacity:.4;background:transparent}
+.day.today .num{font-weight:700;text-decoration:underline;text-decoration-color:var(--focus);text-underline-offset:3px}
+.day.sel{outline:2px solid var(--primary);outline-offset:-1px}
+.day .num{font-size:.8rem;color:var(--muted)}
+.day .marks{display:flex;flex-wrap:wrap;gap:3px;margin-top:auto}
+.day .band{position:absolute;left:0;right:0;top:0;height:4px;border-radius:8px 8px 0 0}
+.day .band.b2{top:5px}
+.day.tint-supportive{background:linear-gradient(var(--supportive-soft),var(--surface))}
+.day.tint-caution{background:linear-gradient(var(--caution-soft),var(--surface))}
+.day.tint-mixed{background:linear-gradient(var(--mixed-soft),var(--surface))}
+.day.tint-especially_sensitive{background:linear-gradient(var(--sensitive-soft),var(--surface))}
+@media(max-width:560px){.day{min-height:52px;padding:3px}.day .num{font-size:.72rem}.mark{width:11px;height:11px}}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.82rem;color:var(--muted);margin-top:12px}
+.legend div{display:flex;align-items:center;gap:6px}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:16px;align-items:start}
+@media(max-width:860px){.layout{grid-template-columns:1fr}}
+.inf{border:1px solid var(--border);border-left:4px solid var(--border);border-radius:8px;padding:12px 14px;background:var(--surface);margin-bottom:10px}
+.inf.supportive{border-left-color:var(--supportive)}
+.inf.caution{border-left-color:var(--caution)}
+.inf.mixed{border-left-color:var(--mixed)}
+.inf.especially_sensitive{border-left-color:var(--sensitive)}
+.inf h4{margin:4px 0 2px;display:flex;align-items:center;gap:8px}
+.inf .meta{font-size:.8rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.inf .sec{margin-top:8px}
+.inf .sec h5{margin:0 0 2px;font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.inf .sec p,.inf .sec ul{margin:0;font-size:.93rem}
+.inf .sec ul{padding-left:18px}
+.inf .disc{font-size:.82rem;color:var(--muted);border-top:1px dashed var(--border);padding-top:6px;margin-top:8px}
+details.filters summary{cursor:pointer;font-weight:600;font-size:.92rem}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{background:var(--surface);border:0;padding:6px 11px;font-size:.85rem;border-right:1px solid var(--border)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--primary);color:#fff}
+/* admin */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:12px 0;flex-wrap:wrap}
+.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;padding:8px 12px;color:var(--muted);font-size:.92rem}
+.tabs button[aria-selected=true]{color:var(--primary);border-bottom-color:var(--primary)}
+.list{list-style:none;padding:0;margin:0}
+.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);margin-bottom:8px}
+.list li:hover{background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+dialog{border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);padding:0;width:min(920px,96vw);max-height:92vh}
+dialog::backdrop{background:rgba(41,40,39,.35)}
+dialog .dh{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
+dialog .db{padding:14px 18px 20px;overflow:auto;max-height:calc(92vh - 60px)}
+fieldset{border:1px solid var(--border);border-radius:8px;padding:10px 14px 14px;margin:14px 0}
+legend{font-family:var(--serif);padding:0 6px;color:var(--primary)}
+.warn{background:var(--caution-soft);border-radius:8px;padding:8px 12px;font-size:.88rem;color:#6d4f22}
+.ok{background:var(--supportive-soft);border-radius:8px;padding:8px 12px;font-size:.88rem;color:#3f6a51}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;background:var(--panel);padding:4px 8px;border-radius:6px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:9px 16px;border-radius:8px;font-size:.9rem;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.show{opacity:1}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#/">Atelier Sonnentau<small>Astrological calendar</small></a>
+  <nav id="topnav" class="row" aria-label="Main"></nav>
+</header>
+<main id="app" class="wrap" aria-live="polite"></main>
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+'use strict';
+/* ---------------- Constants ---------------- */
+const POLARITY = {
+  supportive:{label:'Supportive',alt:'Favourable window',color:'var(--supportive)',soft:'var(--supportive-soft)',shape:'circle',hint:'opportunities, constructive momentum, helpful conditions'},
+  caution:{label:'Caution',alt:'Proceed thoughtfully',color:'var(--caution)',soft:'var(--caution-soft)',shape:'diamond',hint:'delays, misunderstandings, increased sensitivity; allow extra care'},
+  mixed:{label:'Mixed',alt:'Observe and adapt',color:'var(--mixed)',soft:'var(--mixed-soft)',shape:'half',hint:'both supportive and challenging factors present'},
+  especially_sensitive:{label:'Especially sensitive',alt:'Important to review',color:'var(--sensitive)',soft:'var(--sensitive-soft)',shape:'square',hint:'materially more sensitive than ordinary caution; use sparingly'}
+};
+const CATEGORIES = [
+  ['work','Work and vocation'],['money','Money and resources'],['relationships','Relationships'],['communication','Communication'],
+  ['home','Home and family'],['health','Health and vitality'],['travel','Travel and movement'],['learning','Learning and study'],
+  ['creativity','Creativity'],['spiritual','Spiritual practice'],['legal','Legal and administrative'],['community','Community and networks'],
+  ['rest','Rest and restoration'],['decisions','Decisions and beginnings'],['endings','Endings and transitions'],['remedies','Remedies and observances'],['general','General']
+];
+const CAT = Object.fromEntries(CATEGORIES);
+const INTENTIONS = {
+  'find work':['work','decisions','communication'],'negotiate':['communication','money','work','legal'],'begin something':['decisions','work','creativity'],
+  'travel':['travel','health'],'have a difficult conversation':['communication','relationships'],'make an important purchase':['money','decisions'],
+  'rest':['rest','health'],'socialize':['community','relationships'],'write or study':['learning','communication','creativity'],
+  'attend to romantic matters':['relationships'],'make a decision':['decisions','communication'],'complete a project':['endings','work'],
+  'recover energy':['rest','health'],'establish a routine':['health','home'],'review a commitment':['relationships','legal','decisions']
+};
+const DISCLAIMERS = {
+  none:'',
+  general:'Astrological guidance is offered for reflection and planning. It is not a substitute for professional advice, and you remain free to decide how to act.',
+  health:'Astrological guidance is not medical diagnosis or treatment. Please consult qualified healthcare professionals for symptoms, diagnosis, medication, or urgent concerns.',
+  legal:'This is not legal advice. For legal processes or formal agreements, please consult a qualified legal professional.',
+  financial:'This is not financial advice. No outcome regarding income, investment, profit, or loss is guaranteed.',
+  mental:'Astrological interpretation is not a diagnosis or treatment for mental-health concerns. Qualified professional support is encouraged where appropriate.',
+  remedy:'Remedial practices are offered as optional traditional observances, not as guaranteed cures. Choosing not to practise them carries no fault.'
+};
+const ALARM_WORDS = [/\bwill definitely\b/i,/\bmust\b/i,/\bdanger(ous)?\b/i,/\bdisaster\b/i,/\bno choice\b/i,/\bguarantee[ds]?\b/i,/\bfailure to\b/i,/\bbad day\b/i,/\bhave to\b/i,/\bnever\b/i,/\bcatastroph/i,/\bwill (happen|cause|bring)\b/i,/\burgent(ly)?\b/i,/\bimmediately\b/i,/\bdo not leave\b/i];
+const JYOTISH_FIELDS = ['graha','bhava','bhava lord','rashi','nakshatra','pada','dasha','antardasha','pratyantardasha','gochara','drishti','yoga','dignity','combustion','retrogression','avastha','varga','strength assessment','timing rationale','remedial consideration'];
+const STORE_KEY='sonnentau.calendar.v1', SESSION_KEY='sonnentau.session', ADMIN_KEY='sonnentau.admin', PREF_KEY='sonnentau.prefs';
+
+/* ---------------- Utilities ---------------- */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const fmtDate=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'short',year:'numeric',month:'long',day:'numeric'})};
+const fmtShort=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{month:'short',day:'numeric'})};
+const lines=t=>String(t||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+function genCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';const r=crypto.getRandomValues(new Uint8Array(6));for(const b of r)s+=a[b%a.length];return 'SONNENTAU-'+s}
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2200)}
+const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
+function icon(shape,color,size=14){
+  const c=color||'currentColor';
+  const m={
+    circle:`<circle cx="7" cy="7" r="5.5" fill="${c}"/>`,
+    diamond:`<path d="M7 1 L13 7 L7 13 L1 7 Z" fill="${c}"/>`,
+    half:`<circle cx="7" cy="7" r="5.5" fill="none" stroke="${c}" stroke-width="1.6"/><path d="M7 1.5 A5.5 5.5 0 0 1 7 12.5 Z" fill="${c}"/>`,
+    square:`<rect x="1.5" y="1.5" width="11" height="11" rx="1.5" fill="none" stroke="${c}" stroke-width="1.6"/><rect x="5.5" y="5.5" width="3" height="3" fill="${c}"/>`,
+    star:`<path d="M7 0.5 L8.6 5.4 L13.5 7 L8.6 8.6 L7 13.5 L5.4 8.6 L0.5 7 L5.4 5.4 Z" fill="${c}"/>`
+  }[shape]||'';
+  return `<svg class="mark" width="${size}" height="${size}" viewBox="0 0 14 14" aria-hidden="true" focusable="false">${m}</svg>`;
+}
+function langCheck(text){const hits=[];for(const re of ALARM_WORDS){const m=String(text||'').match(re);if(m)hits.push(m[0])}return [...new Set(hits)]}
+
+/* ---------------- Store ---------------- */
+let DB=null;
+function load(){try{DB=JSON.parse(localStorage.getItem(STORE_KEY))}catch(e){DB=null} if(!DB){DB=seed();save()} }
+function save(){localStorage.setItem(STORE_KEY,JSON.stringify(DB))}
+function getPrefs(){try{return JSON.parse(localStorage.getItem(PREF_KEY))||{}}catch(e){return{}}}
+function setPrefs(p){localStorage.setItem(PREF_KEY,JSON.stringify(p))}
+function clientById(id){return DB.clients.find(c=>c.id===id)}
+function influencesFor(clientId){return DB.influences.filter(i=>i.clientId===clientId)}
+
+function blankInfluence(clientId){return {id:uid(),clientId,chartId:'chart-'+clientId,calendarId:'cal-'+clientId,parentId:'',title:'',startDate:todayStr(),startTime:'',endDate:todayStr(),endTime:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
+  polarity:'supportive',significant:false,intensity:3,category:'general',secondaryCategories:[],clientInterpretation:'',observationPrompt:'',reflectionPrompt:'',recommendedActions:'',avoidances:'',prediction:'',remedialNote:'',disclaimer:'none',customDisclaimer:'',
+  privateNotes:'',technicalBasis:'',jyotish:{},sourceReference:{title:'',url:'',concept:'',note:''},published:false,showExactTime:false,showPrediction:true,showTechnicalBasis:false,calendarSyncEnabled:true,accessibilityLabel:'',createdAt:Date.now()}}
+
+function blankClient(){return {id:uid(),name:'',birthDate:'',birthTime:'',birthLocation:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,privateNotes:'',natal:'',jyotish:{},interpretiveNotes:'',status:'active',accessStart:'',accessEnd:'',accessCode:genCode(),language:'en',defaultDisclaimer:'general',createdAt:Date.now()}}
+
+function seed(){
+  const templates=[
+    {id:uid(),name:'Mercury-sensitive communication period',category:'communication',polarity:'caution',intensity:3,clientInterpretation:'Conversations may require more time and clarification.',observationPrompt:'You may notice increased sensitivity around communication.',reflectionPrompt:'Review the practical details before committing.',recommendedActions:'Confirm important details in writing',avoidances:'Sending important messages in haste',disclaimer:'none',privateNotes:'Budha afflicted / combust / gochara over 3H or natal Budha.'},
+    {id:uid(),name:'Professional visibility period',category:'work',polarity:'supportive',intensity:4,clientInterpretation:'This period may support applications, presentations, and conversations with authority figures.',observationPrompt:'You may notice more attention to your work.',reflectionPrompt:'Which opening would you choose if several arrived at once?',recommendedActions:'Use the window for applications or presentations',avoidances:'',disclaimer:'general',privateNotes:'10H / 10L activation.'},
+    {id:uid(),name:'Rest and restoration period',category:'rest',polarity:'mixed',intensity:2,clientInterpretation:'Energy may fluctuate; lighter commitments are reasonable.',observationPrompt:'Motivation may come and go in waves.',reflectionPrompt:'What could be postponed without cost?',recommendedActions:'Protect one quiet evening',avoidances:'',disclaimer:'health',privateNotes:'12H / Chandra sensitivity.'},
+    {id:uid(),name:'Remedial practice note',category:'remedies',polarity:'supportive',intensity:1,clientInterpretation:'An optional traditional observance for this period.',observationPrompt:'',reflectionPrompt:'',recommendedActions:'',avoidances:'',disclaimer:'remedy',privateNotes:''}
+  ];
+  return {version:1,clients:[],influences:[],templates};
+}
+
+/* ---------------- Client-facing projection ---------------- */
+function projectForClient(i){
+  return {id:i.id,parentId:i.parentId,title:i.title,startDate:i.startDate,endDate:i.endDate,startTime:i.showExactTime?i.startTime:'',endTime:i.showExactTime?i.endTime:'',timezone:i.timezone,polarity:i.polarity,significant:!!i.significant,intensity:i.intensity,category:i.category,secondaryCategories:i.secondaryCategories||[],
+    clientInterpretation:i.clientInterpretation,observationPrompt:i.observationPrompt,reflectionPrompt:i.reflectionPrompt,recommendedActions:i.recommendedActions,avoidances:i.avoidances,prediction:i.showPrediction?i.prediction:'',remedialNote:i.remedialNote,
+    disclaimer:i.disclaimer==='custom'?i.customDisclaimer:(DISCLAIMERS[i.disclaimer]||''),technicalBasis:i.showTechnicalBasis?i.technicalBasis:'',calendarSyncEnabled:i.calendarSyncEnabled!==false,accessibilityLabel:i.accessibilityLabel||`${POLARITY[i.polarity].label}: ${CAT[i.category]||i.category}`};
+}
+function accessState(c){
+  if(!c)return{ok:false,why:'That code was not recognised.'};
+  if(c.status==='archived'||c.status==='inactive')return{ok:false,why:'This calendar is not currently active. Please contact your astrologer.'};
+  const t=todayStr();
+  if(c.accessStart&&t<c.accessStart)return{ok:false,why:`Access to this calendar begins on ${fmtDate(c.accessStart)}.`};
+  if(c.accessEnd&&t>c.accessEnd)return{ok:false,why:'The access period for this calendar has ended. Please contact your astrologer to extend it.'};
+  return{ok:true};
+}
+function packageForClient(c){
+  const pub=influencesFor(c.id).filter(i=>i.published).map(projectForClient);
+  return {v:1,name:c.name,code:c.accessCode,status:c.status,accessStart:c.accessStart,accessEnd:c.accessEnd,defaultDisclaimer:DISCLAIMERS[c.defaultDisclaimer]||'',influences:pub,issued:todayStr()};
+}
+function shareLink(c){return location.origin+location.pathname+'#/view?d='+b64e(JSON.stringify(packageForClient(c)))}
+
+/* ---------------- ICS ---------------- */
+function icsEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/[,;]/g,m=>'\\'+m)}
+function icsTitle(i){const cat=CAT[i.category]||'General';
+  const p={supportive:'Supportive window',caution:'Allow extra care',mixed:'Variable conditions',especially_sensitive:'Important to review'}[i.polarity];
+  return i.category==='rest'?'Rest and restoration period':`${p}: ${cat}`}
+function buildICS(pkg,opts){
+  const dt=s=>s.replace(/-/g,'');
+  const addDay=s=>{const [y,m,d]=s.split('-').map(Number);const x=new Date(y,m-1,d+1);return `${x.getFullYear()}${String(x.getMonth()+1).padStart(2,'0')}${String(x.getDate()).padStart(2,'0')}`};
+  let out=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Atelier Sonnentau//Calendar//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:Atelier Sonnentau — '+icsEscape(pkg.name)];
+  const list=pkg.influences.filter(i=>i.calendarSyncEnabled).filter(i=>{
+    if(opts.polarities.length&&!opts.polarities.includes(i.polarity)&&!(opts.significant&&i.significant))return false;
+    if(opts.categories.length&&!opts.categories.includes(i.category))return false;return true});
+  for(const i of list){
+    out.push('BEGIN:VEVENT',`UID:${i.id}@sonnentau`,`DTSTAMP:${dt(todayStr())}T000000Z`);
+    if(opts.exactTimes&&i.startTime){out.push(`DTSTART;TZID=${i.timezone}:${dt(i.startDate)}T${i.startTime.replace(':','')}00`,`DTEND;TZID=${i.timezone}:${dt(i.endDate)}T${(i.endTime||i.startTime).replace(':','')}00`)}
+    else{out.push(`DTSTART;VALUE=DATE:${dt(i.startDate)}`,`DTEND;VALUE=DATE:${addDay(i.endDate)}`)}
+    out.push(`SUMMARY:${icsEscape(icsTitle(i))}`);
+    let desc=i.clientInterpretation||'';
+    if(opts.reminders&&i.recommendedActions)desc+='\n\nConsider: '+lines(i.recommendedActions).join('; ');
+    out.push(`DESCRIPTION:${icsEscape(desc)}`,`CATEGORIES:${icsEscape(CAT[i.category]||'General')}`,'END:VEVENT');
+  }
+  out.push('END:VCALENDAR');return out.join('\r\n');
+}
+function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+
+/* ---------------- Router ---------------- */
+const app=$('#app'), nav=$('#topnav');
+let adminUnlocked=false;
+let CUR='#/';
+function go(h){CUR=h;try{if(location.hash!==h)location.hash=h}catch(e){}route()}
+function route(){
+  const h=(location.hash&&location.hash.length>1?location.hash:CUR)||'#/';CUR=h;
+  const [path,q]=h.slice(1).split('?');const params=new URLSearchParams(q||'');
+  if(path==='/view'){viewFromLink(params.get('d'));return}
+  if(path.startsWith('/admin')){renderAdmin(path);return}
+  if(path==='/client'){renderClient();return}
+  renderEntry();
+}
+window.addEventListener('hashchange',()=>{CUR=location.hash||'#/';route()});
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#/"]');if(a){e.preventDefault();go(a.getAttribute('href'))}});
+
+function setNav(items){nav.innerHTML=items.map(i=>`<a class="btn small ${i.primary?'':'ghost'}" href="${i.href}">${esc(i.label)}</a>`).join('')}
+
+/* ---------------- Entry (client code) ---------------- */
+function renderEntry(){
+  setNav([{href:'#/admin',label:'Astrologer'}]);
+  const sess=sessionGet();
+  app.innerHTML=`<div class="entry card">
+    <h1>Your calendar</h1>
+    <p class="muted">Enter the access code your astrologer sent you.</p>
+    <form id="codeform"><label class="sr-only" for="code">Access code</label>
+    <input id="code" type="text" autocomplete="off" placeholder="SONNENTAU-XXXXXX" required>
+    <div class="err" id="cerr" role="alert"></div>
+    <p><button class="btn" type="submit">Open calendar</button></p></form>
+    ${sess?`<p class="small"><a href="#/client">Continue as ${esc(sess.name)}</a></p>`:''}
+    <p class="small muted">Guidance in this calendar is your astrologer\u2019s interpretation, offered for reflection and planning. It is not medical, legal, financial, or psychological advice.</p>
+  </div>`;
+  $('#codeform').onsubmit=e=>{e.preventDefault();const code=$('#code').value.trim().toUpperCase();
+    const c=DB.clients.find(x=>x.accessCode===code);const st=accessState(c);
+    if(!st.ok){$('#cerr').textContent=st.why;return}
+    sessionSet({source:'local',clientId:c.id,name:c.name});go('#/client')};
+}
+function sessionGet(){try{return JSON.parse(localStorage.getItem(SESSION_KEY))}catch(e){return null}}
+function sessionSet(s){s?localStorage.setItem(SESSION_KEY,JSON.stringify(s)):localStorage.removeItem(SESSION_KEY)}
+
+function viewFromLink(d){
+  let pkg=null;try{pkg=JSON.parse(b64d(d))}catch(e){}
+  if(!pkg||!pkg.influences){app.innerHTML='<div class="entry card"><h1>Link not readable</h1><p class="muted">This calendar link seems incomplete. Please ask your astrologer to send it again.</p></div>';return}
+  setNav([]);
+  app.innerHTML=`<div class="entry card"><h1>Calendar for ${esc(pkg.name)}</h1><p class="muted">Enter your access code to open it on this device.</p>
+    <form id="codeform"><label class="sr-only" for="code">Access code</label><input id="code" type="text" autocomplete="off" placeholder="SONNENTAU-XXXXXX" required><div class="err" id="cerr" role="alert"></div><p><button class="btn" type="submit">Open calendar</button></p></form></div>`;
+  $('#codeform').onsubmit=e=>{e.preventDefault();const code=$('#code').value.trim().toUpperCase();
+    if(code!==pkg.code){$('#cerr').textContent='That code does not match this calendar.';return}
+    const st=accessState({status:pkg.status,accessStart:pkg.accessStart,accessEnd:pkg.accessEnd});if(!st.ok){$('#cerr').textContent=st.why;return}
+    sessionSet({source:'link',name:pkg.name,pkg});try{history.replaceState(null,'',location.pathname)}catch(e){}go('#/client')};
+}
+
+/* ---------------- Client calendar ---------------- */
+let calState={year:new Date().getFullYear(),month:new Date().getMonth(),selected:todayStr()};
+function currentPackage(){
+  const s=sessionGet();if(!s)return null;
+  if(s.source==='link')return s.pkg;
+  const c=clientById(s.clientId);if(!c||!accessState(c).ok)return null;return packageForClient(c);
+}
+function renderClient(previewPkg,root){
+  root=root||app;
+  const pkg=previewPkg||currentPackage();
+  if(!pkg){sessionSet(null);go('#/');return}
+  if(!previewPkg)setNav([{href:'#/',label:'Sign out'}]);
+  const prefs=Object.assign({mode:'everything',cats:CATEGORIES.map(c=>c[0]),intention:''},getPrefs()[pkg.code]||{});
+  const savePrefs=()=>{const p=getPrefs();p[pkg.code]=prefs;setPrefs(p)};
+  const visible=pkg.influences.filter(i=>{
+    if(prefs.mode==='essential'&&!(i.significant||i.intensity>=4))return false;
+    if(prefs.mode==='supportive'&&i.polarity!=='supportive')return false;
+    if(prefs.mode==='caution'&&!(i.polarity==='caution'||i.polarity==='especially_sensitive'))return false;
+    if(!prefs.cats.includes(i.category))return false;
+    if(prefs.intention){const rel=INTENTIONS[prefs.intention]||[];if(!(i.significant||rel.includes(i.category)||(i.secondaryCategories||[]).some(c=>rel.includes(c))))return false}
+    return true});
+  const y=calState.year,m=calState.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
+  const monthName=first.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  let cells='';const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow" aria-hidden="true">${d}</div>`).join('');
+  const total=Math.ceil((startDow+dim)/7)*7;
+  for(let k=0;k<total;k++){
+    const dnum=k-startDow+1;const dt=new Date(y,m,dnum);const ds=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+    const other=dnum<1||dnum>dim;
+    const here=visible.filter(i=>i.startDate<=ds&&ds<=i.endDate);
+    const longs=here.filter(i=>i.startDate!==i.endDate&&!i.parentId).slice(0,2);
+    const points=here.filter(i=>i.startDate===i.endDate||i.parentId);
+    const dominant=points[0]||here[0];
+    const marks=[...points.map(i=>icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)),...(here.some(i=>i.significant)?[icon('star','var(--significant)')]:[])].slice(0,4).join('');
+    const bands=longs.map((i,ix)=>`<span class="band ${ix?'b2':''}" style="background:${POLARITY[i.polarity].color};opacity:.55"></span>`).join('');
+    const tint=dominant&&points.length?` tint-${dominant.polarity}`:'';
+    const label=`${fmtDate(ds)}${here.length?', '+here.map(i=>i.accessibilityLabel).join('; '):', no entries'}`;
+    cells+=`<button class="day${other?' other':''}${ds===todayStr()?' today':''}${ds===calState.selected?' sel':''}${tint}" data-d="${ds}" aria-label="${esc(label)}" ${other?'tabindex="-1"':''}>${bands}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`;
+  }
+  const legend=Object.entries(POLARITY).map(([k,p])=>`<div>${icon(p.shape,p.color)}<span>${p.label}</span></div>`).join('')+`<div>${icon('star','var(--significant)')}<span>Especially significant</span></div><div><span class="mark" style="height:4px;background:var(--mixed);opacity:.6;border-radius:2px"></span><span>Longer period</span></div>`;
+  const catChecks=CATEGORIES.map(([k,l])=>`<label class="chk"><input type="checkbox" data-cat="${k}" ${prefs.cats.includes(k)?'checked':''}><span class="tag"><span class="dot" style="background:var(--cat-${k})"></span>${l}</span></label>`).join('');
+  root.innerHTML=`${previewPkg?'':`<h1>Hello, ${esc(pkg.name)}</h1>`}
+  <div class="layout">
+   <section aria-label="Month calendar">
+    <div class="card">
+     <div class="cal-head"><button class="btn ghost small" id="prev" aria-label="Previous month">&larr;</button><h2 id="mtitle">${monthName}</h2><button class="btn ghost small" id="next" aria-label="Next month">&rarr;</button></div>
+     <div class="cal" role="grid">${dows}${cells}</div>
+     <div class="legend" aria-label="Legend">${legend}</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+     <details class="filters"><summary>Display options</summary>
+      <label class="f"><span>Show</span></label>
+      <div class="seg" role="group" aria-label="Display mode">${[['essential','Essential'],['supportive','Supportive'],['caution','Caution'],['everything','Everything']].map(([k,l])=>`<button data-mode="${k}" aria-pressed="${prefs.mode===k}">${l}</button>`).join('')}</div>
+      <p class="small muted" style="margin-top:6px">Essential shows only especially significant or intensity 4\u20135 periods.</p>
+      <label class="f" for="intent"><span>Current intention (optional)</span></label>
+      <select id="intent"><option value="">— none —</option>${Object.keys(INTENTIONS).map(k=>`<option ${prefs.intention===k?'selected':''}>${k}</option>`).join('')}</select>
+      <p class="small muted">Choosing an intention brings forward periods your astrologer has linked to related areas. It presents periods for review; it does not predict an outcome.</p>
+      <label class="f"><span>Areas of life</span></label>${catChecks}
+      <p class="small muted">Hiding an area changes what you see here only. Nothing is removed from your calendar.</p>
+     </details>
+    </div>
+    <div class="card" style="margin-top:14px">
+     <details><summary style="cursor:pointer;font-weight:600;font-size:.92rem">Add to your own calendar app</summary>
+      <p class="small muted">Download a calendar file (.ics) and import it into Apple Calendar, Google Calendar, or Outlook. Event titles are neutral; private notes are never included.</p>
+      <div class="grid2">
+       <div><label class="f"><span>Include</span></label>
+        <label class="chk"><input type="checkbox" id="ics-sup" checked>Supportive periods</label>
+        <label class="chk"><input type="checkbox" id="ics-cau" checked>Cautionary periods</label>
+        <label class="chk"><input type="checkbox" id="ics-mix" checked>Mixed periods</label>
+        <label class="chk"><input type="checkbox" id="ics-sig" checked>Especially significant periods</label></div>
+       <div><label class="f"><span>Options</span></label>
+        <label class="chk"><input type="checkbox" id="ics-cats" checked>Only the areas selected above</label>
+        <label class="chk"><input type="checkbox" id="ics-time">Use exact times where provided</label>
+        <label class="chk"><input type="checkbox" id="ics-rem" checked>Include preparation prompts</label></div>
+      </div>
+      <p><button class="btn ghost" id="ics">Download calendar file</button></p>
+     </details>
+    </div>
+   </section>
+   <aside id="daypanel" aria-label="Day detail"></aside>
+  </div>`;
+  const rerender=()=>renderClient(previewPkg,root);
+  $('#prev',root).onclick=()=>{calState.month--;if(calState.month<0){calState.month=11;calState.year--}rerender()};
+  $('#next',root).onclick=()=>{calState.month++;if(calState.month>11){calState.month=0;calState.year++}rerender()};
+  root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));renderDay(pkg,visible,calState.selected,root);if(window.innerWidth<860)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
+  root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();rerender()});
+  $('#intent',root).onchange=e=>{prefs.intention=e.target.value;savePrefs();rerender()};
+  root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.cats=[...root.querySelectorAll('[data-cat]:checked')].map(x=>x.dataset.cat);savePrefs();rerender()});
+  $('#ics',root).onclick=()=>{const pol=[];if($('#ics-sup',root).checked)pol.push('supportive');if($('#ics-cau',root).checked)pol.push('caution','especially_sensitive');if($('#ics-mix',root).checked)pol.push('mixed');
+    download(`sonnentau-${pkg.name.toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?prefs.cats:[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');toast('Calendar file downloaded')};
+  renderDay(pkg,visible,calState.selected,root);
+}
+function renderDay(pkg,visible,ds,root){
+  root=root||app;
+  const here=visible.filter(i=>i.startDate<=ds&&ds<=i.endDate).sort((a,b)=>(b.significant-a.significant)||(b.intensity-a.intensity));
+  const longs=here.filter(i=>i.startDate!==i.endDate&&!i.parentId), windows=here.filter(i=>!longs.includes(i));
+  const climate=here.length?(()=>{const s=new Set(here.map(i=>i.polarity));if(s.size===1)return POLARITY[[...s][0]].alt;return 'Variable conditions — more than one influence is active'})():'A quiet day in your calendar';
+  const block=i=>{const p=POLARITY[i.polarity];const dur=i.startDate===i.endDate?fmtShort(i.startDate):`${fmtShort(i.startDate)} – ${fmtShort(i.endDate)}`;const parent=i.parentId&&pkg.influences.find(x=>x.id===i.parentId);
+   const sec=(t,b,list)=>b?`<div class="sec"><h5>${t}</h5>${list?`<ul>${lines(b).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:`<p>${esc(b)}</p>`}</div>`:'';
+   return `<article class="inf ${i.polarity}" aria-label="${esc(i.accessibilityLabel)}">
+    <div class="meta"><span class="pill ${i.polarity}">${icon(p.shape,p.color,12)} ${p.label}</span>${i.significant?`<span class="pill significant">${icon('star','var(--significant)',12)} Especially significant</span>`:''}<span class="tag"><span class="dot" style="background:var(--cat-${i.category})"></span>${esc(CAT[i.category]||'General')}</span>${(i.secondaryCategories||[]).map(c=>`<span class="tag">${esc(CAT[c]||c)}</span>`).join('')}</div>
+    <h4>${esc(i.title)}</h4>
+    <div class="meta">${dur}${i.startTime?` · ${i.startTime}${i.endTime?'–'+i.endTime:''}`:''} · Intensity ${i.intensity} of 5${parent?` · within “${esc(parent.title)}”`:''}</div>
+    ${sec('Interpretation',i.clientInterpretation)}
+    ${sec('What you may notice',i.observationPrompt)}
+    ${sec('Consider',i.reflectionPrompt)}
+    ${sec('Things you might do',i.recommendedActions,true)}
+    ${sec('Consider postponing',i.avoidances,true)}
+    ${sec('A possibility to observe',i.prediction)}
+    ${sec('Optional practice',i.remedialNote)}
+    ${sec('Astrological basis',i.technicalBasis)}
+    ${i.disclaimer?`<div class="disc">${esc(i.disclaimer)}</div>`:''}
+   </article>`};
+  $('#daypanel',root).innerHTML=`<div class="card"><h2>${fmtDate(ds)}</h2><p class="muted small" style="margin-top:-4px">${esc(climate)}</p>
+   ${longs.length?`<h3 style="margin-top:12px">Longer periods</h3>${longs.map(block).join('')}`:''}
+   ${windows.length?`<h3 style="margin-top:12px">${longs.length?'Windows within this day':'Today'}</h3>${windows.map(block).join('')}`:''}
+   ${!here.length?'<p class="muted small">No published guidance for this date with your current display options.</p>':''}
+   ${here.length&&pkg.defaultDisclaimer?`<p class="small muted" style="margin-top:12px">${esc(pkg.defaultDisclaimer)}</p>`:''}</div>`;
+}
+
+/* ---------------- Admin ---------------- */
+function adminMeta(){try{return JSON.parse(localStorage.getItem(ADMIN_KEY))}catch(e){return null}}
+function renderAdmin(path){
+  setNav([{href:'#/',label:'Client view'}]);
+  const meta=adminMeta();
+  if(!adminUnlocked){
+    app.innerHTML=`<div class="entry card"><h1>${meta?'Astrologer sign-in':'Set up your astrologer PIN'}</h1>
+     <p class="muted small">${meta?'Enter your PIN to open the dashboard.':'This prototype stores everything in this browser. Choose a PIN of 6 or more characters; it protects the dashboard on this device.'}</p>
+     <form id="pinform"><label class="sr-only" for="pin">PIN</label><input id="pin" type="password" minlength="6" required autocomplete="current-password"><div class="err" id="perr" role="alert"></div><p><button class="btn" type="submit">${meta?'Open dashboard':'Save PIN and continue'}</button></p></form></div>`;
+    $('#pinform').onsubmit=async e=>{e.preventDefault();const h=await sha($('#pin').value);
+      if(!meta){localStorage.setItem(ADMIN_KEY,JSON.stringify({hash:h}));adminUnlocked=true;renderAdmin(path);return}
+      if(h===meta.hash){adminUnlocked=true;renderAdmin(path)}else $('#perr').textContent='That PIN did not match.'};
+    return;
+  }
+  const m=path.match(/^\/admin\/client\/([^/]+)/);
+  if(m){renderWorkspace(m[1]);return}
+  if(path==='/admin/templates'){renderTemplates();return}
+  renderAdminHome();
+}
+function adminShell(title,body,crumbs=''){
+  app.innerHTML=`<div class="row" style="justify-content:space-between"><div><p class="small muted" style="margin:0">${crumbs||'<a href="#/admin">Dashboard</a>'}</p><h1 style="margin:0">${title}</h1></div><div class="row"><a class="btn ghost small" href="#/admin/templates">Templates</a><button class="btn ghost small" id="export">Back up data</button><button class="btn ghost small" id="import">Restore</button><button class="btn quiet small" id="lock">Lock</button></div></div>
+  <p class="note small" style="margin:10px 0 14px">Prototype: all data lives in this browser\u2019s storage. Back it up regularly. To give a client their calendar on their own device, send them their <strong>calendar link</strong> and access code from their workspace.</p>${body}`;
+  $('#export').onclick=()=>download(`sonnentau-backup-${todayStr()}.json`,JSON.stringify(DB,null,2),'application/json');
+  $('#import').onclick=()=>{const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=()=>{const f=inp.files[0];const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.clients||!d.influences)throw 0;if(confirm('Replace all current data with this backup?')){DB=d;save();route();toast('Backup restored')}}catch(e){alert('That file is not a valid backup.')}};r.readAsText(f)};inp.click()};
+  $('#lock').onclick=()=>{adminUnlocked=false;route()};
+}
+function renderAdminHome(){
+  const active=DB.clients.filter(c=>c.status!=='archived'), archived=DB.clients.filter(c=>c.status==='archived');
+  const li=c=>{const st=accessState(c);const n=influencesFor(c.id);return `<li><div><a href="#/admin/client/${c.id}"><strong>${esc(c.name||'Unnamed')}</strong></a><div class="small muted">${n.filter(i=>i.published).length} published · ${n.filter(i=>!i.published).length} drafts${c.accessEnd?` · access until ${fmtShort(c.accessEnd)}`:''}</div></div><span class="pill ${st.ok?'supportive':'draft'}">${st.ok?'Active':c.status==='archived'?'Archived':c.status==='inactive'?'Inactive':'Not yet / expired'}</span></li>`};
+  adminShell('Clients',`<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Client list</h2><button class="btn" id="newc">New client</button></div>
+   <ul class="list" style="margin-top:12px">${active.map(li).join('')||'<li class="muted">No clients yet.</li>'}</ul>
+   ${archived.length?`<details><summary class="small muted">Archived (${archived.length})</summary><ul class="list" style="margin-top:8px">${archived.map(li).join('')}</ul></details>`:''}</div>`);
+  $('#newc').onclick=()=>{const c=blankClient();c.name='New client';DB.clients.push(c);save();go('#/admin/client/'+c.id)};
+}
+
+let wsTab='client', wsCal={year:new Date().getFullYear(),month:new Date().getMonth()};
+function renderWorkspace(id){
+  const c=clientById(id);if(!c){go('#/admin');return}
+  const tabs=[['client','Client & access'],['natal','Natal & Jyotish'],['calendar','Calendar'],['influences','Influences'],['preview','Client preview']];
+  adminShell(esc(c.name||'Unnamed'),`<div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${wsTab===k}" data-tab="${k}">${l}</button>`).join('')}</div><div id="tabbody"></div>`,`<a href="#/admin">Dashboard</a> › Client workspace`);
+  app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{wsTab=b.dataset.tab;renderWorkspace(id)});
+  const body=$('#tabbody');
+  if(wsTab==='client')tabClient(c,body);
+  else if(wsTab==='natal')tabNatal(c,body);
+  else if(wsTab==='calendar')tabCalendar(c,body);
+  else if(wsTab==='influences')tabInfluences(c,body);
+  else tabPreview(c,body);
+}
+function fld(label,name,val,type='text',extra=''){return `<label class="f"><span>${label}</span><input type="${type}" name="${name}" value="${esc(val)}" ${extra}></label>`}
+function txt(label,name,val,hint=''){return `<label class="f"><span>${label}${hint?` <span class="muted">— ${hint}</span>`:''}</span><textarea name="${name}">${esc(val)}</textarea></label>`}
+function tabClient(c,body){
+  const st=accessState(c);
+  body.innerHTML=`<form id="cf" class="card"><h2>Client</h2><div class="grid2">
+   ${fld('Name','name',c.name)}${fld('Preferred language','language',c.language)}
+   ${fld('Birth date','birthDate',c.birthDate,'date')}${fld('Birth time','birthTime',c.birthTime,'time')}
+   ${fld('Birth location','birthLocation',c.birthLocation)}${fld('Time zone','timezone',c.timezone)}
+   </div>
+   ${txt('Private notes','privateNotes',c.privateNotes,'never shown to the client')}
+   <label class="f"><span>Default client-facing disclaimer (shown beneath each day with entries)</span><select name="defaultDisclaimer">${Object.keys(DISCLAIMERS).map(k=>`<option value="${k}" ${c.defaultDisclaimer===k?'selected':''}>${k}</option>`).join('')}</select></label>
+   <p><button class="btn" type="submit">Save client</button></p></form>
+  <div class="card"><h2>Access</h2>
+   <p class="small ${st.ok?'ok':'warn'}">${st.ok?'This client can currently open their calendar.':'This client cannot currently open their calendar: '+esc(st.why)}</p>
+   <div class="grid3">
+    <label class="f"><span>Status</span><select id="status">${['active','inactive','archived'].map(s=>`<option ${c.status===s?'selected':''}>${s}</option>`).join('')}</select></label>
+    <label class="f"><span>Access starts (optional)</span><input type="date" id="accessStart" value="${esc(c.accessStart)}"></label>
+    <label class="f"><span>Access ends (blank = indefinite)</span><input type="date" id="accessEnd" value="${esc(c.accessEnd)}"></label>
+   </div>
+   <label class="f"><span>Access code</span></label>
+   <div class="row"><span class="code" id="codeval">${esc(c.accessCode)}</span><button class="btn ghost small" id="copycode">Copy code</button><button class="btn ghost small" id="regen">Regenerate</button></div>
+   <p class="small muted">Regenerating invalidates the old code and any calendar links already sent.</p>
+   <label class="f"><span>Calendar link for the client\u2019s own device</span></label>
+   <div class="row"><button class="btn small" id="copylink">Copy calendar link</button><span class="small muted">Contains only published, client-facing content. Re-send it after publishing changes.</span></div>
+   <p style="margin-top:12px"><button class="btn" id="saveaccess">Save access settings</button></p>
+  </div>`;
+  $('#cf').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);for(const [k,v] of f)c[k]=v;save();toast('Client saved');renderWorkspace(c.id)};
+  $('#saveaccess').onclick=()=>{c.status=$('#status').value;c.accessStart=$('#accessStart').value;c.accessEnd=$('#accessEnd').value;save();toast('Access updated');renderWorkspace(c.id)};
+  $('#regen').onclick=()=>{if(confirm('Regenerate the access code? The old code will stop working.')){c.accessCode=genCode();save();renderWorkspace(c.id)}};
+  $('#copycode').onclick=()=>navigator.clipboard.writeText(c.accessCode).then(()=>toast('Code copied'));
+  $('#copylink').onclick=()=>{const l=shareLink(c);navigator.clipboard.writeText(l).then(()=>toast(`Link copied (${Math.round(l.length/1024)} KB)`),()=>prompt('Copy this link:',l))};
+}
+function tabNatal(c,body){
+  body.innerHTML=`<form id="nf"><div class="card"><h2>Natal chart</h2><p class="small muted">Private. Never appears in the client portal.</p>${txt('Natal placements and notes','natal',c.natal)}</div>
+   <div class="card"><h2>Jyotish interpretation</h2><p class="small muted">Private interpretive fields for this chart.</p><div class="grid3">${JYOTISH_FIELDS.map(f=>fld(f[0].toUpperCase()+f.slice(1),'j:'+f,c.jyotish?.[f]||''))}</div>
+   ${txt('Interpretive notes and source references','interpretiveNotes',c.interpretiveNotes,'record rationale and references here; adapt, do not copy')}
+   <p><button class="btn" type="submit">Save</button></p></div></form>`;
+  $('#nf').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);c.jyotish=c.jyotish||{};for(const [k,v] of f){if(k.startsWith('j:'))c.jyotish[k.slice(2)]=v;else c[k]=v}save();toast('Saved')};
+}
+function tabCalendar(c,body){
+  const y=wsCal.year,m=wsCal.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();const all=influencesFor(c.id);
+  let cells='';const total=Math.ceil((startDow+dim)/7)*7;
+  for(let k=0;k<total;k++){const dnum=k-startDow+1;const dt=new Date(y,m,dnum);const ds=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;const other=dnum<1||dnum>dim;
+    const here=all.filter(i=>i.startDate<=ds&&ds<=i.endDate);
+    const marks=here.map(i=>`<span title="${esc(i.title)}" style="opacity:${i.published?1:.4}">${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)}</span>`).slice(0,5).join('');
+    cells+=`<button class="day${other?' other':''}${ds===todayStr()?' today':''}" data-d="${ds}" aria-label="${esc(fmtDate(ds))}, ${here.length} influences"><span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`}
+  body.innerHTML=`<div class="card"><div class="cal-head"><button class="btn ghost small" id="p">&larr;</button><h2 style="margin:0">${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h2><button class="btn ghost small" id="n">&rarr;</button></div>
+   <div class="cal">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
+   <p class="small muted" style="margin-top:10px">Faded markers are unpublished drafts. Click a day to create an influence starting that day.</p></div>`;
+  $('#p').onclick=()=>{wsCal.month--;if(wsCal.month<0){wsCal.month=11;wsCal.year--}renderWorkspace(c.id)};
+  $('#n').onclick=()=>{wsCal.month++;if(wsCal.month>11){wsCal.month=0;wsCal.year++}renderWorkspace(c.id)};
+  body.querySelectorAll('.day').forEach(b=>b.onclick=()=>{const i=blankInfluence(c.id);i.startDate=i.endDate=b.dataset.d;openEditor(c,i,true)});
+}
+function tabInfluences(c,body){
+  const all=influencesFor(c.id).sort((a,b)=>a.startDate<b.startDate?-1:1);
+  const row=i=>`<tr><td>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} ${i.significant?icon('star','var(--significant)'):''}</td><td><strong>${esc(i.title||'Untitled')}</strong>${i.parentId?`<div class="small muted">within “${esc(all.find(x=>x.id===i.parentId)?.title||'')}”</div>`:''}</td><td>${fmtShort(i.startDate)}${i.endDate!==i.startDate?' – '+fmtShort(i.endDate):''}</td><td>${esc(CAT[i.category])}</td><td>${i.intensity}</td><td><span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></td><td><button class="btn ghost small" data-edit="${i.id}">Edit</button></td></tr>`;
+  body.innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Influences</h2><div class="row"><select id="tpl"><option value="">Insert from template…</option>${DB.templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select><button class="btn" id="newi">New influence</button></div></div>
+   <label class="f"><span>Search</span><input type="text" id="q" placeholder="Title, category, note…"></label>
+   <div style="overflow:auto"><table><thead><tr><th></th><th>Title</th><th>Dates</th><th>Category</th><th>Int.</th><th>Status</th><th></th></tr></thead><tbody id="rows">${all.map(row).join('')}</tbody></table></div>
+   <h3 style="margin-top:16px">Drafts (${all.filter(i=>!i.published).length})</h3><p class="small muted">${all.filter(i=>!i.published).map(i=>esc(i.title)).join(' · ')||'None'}</p></div>`;
+  $('#newi').onclick=()=>openEditor(c,blankInfluence(c.id),true);
+  $('#tpl').onchange=e=>{const t=DB.templates.find(x=>x.id===e.target.value);if(!t)return;const i=Object.assign(blankInfluence(c.id),{title:t.name,category:t.category,polarity:t.polarity,intensity:t.intensity,clientInterpretation:t.clientInterpretation,observationPrompt:t.observationPrompt,reflectionPrompt:t.reflectionPrompt,recommendedActions:t.recommendedActions,avoidances:t.avoidances,disclaimer:t.disclaimer,privateNotes:t.privateNotes});openEditor(c,i,true)};
+  $('#q').oninput=e=>{const q=e.target.value.toLowerCase();$('#rows').innerHTML=all.filter(i=>JSON.stringify(i).toLowerCase().includes(q)).map(row).join('');bindEdits()};
+  const bindEdits=()=>body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(c,influencesFor(c.id).find(i=>i.id===b.dataset.edit),false));bindEdits();
+}
+function tabPreview(c,body){
+  body.innerHTML=`<p class="note small">This is what ${esc(c.name)} sees, using only published influences. Their own display filters may differ.</p><div id="pv"></div>`;
+  renderClient(packageForClient(c),$('#pv',body));
+}
+
+/* ---------------- Influence editor ---------------- */
+function openEditor(c,inf,isNew){
+  const others=influencesFor(c.id).filter(i=>i.id!==inf.id&&!i.parentId&&i.startDate!==i.endDate);
+  const dlg=document.createElement('dialog');
+  const sel=(name,opts,val)=>`<select name="${name}">${opts.map(([k,l])=>`<option value="${k}" ${val===k?'selected':''}>${l}</option>`).join('')}</select>`;
+  dlg.innerHTML=`<div class="dh"><h2 style="margin:0">${isNew?'New influence':'Edit influence'}</h2><button class="btn quiet small" id="close" aria-label="Close">✕</button></div>
+  <div class="db"><form id="ef">
+   <div class="grid2">${fld('Title (client-facing)','title',inf.title,'text','required')}<label class="f"><span>Within a longer period (optional)</span>${sel('parentId',[['','— none —'],...others.map(o=>[o.id,o.title])],inf.parentId)}</label></div>
+   <div class="grid2">${fld('Start date','startDate',inf.startDate,'date','required')}${fld('End date','endDate',inf.endDate,'date','required')}</div>
+   <div class="grid3">${fld('Start time (optional)','startTime',inf.startTime,'time')}${fld('End time (optional)','endTime',inf.endTime,'time')}${fld('Time zone','timezone',inf.timezone)}</div>
+   <fieldset><legend>Interpretation signal</legend>
+    <div class="grid3">
+     <label class="f"><span>Polarity</span>${sel('polarity',Object.entries(POLARITY).map(([k,p])=>[k,p.label]),inf.polarity)}</label>
+     <label class="f"><span>Intensity (1 subtle – 5 exceptional)</span><input type="number" name="intensity" min="1" max="5" value="${inf.intensity}"></label>
+     <label class="f"><span>Primary category</span>${sel('category',CATEGORIES,inf.category)}</label>
+    </div>
+    <label class="chk"><input type="checkbox" name="significant" ${inf.significant?'checked':''}>Mark as especially significant (star marker)</label>
+    <label class="f"><span>Secondary categories</span></label><div class="row">${CATEGORIES.map(([k,l])=>`<label class="chk" style="margin:0"><input type="checkbox" name="sec" value="${k}" ${(inf.secondaryCategories||[]).includes(k)?'checked':''}>${l}</label>`).join('')}</div>
+    ${fld('Accessibility label (screen readers; blank = auto)','accessibilityLabel',inf.accessibilityLabel)}
+    <div id="sigpreview" class="small muted" style="margin-top:8px"></div>
+   </fieldset>
+   <fieldset><legend>Client-facing text</legend>
+    ${txt('Interpretation','clientInterpretation',inf.clientInterpretation,'“This period may support…”')}
+    ${txt('Notice — what the client may observe','observationPrompt',inf.observationPrompt)}
+    ${txt('Consider — what the client may reflect on','reflectionPrompt',inf.reflectionPrompt)}
+    ${txt('Act — things they might reasonably do','recommendedActions',inf.recommendedActions,'one per line')}
+    ${txt('Consider postponing','avoidances',inf.avoidances,'one per line')}
+    ${txt('Prediction (optional, calibrated)','prediction',inf.prediction,'“A conversation may bring…”')}
+    <label class="chk"><input type="checkbox" name="showPrediction" ${inf.showPrediction?'checked':''}>Show prediction to client (only when they open the day)</label>
+    ${txt('Remedial note (optional)','remedialNote',inf.remedialNote,'present as optional practice')}
+    <label class="f"><span>Professional disclaimer</span>${sel('disclaimer',[...Object.keys(DISCLAIMERS).map(k=>[k,k]),['custom','custom']],inf.disclaimer)}</label>
+    ${txt('Custom disclaimer text','customDisclaimer',inf.customDisclaimer)}
+   </fieldset>
+   <fieldset><legend>Private — never shown to the client</legend>
+    ${txt('Private astrologer notes','privateNotes',inf.privateNotes)}
+    ${txt('Technical basis','technicalBasis',inf.technicalBasis,'e.g. “Shukra gochara over 10L; Guru drishti”')}
+    <details><summary class="small">Jyotish factors</summary><div class="grid3">${JYOTISH_FIELDS.map(f=>fld(f[0].toUpperCase()+f.slice(1),'j:'+f,inf.jyotish?.[f]||''))}</div></details>
+    <details><summary class="small">Source reference</summary><div class="grid2">${fld('Source title','s:title',inf.sourceReference?.title||'')}${fld('URL or bibliographic reference','s:url',inf.sourceReference?.url||'')}</div>${fld('Relevant concept','s:concept',inf.sourceReference?.concept||'')}${txt('Private source note (adapted interpretation, not quoted text)','s:note',inf.sourceReference?.note||'')}</details>
+   </fieldset>
+   <fieldset><legend>Visibility</legend>
+    <label class="chk"><input type="checkbox" name="showExactTime" ${inf.showExactTime?'checked':''}>Show exact times to the client</label>
+    <label class="chk"><input type="checkbox" name="showTechnicalBasis" ${inf.showTechnicalBasis?'checked':''}>Show technical basis to the client</label>
+    <label class="chk"><input type="checkbox" name="calendarSyncEnabled" ${inf.calendarSyncEnabled!==false?'checked':''}>Include in the client\u2019s calendar feed</label>
+   </fieldset>
+   <div id="review"></div>
+   <div class="row" style="margin-top:14px;justify-content:space-between">
+    <div class="row"><button class="btn ghost" type="button" id="savedraft">Save as draft</button><button class="btn" type="button" id="publish">${inf.published?'Save and keep published':'Review and publish'}</button>${inf.published?'<button class="btn ghost" type="button" id="unpub">Unpublish</button>':''}<button class="btn ghost" type="button" id="astemplate">Save as template</button></div>
+    ${isNew?'':'<button class="btn quiet" type="button" id="del">Delete</button>'}
+   </div></form></div>`;
+  document.body.appendChild(dlg);dlg.showModal();
+  const form=$('#ef',dlg);
+  const collect=()=>{const f=new FormData(form);const o={};const j={},s={};const secs=[];
+    for(const [k,v] of f){if(k==='sec')secs.push(v);else if(k.startsWith('j:'))j[k.slice(2)]=v;else if(k.startsWith('s:'))s[k.slice(2)]=v;else o[k]=v}
+    for(const cb of ['significant','showPrediction','showExactTime','showTechnicalBasis','calendarSyncEnabled'])o[cb]=form.elements[cb].checked;
+    o.intensity=Math.min(5,Math.max(1,Number(o.intensity)||3));o.secondaryCategories=secs.filter(x=>x!==o.category);o.jyotish=j;o.sourceReference=s;
+    if(o.endDate<o.startDate)o.endDate=o.startDate;return o};
+  const updateSig=()=>{const o=collect();const p=POLARITY[o.polarity];$('#sigpreview',dlg).innerHTML=`Marker: ${icon(p.shape,p.color)} <strong>${p.label}</strong> · ${p.hint} · Category accent <span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--cat-${o.category})"></span> ${esc(CAT[o.category])}${o.significant?' · '+icon('star','var(--significant)')+' significant':''}${o.intensity>=4&&o.polarity==='supportive'?' · High-intensity supportive stays calm; prominence comes from label and layout.':''}`};
+  form.addEventListener('input',updateSig);updateSig();
+  const review=()=>{const o=collect();const fields={Title:o.title,Interpretation:o.clientInterpretation,Notice:o.observationPrompt,Consider:o.reflectionPrompt,Act:o.recommendedActions,Postpone:o.avoidances,Prediction:o.prediction,Remedial:o.remedialNote};
+    const hits=Object.entries(fields).map(([k,v])=>[k,langCheck(v)]).filter(([,h])=>h.length);
+    const missing=[];if(!o.clientInterpretation)missing.push('an interpretation');if(o.category==='health'&&!['health','custom'].includes(o.disclaimer))missing.push('a health boundary disclaimer');if(o.category==='legal'&&!['legal','custom'].includes(o.disclaimer))missing.push('a legal disclaimer');if(o.category==='money'&&!['financial','custom'].includes(o.disclaimer))missing.push('a financial disclaimer');if(o.category==='remedies'&&!['remedy','custom'].includes(o.disclaimer))missing.push('the remedy disclaimer');
+    if(o.polarity==='especially_sensitive'&&!o.reflectionPrompt)missing.push('a reflection prompt (recommended for especially sensitive periods)');
+    const p=POLARITY[o.polarity];
+    $('#review',dlg).innerHTML=`<div class="card" style="background:var(--panel)"><h3>Pre-publication review</h3>
+     <div class="row"><span class="pill ${o.polarity}">${icon(p.shape,p.color,12)} ${p.label}</span>${o.significant?`<span class="pill significant">Especially significant</span>`:''}<span class="tag">${esc(CAT[o.category])}</span><span class="tag">Intensity ${o.intensity}</span><span class="tag">token: ${o.polarity} / ${p.shape}</span><span class="tag">aria: ${esc(o.accessibilityLabel||`${p.label}: ${CAT[o.category]}`)}</span></div>
+     ${hits.length?`<div class="warn" style="margin-top:8px"><strong>Language check:</strong> possibly deterministic or alarmist wording — ${hits.map(([k,h])=>`${k}: “${h.map(esc).join('”, “')}”`).join('; ')}. Consider softening (“may”, “consider”, “allow extra care”).</div>`:`<div class="ok" style="margin-top:8px">Language check: no deterministic or alarmist phrases detected.</div>`}
+     ${missing.length?`<div class="warn" style="margin-top:8px">Consider adding ${missing.join(', ')}.</div>`:''}
+     <h4 style="margin-top:12px">Client will see</h4><div id="pvblock"></div>
+     <p class="row"><button class="btn" type="button" id="confirmpub">Publish now</button><button class="btn ghost" type="button" id="backedit">Keep editing</button></p></div>`;
+    const proj=projectForClient(Object.assign({},inf,o,{published:true}));
+    const stub=document.createElement('div');stub.innerHTML='<div id="daypanel"></div>';renderDay({influences:[proj],defaultDisclaimer:''},[proj],o.startDate,stub);$('#pvblock',dlg).innerHTML=stub.querySelector('.inf')?.outerHTML||'';
+    $('#review',dlg).scrollIntoView({behavior:'smooth'});
+    $('#confirmpub',dlg).onclick=()=>{persist(true);toast('Published')};$('#backedit',dlg).onclick=()=>{$('#review',dlg).innerHTML=''}};
+  const persist=(pub)=>{const o=collect();Object.assign(inf,o);inf.published=pub;if(isNew&&!DB.influences.includes(inf))DB.influences.push(inf);save();dlg.close();dlg.remove();renderWorkspace(c.id)};
+  $('#savedraft',dlg).onclick=()=>{if(!form.reportValidity())return;persist(false);toast('Draft saved')};
+  $('#publish',dlg).onclick=()=>{if(!form.reportValidity())return;review()};
+  const un=$('#unpub',dlg);if(un)un.onclick=()=>{persist(false);toast('Unpublished')};
+  $('#astemplate',dlg).onclick=()=>{const o=collect();const name=prompt('Template name:',o.title);if(!name)return;DB.templates.push({id:uid(),name,category:o.category,polarity:o.polarity,intensity:o.intensity,clientInterpretation:o.clientInterpretation,observationPrompt:o.observationPrompt,reflectionPrompt:o.reflectionPrompt,recommendedActions:o.recommendedActions,avoidances:o.avoidances,disclaimer:o.disclaimer,privateNotes:o.privateNotes});save();toast('Template saved')};
+  const del=$('#del',dlg);if(del)del.onclick=()=>{if(confirm('Delete this influence? Windows within it will be kept but unlinked.')){DB.influences=DB.influences.filter(i=>i.id!==inf.id);DB.influences.forEach(i=>{if(i.parentId===inf.id)i.parentId=''});save();dlg.close();dlg.remove();renderWorkspace(c.id)}};
+  $('#close',dlg).onclick=()=>{dlg.close();dlg.remove()};
+  dlg.addEventListener('cancel',()=>dlg.remove());
+}
+
+/* ---------------- Templates ---------------- */
+function renderTemplates(){
+  adminShell('Templates',`<div class="card"><p class="small muted">Private, reusable structures. Insert one into a client\u2019s calendar from their Influences tab, then edit before publishing.</p>
+   <ul class="list">${DB.templates.map(t=>`<li><div><strong>${esc(t.name)}</strong><div class="small muted">${icon(POLARITY[t.polarity].shape,POLARITY[t.polarity].color)} ${POLARITY[t.polarity].label} · ${esc(CAT[t.category])} · intensity ${t.intensity}</div></div><div class="row"><button class="btn ghost small" data-e="${t.id}">Edit</button><button class="btn quiet small" data-d="${t.id}">Delete</button></div></li>`).join('')||'<li class="muted">No templates yet.</li>'}</ul>
+   <p><button class="btn" id="newt">New template</button></p></div>`,`<a href="#/admin">Dashboard</a> › Templates`);
+  const edit=t=>{const dlg=document.createElement('dialog');const sel=(name,opts,val)=>`<select name="${name}">${opts.map(([k,l])=>`<option value="${k}" ${val===k?'selected':''}>${l}</option>`).join('')}</select>`;
+    dlg.innerHTML=`<div class="dh"><h2 style="margin:0">Template</h2><button class="btn quiet small" id="x" aria-label="Close">✕</button></div><div class="db"><form id="tf">${fld('Name','name',t.name,'text','required')}
+     <div class="grid3"><label class="f"><span>Default polarity</span>${sel('polarity',Object.entries(POLARITY).map(([k,p])=>[k,p.label]),t.polarity)}</label><label class="f"><span>Default category</span>${sel('category',CATEGORIES,t.category)}</label><label class="f"><span>Default intensity</span><input type="number" name="intensity" min="1" max="5" value="${t.intensity}"></label></div>
+     ${txt('Interpretation','clientInterpretation',t.clientInterpretation)}${txt('Notice prompt','observationPrompt',t.observationPrompt)}${txt('Consider prompt','reflectionPrompt',t.reflectionPrompt)}${txt('Act prompt','recommendedActions',t.recommendedActions)}${txt('Caution / postpone language','avoidances',t.avoidances)}
+     <label class="f"><span>Default disclaimer</span>${sel('disclaimer',Object.keys(DISCLAIMERS).map(k=>[k,k]),t.disclaimer)}</label>${txt('Private Jyotish rationale','privateNotes',t.privateNotes)}
+     <p><button class="btn" type="submit">Save template</button></p></form></div>`;
+    document.body.appendChild(dlg);dlg.showModal();$('#x',dlg).onclick=()=>{dlg.close();dlg.remove()};
+    $('#tf',dlg).onsubmit=e=>{e.preventDefault();for(const [k,v] of new FormData(e.target))t[k]=k==='intensity'?Number(v):v;if(!DB.templates.includes(t))DB.templates.push(t);save();dlg.close();dlg.remove();renderTemplates()}};
+  app.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>edit(DB.templates.find(t=>t.id===b.dataset.e)));
+  app.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(confirm('Delete this template?')){DB.templates=DB.templates.filter(t=>t.id!==b.dataset.d);save();renderTemplates()}});
+  $('#newt').onclick=()=>edit({id:uid(),name:'',category:'general',polarity:'supportive',intensity:3,clientInterpretation:'',observationPrompt:'',reflectionPrompt:'',recommendedActions:'',avoidances:'',disclaimer:'none',privateNotes:''});
+}
+
+/* ---------------- Boot ---------------- */
+load();route();
+</script>
+</body>
+</html>
