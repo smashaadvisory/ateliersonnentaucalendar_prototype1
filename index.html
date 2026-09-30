@@ -17,7 +17,6 @@
 const CONFIG = {
   SUPABASE_URL: 'https://znchdryhphhjdfqsxupj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_pu15mEaaBDT2TEdKJUOyjw_W69msVKx',
-  ASTROLOGER_EMAIL: 'astrologer@atelier-sonnentau.app'   // the one astrologer account (see supabase-setup.sql)
 };
 </script>
 <style>
@@ -276,20 +275,26 @@ const sel=(name,opts,val,id='')=>`<select name="${name}" ${id?`id="${id}"`:''}>$
 
 /* ---------------- Data layer (Supabase) ---------------- */
 let sb=null;
+const TOKEN_KEY='as.astrologer_token';
+function makeClient(){const token=localStorage.getItem(TOKEN_KEY)||'';sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY,{auth:{persistSession:false},global:{headers:token?{'x-astrologer-token':token}:{}}})}
 CONFIG.SUPABASE_URL=String(CONFIG.SUPABASE_URL||'').trim().replace(/\/rest\/v1\/?$/,'').replace(/\/+$/,'');CONFIG.SUPABASE_ANON_KEY=String(CONFIG.SUPABASE_ANON_KEY||'').trim();
 const configured=()=>/^https:\/\/[^/]+$/.test(CONFIG.SUPABASE_URL)&&CONFIG.SUPABASE_ANON_KEY.length>20;
-if(configured()&&window.supabase)sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+if(configured()&&window.supabase)makeClient();
 const chk=({data,error})=>{if(error)throw new Error(error.message||String(error));return data};
 function cleanClient(c){const o={...c};delete o.created_at;delete o.updated_at;for(const k of ['birth_date','birth_time','access_start','access_end'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.entitlements={...ENT_DEFAULT,...(o.entitlements||{})};return o}
 function cleanInfluence(i){const o={...i};delete o.created_at;delete o.updated_at;for(const k of ['start_time','end_time','parent_id'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.source_reference=o.source_reference||{};o.secondary_categories=o.secondary_categories||[];if(o.end_date<o.start_date)o.end_date=o.start_date;return o}
 const api={
+  async astrologerStatus(){return chk(await sb.rpc('astrologer_status'))},
+  async astrologerSetPassword(p){return chk(await sb.rpc('astrologer_set_password',{p_password:p}))},
   async adminSignIn(password){
-    chk(await sb.auth.signInWithPassword({email:CONFIG.ASTROLOGER_EMAIL,password}));
-    if(!await api.isAdmin()){await sb.auth.signOut();throw new Error('This account is not enrolled as the astrologer. Re-run the enrolment section of supabase-setup.sql.')}
+    const r=chk(await sb.rpc('astrologer_login',{p_password:password}));
+    if(!r.ok)throw new Error(r.why);
+    localStorage.setItem(TOKEN_KEY,r.token);makeClient();
   },
-  async adminSignOut(){await sb.auth.signOut()},
-  async adminSession(){const {data}=await sb.auth.getSession();return data.session||null},
+  async adminSignOut(){try{await sb.rpc('astrologer_logout')}catch(e){}localStorage.removeItem(TOKEN_KEY);makeClient()},
+  async adminSession(){if(!localStorage.getItem(TOKEN_KEY))return null;const ok=await api.isAdmin();if(!ok){localStorage.removeItem(TOKEN_KEY);makeClient();return null}return {ok:true}},
   async isAdmin(){return !!chk(await sb.rpc('is_admin'))},
+  async changePassword(cur,nw){return chk(await sb.rpc('astrologer_change_password',{p_current:cur,p_new:nw}))},
   async listClients(){return chk(await sb.from('clients').select('*').order('name'))},
   async getClient(id){return chk(await sb.from('clients').select('*').eq('id',id).single())},
   async saveClient(c){return chk(await sb.from('clients').upsert(cleanClient(c)).select().single())},
@@ -328,7 +333,7 @@ async function route(){
     if(!configured()&&!MOCKED){renderSetup();return}
     if(path==='/client')return renderClientLogin();
     if(path==='/calendar')return await renderCalendar();
-    if(path==='/astrologer')return renderAstrologerLogin();
+    if(path==='/astrologer')return await renderAstrologerLogin();
     if(path.startsWith('/admin'))return await renderAdmin(path);
     renderHome();
   }catch(e){showError(e)}
@@ -342,9 +347,9 @@ function renderSetup(){
   <ol>
    <li>Create a free project at <strong>supabase.com</strong>.</li>
    <li>Open <strong>SQL Editor → New query</strong>, paste the contents of <code>supabase-setup.sql</code>, and run it.</li>
-   <li>Open <strong>Authentication → Users → Add user</strong>. Email: <code>${esc(CONFIG.ASTROLOGER_EMAIL)}</code>, a password of your choice, and tick <em>Auto confirm</em>. This is the single astrologer account.</li>
-   <li>Open <strong>Project Settings → API</strong>. Copy the <em>Project URL</em> and the <em>anon public</em> key into the <code>CONFIG</code> block at the top of <code>index.html</code>.</li>
+   <li>Open <strong>Project Settings → API</strong>. Copy the <em>Project URL</em> and the <em>publishable / anon</em> key into the <code>CONFIG</code> block at the top of <code>index.html</code>.</li>
    <li>Upload <code>index.html</code> to Netlify (drag the file onto the Sites page). Every device then shares the same data.</li>
+   <li>Open the site, click <strong>Astrologer login</strong>, and set your password there.</li>
   </ol>
   <p class="small muted">The anon key is designed to be public; the database rules in the SQL file decide what it may read. Never paste the <em>service_role</em> key into this file.</p></div>`;
 }
@@ -518,12 +523,39 @@ function buildICS(pkg,opts){
 }
 
 /* ---------------- Astrologer login ---------------- */
-function renderAstrologerLogin(msg){
+async function renderAstrologerLogin(msg){
   setHeader({left:signedOutNav(),brand:true,right:[]});
-  app.innerHTML=`<div class="entry card"><h1>Astrologer sign-in</h1><form id="pinform"><label class="sr-only" for="pin">Password</label><input id="pin" type="password" required autocomplete="current-password" placeholder="Password"><div class="err" id="perr" role="alert">${esc(msg||'')}</div><p><button class="btn" type="submit" id="pinbtn">Open dashboard</button></p></form></div>`;
+  if(localStorage.getItem(TOKEN_KEY)&&!msg){go('#/admin');return}
+  app.innerHTML='<p class="loading">One moment…</p>';
+  let st;try{st=await api.astrologerStatus()}catch(err){app.innerHTML=`<div class="entry card"><h1>Not reachable</h1><p class="muted">Could not reach the database. ${esc(err.message||'')}</p><p class="small muted">If you have not run the latest <code>supabase-setup.sql</code> yet, run it in the Supabase SQL Editor and reload this page.</p></div>`;return}
+  if(st.setup_open){
+    app.innerHTML=`<div class="entry card"><h1>Set your astrologer password</h1><p class="muted small">This is the single astrologer account for this site. Choose a password of at least 8 characters; you can change it later from the dashboard.</p>
+     <form id="setform"><label class="sr-only" for="p1">New password</label><input id="p1" type="password" minlength="8" required autocomplete="new-password" placeholder="New password">
+     <label class="sr-only" for="p2">Confirm password</label><input id="p2" type="password" minlength="8" required autocomplete="new-password" placeholder="Confirm password" style="margin-top:8px">
+     <div class="err" id="perr" role="alert"></div><p><button class="btn" type="submit" id="setbtn">Save password and sign in</button></p></form></div>`;
+    $('#setform').onsubmit=async e=>{e.preventDefault();const a=$('#p1').value,b=$('#p2').value;if(a!==b){$('#perr').textContent='The two passwords do not match.';return}
+      const btn=$('#setbtn');btn.disabled=true;$('#perr').textContent='';
+      try{const r=await api.astrologerSetPassword(a);if(!r.ok){$('#perr').textContent=r.why;btn.disabled=false;return}await api.adminSignIn(a);go('#/admin')}
+      catch(err){$('#perr').textContent=err.message;btn.disabled=false}};
+    return;
+  }
+  app.innerHTML=`<div class="entry card"><h1>Astrologer sign-in</h1><p class="muted small">Enter the astrologer password to open the dashboard.</p>
+   <form id="pinform"><label class="sr-only" for="pin">Password</label><input id="pin" type="password" required autocomplete="current-password" placeholder="Password"><div class="err" id="perr" role="alert">${esc(msg||'')}</div><p><button class="btn" type="submit" id="pinbtn">Open dashboard</button></p></form>
+   <p class="small muted" style="margin-top:14px">Forgotten it? Run <code>supabase-setup.sql</code> again in the Supabase SQL Editor; this page will then let you set a new one.</p></div>`;
   $('#pinform').onsubmit=async e=>{e.preventDefault();const b=$('#pinbtn');b.disabled=true;$('#perr').textContent='';
     try{await api.adminSignIn($('#pin').value);go('#/admin')}
-    catch(err){$('#perr').textContent=/invalid/i.test(err.message)?'That password did not match.':err.message;b.disabled=false}};
+    catch(err){$('#perr').textContent=err.message;b.disabled=false}};
+}
+function openChangePassword(){
+  const dlg=document.createElement('dialog');dlg.style.width='min(460px,96vw)';
+  dlg.innerHTML=`<div class="dh"><h2 style="margin:0">Change password</h2><button type="button" class="btn quiet small" id="x" aria-label="Close">✕</button></div><div class="db"><form id="cp">
+   <label class="f"><span>Current password</span><input type="password" name="cur" required autocomplete="current-password"></label>
+   <label class="f"><span>New password (8+ characters)</span><input type="password" name="nw" minlength="8" required autocomplete="new-password"></label>
+   <label class="f"><span>Confirm new password</span><input type="password" name="nw2" minlength="8" required autocomplete="new-password"></label>
+   <div class="err" id="cperr" role="alert"></div><p><button class="btn" type="submit">Save new password</button></p></form></div>`;
+  document.body.appendChild(dlg);dlg.showModal();$('#x',dlg).onclick=()=>{dlg.close();dlg.remove()};dlg.addEventListener('cancel',()=>dlg.remove());
+  $('#cp',dlg).onsubmit=async e=>{e.preventDefault();const f=e.target;if(f.nw.value!==f.nw2.value){$('#cperr',dlg).textContent='The new passwords do not match.';return}
+    try{const r=await api.changePassword(f.cur.value,f.nw.value);if(!r.ok){$('#cperr',dlg).textContent=r.why;return}dlg.close();dlg.remove();toast('Password changed')}catch(err){$('#cperr',dlg).textContent=err.message}};
 }
 
 /* ---------------- Admin ---------------- */
@@ -531,7 +563,7 @@ let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:ne
 async function renderAdmin(path){
   const session=await api.adminSession();
   if(!session){go('#/astrologer');return}
-  setHeader({left:[{href:'#/admin',label:'Dashboard',cls:'quiet'},{href:'#/admin/templates',label:'Templates',cls:'quiet'}],brand:true,right:[{id:'out',label:'Sign out',cls:'ghost',onClick:async()=>{await api.adminSignOut();go('#/')}}]});
+  setHeader({left:[{href:'#/admin',label:'Dashboard',cls:'quiet'},{href:'#/admin/templates',label:'Templates',cls:'quiet'}],brand:true,right:[{id:'chpw',label:'Change password',cls:'quiet',onClick:openChangePassword},{id:'out',label:'Sign out',cls:'ghost',onClick:async()=>{await api.adminSignOut();go('#/')}}]});
   app.innerHTML='<p class="loading">Loading…</p>';
   const m=path.match(/^\/admin\/client\/([^/]+)/);
   if(m)return renderWorkspace(m[1]);
