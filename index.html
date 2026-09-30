@@ -313,8 +313,9 @@ if(window.__apiOverride){Object.assign(api,window.__apiOverride);MOCKED=true}
 const app=$('#app'), hdr=$('#hdr');
 const CODE_KEY='as.client_code';
 let CUR='#/';
-function go(h){CUR=h;try{if(location.hash!==h)location.hash=h}catch(e){}route()}
-window.addEventListener('hashchange',()=>{CUR=location.hash||'#/';route()});
+let skipHash=false;
+function go(h){CUR=h;let changed=false;try{if(location.hash!==h){skipHash=true;location.hash=h;changed=(location.hash===h)}}catch(e){}if(!changed){skipHash=false;route()}}
+window.addEventListener('hashchange',()=>{CUR=location.hash||'#/';if(skipHash){skipHash=false}route()});
 document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#/"]');if(a){e.preventDefault();go(a.getAttribute('href'))}});
 function setHeader({left=[],brand=true,right=[]}={}){
   const links=arr=>arr.map(i=>i.id?`<button class="btn small ${i.cls||'quiet'}" id="${i.id}">${esc(i.label)}</button>`:`<a class="btn small ${i.cls||'ghost'}" href="${i.href}">${esc(i.label)}</a>`).join('');
@@ -322,7 +323,13 @@ function setHeader({left=[],brand=true,right=[]}={}){
   [...left,...right].filter(i=>i.id&&i.onClick).forEach(i=>$('#'+i.id).onclick=i.onClick);
 }
 const signedOutNav=()=>[{href:'#/client',label:'Client login'},{href:'#/astrologer',label:'Astrologer login'}];
-function showError(e){console.error(e);app.innerHTML=`<div class="entry card"><h1>Something went wrong</h1><p class="muted">${esc(e.message||e)}</p><p><a class="btn ghost" href="#/">Back to start</a></p></div>`}
+function explain(msg){msg=String(msg||'');let hint='';
+  if(/schema cache|does not exist|Could not find/i.test(msg))hint='The database is missing something the site expects. Run the latest supabase-setup.sql in the Supabase SQL Editor, wait ten seconds, and reload.';
+  else if(/permission denied|row-level security|violates row-level/i.test(msg))hint='The database refused this request. Sign out and back in; if it persists, run the latest supabase-setup.sql again.';
+  else if(/Failed to fetch|NetworkError|Load failed/i.test(msg))hint='The browser could not reach Supabase. Check the project URL in CONFIG, and that the project is not paused.';
+  return hint}
+const guard=fn=>async(...a)=>{try{return await fn(...a)}catch(e){console.error(e);const h=explain(e.message);toast('Could not save: '+(e.message||e));if(h)setTimeout(()=>alert((e.message||e)+'\n\n'+h),50)}};
+function showError(e){console.error(e);app.innerHTML=`<div class="entry card"><h1>Something went wrong</h1><p class="muted">${esc(e.message||e)}</p>${explain(e.message)?`<p class="note small">${esc(explain(e.message))}</p>`:''}<p class="row"><a class="btn ghost" href="#/">Back to start</a><a class="btn ghost" href="#/admin">Dashboard</a></p></div>`}
 async function route(){
   const h=(location.hash&&location.hash.length>1?location.hash:CUR)||'#/';CUR=h;
   const path=h.slice(1).split('?')[0];
@@ -569,8 +576,26 @@ async function renderDashboard(){
   const li=c=>{const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};return `<li><div><a href="#/admin/client/${c.id}">${esc(c.name||'Unnamed')}</a><div class="small muted"><span class="code" style="font-size:.8rem;padding:1px 6px">${esc(c.access_code)}</span>${c.access_end?` · until ${fmtShort(c.access_end)}`:''}${ent.remedial?' · remedial add-on':''}</div></div><span class="pill ${st.ok?'supportive':'draft'}">${st.ok?'Active':c.status==='archived'?'Archived':c.status==='inactive'?'Inactive':'Not yet / expired'}</span></li>`};
   app.innerHTML=`<div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Clients</h1><button class="btn" id="newc">New client</button></div>
    <div class="card"><ul class="list">${active.map(li).join('')||'<li class="muted">No clients yet. Create your first client to generate an access code.</li>'}</ul>
-   ${archived.length?`<details style="margin-top:10px"><summary class="small muted">Archived (${archived.length})</summary><ul class="list" style="margin-top:8px">${archived.map(li).join('')}</ul></details>`:''}</div>`;
-  $('#newc').onclick=async()=>{const c=await api.saveClient({id:uuid(),name:'New client',access_code:genCode(),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{}});go('#/admin/client/'+c.id)};
+   ${archived.length?`<details style="margin-top:10px"><summary class="small muted">Archived (${archived.length})</summary><ul class="list" style="margin-top:8px">${archived.map(li).join('')}</ul></details>`:''}</div>
+   <p class="small muted" style="margin-top:18px"><button type="button" class="btn quiet small" id="diag">Connection check</button> <span class="muted">— if something is not saving, run this and send the result to whoever is helping you.</span></p><div id="diagout"></div>`;
+  $('#diag').onclick=runDiagnostics;
+  $('#newc').onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New client',access_code:genCode(),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{}});go('#/admin/client/'+c.id)});
+}
+async function runDiagnostics(){
+  const out=$('#diagout');out.innerHTML='<p class="loading">Checking…</p>';const rows=[];
+  const t=async(name,fn)=>{try{const r=await fn();rows.push([true,name,r===undefined?'ok':String(r)])}catch(e){rows.push([false,name,e.message||String(e)])}};
+  await t('Supabase URL',async()=>CONFIG.SUPABASE_URL);
+  await t('Signed in as astrologer (is_admin)',async()=>{const v=await api.isAdmin();if(!v)throw new Error('false — the session token is not being recognised');return 'true'});
+  await t('Read clients',async()=>(await api.listClients()).length+' rows');
+  await t('Read templates',async()=>(await api.listTemplates()).length+' rows');
+  await t('Read influences',async()=>(await api.listInfluences('00000000-0000-0000-0000-000000000000')).length+' rows (test id)');
+  const tid=uuid();
+  await t('Create a test client',async()=>{const c=await api.saveClient({id:tid,name:'Connection test',access_code:genCode(),status:'inactive',entitlements:{...ENT_DEFAULT},jyotish:{}});return 'created '+c.id.slice(0,8)});
+  await t('Update the test client',async()=>{const c=await api.saveClient({id:tid,name:'Connection test 2',access_code:genCode(),status:'inactive',entitlements:{...ENT_DEFAULT},jyotish:{}});return c.name});
+  await t('Delete the test client',async()=>{await api.deleteClient(tid);return 'deleted'});
+  await t('Client code lookup (client_open)',async()=>{const r=await api.openCalendar('SONNENTAU-XXXXXX');return r.ok?'ok':'refused as expected: '+r.why});
+  out.innerHTML=`<div class="card" style="margin-top:8px"><h3>Connection check</h3><table><tbody>${rows.map(([ok,n,m])=>`<tr><td>${ok?'✓':'✗'}</td><td>${esc(n)}</td><td class="small ${ok?'muted':''}" style="${ok?'':'color:var(--sensitive)'}">${esc(m)}</td></tr>`).join('')}</tbody></table>
+   <p class="small muted" style="margin-top:8px">${rows.every(r=>r[0])?'Everything is working. If a button still does nothing, reload the page and try again.':'Something is failing — the red line says what. '+esc(explain(rows.find(r=>!r[0])[2])||'')}</p></div>`;
 }
 async function renderWorkspace(id){
   if(wsClient!==id){wsClient=id;wsTab='client'}
@@ -608,19 +633,19 @@ function tabClient({c,reload},body){
    ${ENTITLEMENTS.map(([k,l,d])=>`<label class="chk" style="align-items:flex-start"><input type="checkbox" data-ent="${k}" ${ent[k]?'checked':''}><span>${l}<br><span class="small muted">${d}</span></span></label>`).join('')}
    <p style="margin-top:14px"><button type="button" class="btn" id="saveaccess">Save access settings</button>${c.status==='archived'?'<button type="button" class="btn quiet" id="delc">Delete permanently</button>':''}</p>
   </div>`;
-  $('#cf').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const o={...c};for(const [k,v] of f)o[k]=v;await api.saveClient(o);toast('Client saved');reload()};
-  $('#saveaccess').onclick=async()=>{const o={...c,status:$('#status').value,access_start:$('#access_start').value,access_end:$('#access_end').value,entitlements:{}};body.querySelectorAll('[data-ent]').forEach(x=>o.entitlements[x.dataset.ent]=x.checked);await api.saveClient(o);toast('Access updated');reload()};
-  $('#regen').onclick=async()=>{if(confirm('Regenerate the access code? The old code will stop working everywhere.')){await api.saveClient({...c,access_code:genCode()});toast('New code generated');reload()}};
+  $('#cf').onsubmit=guard(async e=>{e.preventDefault();const f=new FormData(e.target);const o={...c};for(const [k,v] of f)o[k]=v;await api.saveClient(o);toast('Client saved');reload()});
+  $('#saveaccess').onclick=guard(async()=>{const o={...c,status:$('#status').value,access_start:$('#access_start').value,access_end:$('#access_end').value,entitlements:{}};body.querySelectorAll('[data-ent]').forEach(x=>o.entitlements[x.dataset.ent]=x.checked);await api.saveClient(o);toast('Access updated');reload()});
+  $('#regen').onclick=guard(async()=>{if(confirm('Regenerate the access code? The old code will stop working everywhere.')){await api.saveClient({...c,access_code:genCode()});toast('New code generated');reload()}});
   $('#copycode').onclick=()=>copy(c.access_code,'Code copied');
   $('#copyinv').onclick=()=>copy(`Hello ${c.name},\n\nYour astrological calendar is ready. Open ${siteUrl} , choose “Client login”, and enter your access code:\n\n${c.access_code}\n\nThe code works on any device. Please keep it private.\n\nAtelier Sonnentau`,'Invitation copied');
-  const del=$('#delc');if(del)del.onclick=async()=>{if(confirm(`Permanently delete ${c.name} and every influence in their calendar? This cannot be undone.`)){await api.deleteClient(c.id);go('#/admin')}};
+  const del=$('#delc');if(del)del.onclick=guard(async()=>{if(confirm(`Permanently delete ${c.name} and every influence in their calendar? This cannot be undone.`)){await api.deleteClient(c.id);go('#/admin')}});
 }
 function tabNatal({c,reload},body){
   body.innerHTML=`<form id="nf"><div class="card"><h2>Natal chart</h2>${txt('Natal placements and notes','natal',c.natal)}</div>
    <div class="card"><h2>Jyotish interpretation</h2><div class="grid3">${JYOTISH_FIELDS.map(f=>fld(f[0].toUpperCase()+f.slice(1),'j:'+f,c.jyotish?.[f]||''))}</div>
    ${txt('Interpretive notes and source references','interpretive_notes',c.interpretive_notes,'record rationale and references here; adapt, do not copy')}
    <p><button class="btn" type="submit">Save</button></p></div></form>`;
-  $('#nf').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const o={...c,jyotish:{...(c.jyotish||{})}};for(const [k,v] of f){if(k.startsWith('j:'))o.jyotish[k.slice(2)]=v;else o[k]=v}await api.saveClient(o);toast('Saved');reload()};
+  $('#nf').onsubmit=guard(async e=>{e.preventDefault();const f=new FormData(e.target);const o={...c,jyotish:{...(c.jyotish||{})}};for(const [k,v] of f){if(k.startsWith('j:'))o.jyotish[k.slice(2)]=v;else o[k]=v}await api.saveClient(o);toast('Saved');reload()});
 }
 function tabCalendar(ctx,body){
   const {c,influences}=ctx;const y=wsCal.year,m=wsCal.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
@@ -736,8 +761,8 @@ function openEditor(ctx,inf,isNew){
   $('#savedraft',dlg).onclick=()=>{if(!form.reportValidity())return;persist(false,'Draft saved')};
   $('#publish',dlg).onclick=()=>{if(!form.reportValidity())return;review()};
   const un=$('#unpub',dlg);if(un)un.onclick=()=>persist(false,'Unpublished');
-  $('#astemplate',dlg).onclick=async()=>{const o=collect();const name=prompt('Template name:',o.title);if(!name)return;const data={};for(const k of ['category','polarity','intensity','client_interpretation','observation_prompt','reflection_prompt','recommended_actions','avoidances','disclaimer','remedial_note','private_notes'])data[k]=o[k];await api.saveTemplate({id:uuid(),name,data});toast('Template saved');ctx.templates=await api.listTemplates()};
-  const del=$('#del',dlg);if(del)del.onclick=async()=>{if(confirm('Delete this influence? Windows within it will be kept but unlinked.')){busy(true);await api.deleteInfluence(inf.id);dlg.close();dlg.remove();ctx.reload()}};
+  $('#astemplate',dlg).onclick=guard(async()=>{const o=collect();const name=prompt('Template name:',o.title);if(!name)return;const data={};for(const k of ['category','polarity','intensity','client_interpretation','observation_prompt','reflection_prompt','recommended_actions','avoidances','disclaimer','remedial_note','private_notes'])data[k]=o[k];await api.saveTemplate({id:uuid(),name,data});toast('Template saved');ctx.templates=await api.listTemplates()});
+  const del=$('#del',dlg);if(del)del.onclick=guard(async()=>{if(confirm('Delete this influence? Windows within it will be kept but unlinked.')){busy(true);try{await api.deleteInfluence(inf.id)}catch(e){busy(false);throw e}dlg.close();dlg.remove();ctx.reload()}});
   $('#close',dlg).onclick=()=>{dlg.close();dlg.remove()};
   dlg.addEventListener('cancel',()=>dlg.remove());
 }
@@ -754,11 +779,11 @@ async function renderTemplates(){
      <label class="f"><span>Default disclaimer</span>${sel('disclaimer',Object.keys(DISCLAIMERS).map(k=>[k,k]),d.disclaimer||'none')}</label>${txt('Private Jyotish rationale','private_notes',d.private_notes)}
      <p><button class="btn" type="submit">Save template</button></p></form></div>`;
     document.body.appendChild(dlg);dlg.showModal();$('#x',dlg).onclick=()=>{dlg.close();dlg.remove()};dlg.addEventListener('cancel',()=>dlg.remove());
-    $('#tf',dlg).onsubmit=async e=>{e.preventDefault();const data={};let name='';for(const [k,v] of new FormData(e.target)){if(k==='name')name=v;else data[k]=k==='intensity'?Number(v):v}await api.saveTemplate({id:t.id||uuid(),name,data});dlg.close();dlg.remove();toast('Template saved');renderTemplates()}};
+    $('#tf',dlg).onsubmit=guard(async e=>{e.preventDefault();const data={};let name='';for(const [k,v] of new FormData(e.target)){if(k==='name')name=v;else data[k]=k==='intensity'?Number(v):v}await api.saveTemplate({id:t.id||uuid(),name,data});dlg.close();dlg.remove();toast('Template saved');renderTemplates()})};
   app.querySelectorAll('[data-e]').forEach(b=>b.onclick=e=>{e.preventDefault();edit(templates.find(t=>t.id===b.dataset.e))});
-  app.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(confirm('Delete this template?')){await api.deleteTemplate(b.dataset.d);renderTemplates()}});
+  app.querySelectorAll('[data-d]').forEach(b=>b.onclick=guard(async()=>{if(confirm('Delete this template?')){await api.deleteTemplate(b.dataset.d);renderTemplates()}}));
   $('#newt').onclick=()=>edit({name:'',data:{}});
-  const st=$('#starter');if(st)st.onclick=async()=>{st.disabled=true;for(const t of STARTER_TEMPLATES)await api.saveTemplate({id:uuid(),name:t.name,data:t.data});toast('Starter templates added');renderTemplates()};
+  const st=$('#starter');if(st)st.onclick=guard(async()=>{st.disabled=true;try{for(const t of STARTER_TEMPLATES)await api.saveTemplate({id:uuid(),name:t.name,data:t.data})}catch(e){st.disabled=false;throw e}toast('Starter templates added');renderTemplates()});
 }
 
 /* ---------------- Boot ---------------- */
