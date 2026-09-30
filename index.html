@@ -379,7 +379,7 @@ function renderHome(){
     <h1>Atelier Sonnentau</h1>
     <p class="sub">My astrological calendar</p>
     <div class="orn" aria-hidden="true">${icon('star','var(--gold)',16)}</div>
-    <div class="actions"><a class="btn" href="#/client">${code?'Open my calendar':'Enter my access code'}</a><a class="btn ghost" href="#/astrologer">Astrologer sign-in</a></div>
+    <div class="actions"><a class="btn" href="#/client">${code?'Open my calendar':'Enter my access code'}</a></div>
   </section>
   <p class="foot">Guidance in this calendar is your astrologer’s interpretation, offered for reflection and planning. It is not medical, legal, financial, or psychological advice.</p></div>`;
 }
@@ -551,7 +551,7 @@ async function renderAstrologerLogin(msg){
   if(localStorage.getItem(TOKEN_KEY)&&!msg){go('#/admin');return}
   app.innerHTML=`<div class="entry card"><h1>Astrologer sign-in</h1><p class="muted small">Enter the astrologer password to open the dashboard.</p>
    <form id="pinform"><label class="sr-only" for="pin">Password</label><input id="pin" type="password" required autocomplete="current-password" placeholder="Password"><div class="err" id="perr" role="alert">${esc(msg||'')}</div><p><button class="btn" type="submit" id="pinbtn">Open dashboard</button></p></form>
-   <p class="small muted" style="margin-top:14px">Forgotten it? Running <code>supabase-setup.sql</code> again in the Supabase SQL Editor restores the default password.</p></div>`;
+</div>`;
   $('#pinform').onsubmit=async e=>{e.preventDefault();const b=$('#pinbtn');b.disabled=true;$('#perr').textContent='';
     try{await api.adminSignIn($('#pin').value);go('#/admin')}
     catch(err){$('#perr').textContent=err.message;b.disabled=false}};
