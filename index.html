@@ -88,6 +88,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--focus);box-shadow:0 0
 textarea{min-height:78px;resize:vertical}
 .chk{display:flex;align-items:center;gap:9px;font-size:.93rem;margin:7px 0}
 .chk input{width:18px;height:18px;accent-color:var(--primary);flex:none}
+.chips{gap:6px}
+.chip{position:relative;cursor:pointer}
+.chip input{position:absolute;opacity:0;width:1px;height:1px}
+.chip span{display:inline-block;border:1px solid var(--line-strong);border-radius:999px;padding:2px 11px;font-size:.88rem;background:var(--surface);transition:background .12s,color .12s}
+.chip input:checked+span{background:var(--primary);color:#fff;border-color:var(--primary)}
+.chip input:focus-visible+span{outline:3px solid var(--focus);outline-offset:2px}
 .muted{color:var(--muted)} .small{font-size:.92rem}
 .tag{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;font-size:.84rem;background:var(--surface)}
 .tag .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
@@ -143,6 +149,8 @@ textarea{min-height:78px;resize:vertical}
 .day .more{font-size:.68rem;line-height:1;color:var(--muted);letter-spacing:.02em}
 .day .band{position:absolute;left:5px;right:5px;top:4px;height:4px;border-radius:3px}
 .day .band.b2{top:10px}
+.day .band.notch{height:6px;top:3px}
+.day .marks .win{display:inline-flex;border:1.5px solid;border-radius:50%;padding:1px;line-height:0}
 .day.tint-supportive{background:linear-gradient(var(--supportive-soft),transparent 80%)}
 .day.tint-caution{background:linear-gradient(var(--caution-soft),transparent 80%)}
 .day.tint-mixed{background:linear-gradient(var(--mixed-soft),transparent 80%)}
@@ -163,6 +171,12 @@ textarea{min-height:78px;resize:vertical}
 .inf .sec h5{margin:0 0 2px;font-size:.74rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:600}
 .inf .sec p,.inf .sec ul{margin:0;font-size:.95rem}
 .inf .sec ul{padding-left:18px}
+.inf .pred{font-style:italic;margin-top:4px!important}
+.inf .areas{display:flex;flex-wrap:wrap;gap:10px 22px}
+.tag.sup{background:var(--supportive-soft);border-color:transparent}
+.tag.dif{background:var(--caution-soft);border-color:transparent}
+.winlink{cursor:pointer;font:inherit;font-size:.84rem}
+.winlink:hover{background:var(--surface-2)}
 .inf .disc{font-size:.8rem;line-height:1.45;color:var(--muted);opacity:.85;border-top:1px dashed var(--line-strong);padding-top:7px;margin-top:10px}
 .daydisc{font-size:.8rem;line-height:1.45;color:var(--muted);opacity:.8;margin-top:14px}
 details summary{cursor:pointer;font-weight:600;font-size:.93rem;list-style:none;display:flex;align-items:center;gap:8px}
@@ -299,7 +313,7 @@ const configured=()=>/^https:\/\/[^/]+$/.test(CONFIG.SUPABASE_URL)&&CONFIG.SUPAB
 if(configured()&&window.supabase)makeClient();
 const chk=({data,error})=>{if(error)throw new Error(error.message||String(error));return data};
 function cleanClient(c){const o={...c};delete o.created_at;delete o.updated_at;for(const k of ['birth_date','birth_time','access_start','access_end'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.entitlements={...ENT_DEFAULT,...(o.entitlements||{})};return o}
-function cleanInfluence(i){const o={...i};delete o.created_at;delete o.updated_at;for(const k of ['start_time','end_time','parent_id'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.source_reference=o.source_reference||{};o.secondary_categories=o.secondary_categories||[];if(o.end_date<o.start_date)o.end_date=o.start_date;return o}
+function cleanInfluence(i){const o={...i};delete o.created_at;delete o.updated_at;for(const k of ['start_time','end_time','parent_id'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.source_reference=o.source_reference||{};o.secondary_categories=o.secondary_categories||[];o.supportive_for=o.supportive_for||[];o.difficult_for=o.difficult_for||[];if(o.end_date<o.start_date)o.end_date=o.start_date;return o}
 const api={
   async adminSignIn(password){
     const r=chk(await sb.rpc('astrologer_login',{p_password:password}));
@@ -467,9 +481,11 @@ function drawCalendar(pkg,root,opts={}){
     const points=here.filter(i=>i.start_date===i.end_date||i.parent_id);
     const dominant=points[0];
     const ordered=[...points,...here.filter(i=>!points.includes(i))];
-    const allMarks=[...ordered.map(i=>icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)),...(here.some(i=>i.significant)?[icon('star','var(--significant)')]:[])];
+    const mk=i=>{const ic=icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color);const par=i.parent_id&&(pkg.influences||[]).find(x=>x.id===i.parent_id);return par?`<span class="win" style="border-color:${POLARITY[par.polarity].color}" title="Window within “${esc(par.title)}”">${ic}</span>`:ic};
+    const allMarks=[...ordered.map(mk),...(here.some(i=>i.significant)?[icon('star','var(--significant)')]:[])];
     const marks=allMarks.slice(0,4).join('')+(allMarks.length>4?`<span class="more">+${allMarks.length-4}</span>`:'');
-    const bands=longs.map((i,ix)=>`<span class="band ${ix?'b2':''}" style="background:${POLARITY[i.polarity].color};opacity:${i.start_date===ds||i.end_date===ds?.95:.6}"></span>`).join('');
+    const hasWin=i=>here.some(w=>w.parent_id===i.id);
+    const bands=longs.map((i,ix)=>`<span class="band ${ix?'b2':''}${hasWin(i)?' notch':''}" style="background:${POLARITY[i.polarity].color};opacity:${i.start_date===ds||i.end_date===ds||hasWin(i)?.95:.55}"></span>`).join('');
     const tint=dominant?` tint-${dominant.polarity}`:'';
     const label=`${fmtDate(ds)}${here.length?', '+here.map(i=>i.accessibility_label||`${POLARITY[i.polarity].label}: ${CAT[i.category]||i.category}`).join('; '):', no entries'}`;
     cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}${ds===calState.selected?' sel':''}${tint}" data-d="${ds}" aria-label="${esc(label)}" ${other?'tabindex="-1"':''}>${bands}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`;
@@ -481,7 +497,7 @@ function drawCalendar(pkg,root,opts={}){
   const filterDesc=[prefs.mode!=='everything'?`showing “${{essential:'Essential',supportive:'Supportive',caution:'Caution'}[prefs.mode]}” only`:'',hiddenCats.length?`${hiddenCats.length} area${hiddenCats.length>1?'s':''} hidden`:'',prefs.intention?`intention “${prefs.intention}”`:''].filter(Boolean).join(' · ');
   const banner=filtersOn?`<p class="note small" style="margin:0 0 12px;background:var(--caution-soft);color:#6d4f22">Display options are limiting this calendar (${esc(filterDesc)}) — ${hiddenCount} influence${hiddenCount===1?'':'s'} hidden. <button type="button" class="btn ghost small" id="resetprefs">${opts.preview?'Reset this client’s display options':'Show everything'}</button></p>`:'';
   const hint=monthHint(visible,y,m);
-  const legend=Object.entries(POLARITY).map(([k,p])=>`<div>${icon(p.shape,p.color)}<span>${p.label}</span></div>`).join('')+`<div>${icon('star','var(--significant)')}<span>Especially significant</span></div><div><span class="mark" style="height:3px;background:var(--mixed);opacity:.6;border-radius:2px"></span><span>Longer period</span></div>`;
+  const legend=Object.entries(POLARITY).map(([k,p])=>`<div>${icon(p.shape,p.color)}<span>${p.label}</span></div>`).join('')+`<div>${icon('star','var(--significant)')}<span>Especially significant</span></div><div><span class="mark" style="height:3px;background:var(--mixed);opacity:.6;border-radius:2px"></span><span>Longer period</span></div><div><span style="display:inline-flex;border:1.5px solid var(--mixed);border-radius:50%;padding:1px;line-height:0">${icon('circle','var(--supportive)',10)}</span><span>Window within a longer period</span></div>`;
   const catChecks=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(([k,l])=>`<label class="chk"><input type="checkbox" data-cat="${k}" ${shown(k)?'checked':''}><span class="tag"><span class="dot" style="background:var(--cat-${k})"></span>${l}</span></label>`).join('');
   root.innerHTML=`<div class="layout">
    <section aria-label="Month calendar">
@@ -523,6 +539,7 @@ function drawCalendar(pkg,root,opts={}){
   </div>`;
   const redraw=()=>drawCalendar(pkg,root,opts);
   bindJump(root,(yy,mm)=>{calState.year=yy;calState.month=mm;redraw()});
+  root.addEventListener('click',e=>{const b=e.target.closest('[data-goto]');if(!b)return;const d=b.dataset.goto;const [yy,mm]=d.split('-').map(Number);if(yy!==calState.year||mm-1!==calState.month){calState.year=yy;calState.month=mm-1;calState.selected=d;redraw()}else{calState.selected=d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===d));drawDay(pkg,visible,d,root)}});
   const rp=$('#resetprefs',root);if(rp)rp.onclick=()=>{prefs.mode='everything';prefs.intention='';prefs.hidden=[];pkg.prefs=prefs;if(opts.code)api.setPrefs(opts.code,prefs).catch(()=>{});toast(opts.preview?'Display options reset for this client':'Showing everything');redraw()};
   root.__resetPrefs=()=>{prefs.mode='everything';prefs.hidden=[];prefs.intention='';savePrefs();redraw()};
   root.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calState.month+=Number(b.dataset.nav);if(calState.month<0){calState.month=11;calState.year--}if(calState.month>11){calState.month=0;calState.year++}redraw()});
@@ -546,12 +563,13 @@ function drawDay(pkg,visible,ds,root){
     <div class="meta"><span class="pill ${i.polarity}">${icon(p.shape,p.color,12)} ${p.label}</span>${i.significant?`<span class="pill significant">${icon('star','var(--significant)',12)} Especially significant</span>`:''}<span class="tag"><span class="dot" style="background:var(--cat-${i.category})"></span>${esc(CAT[i.category]||'General')}</span>${(i.secondary_categories||[]).map(c=>`<span class="tag">${esc(CAT[c]||c)}</span>`).join('')}</div>
     <h4>${esc(i.title)}</h4>
     <div class="meta">${dur}${i.start_time?` · ${t5(i.start_time)}${i.end_time?'–'+t5(i.end_time):''}`:''} · Intensity ${i.intensity} of 5${parent?` · within “${esc(parent.title)}”`:''}</div>
-    ${sec('Interpretation',i.client_interpretation)}
+    ${(i.client_interpretation||i.prediction)?`<div class="sec"><h5>Interpretation</h5>${i.client_interpretation?`<p>${esc(i.client_interpretation)}</p>`:''}${i.prediction?`<p class="pred">${esc(i.prediction)}</p>`:''}</div>`:''}
+    ${((i.supportive_for||[]).length||(i.difficult_for||[]).length)?`<div class="sec areas">${(i.supportive_for||[]).length?`<div><h5>Supportive for</h5><div class="row" style="gap:5px">${i.supportive_for.map(k=>`<span class="tag sup"><span class="dot" style="background:var(--supportive)"></span>${esc(CAT[k]||k)}</span>`).join('')}</div></div>`:''}${(i.difficult_for||[]).length?`<div><h5>May be difficult for</h5><div class="row" style="gap:5px">${i.difficult_for.map(k=>`<span class="tag dif"><span class="dot" style="background:var(--caution)"></span>${esc(CAT[k]||k)}</span>`).join('')}</div></div>`:''}</div>`:''}
+    ${(()=>{const kids=(pkg.influences||[]).filter(x=>x.parent_id===i.id).sort((a,b)=>a.start_date<b.start_date?-1:1);return kids.length?`<div class="sec"><h5>Windows within this period</h5><div class="row" style="gap:5px">${kids.map(k=>`<button type="button" class="tag winlink" data-goto="${k.start_date}" title="${esc(k.title)}">${icon(POLARITY[k.polarity].shape,POLARITY[k.polarity].color,11)} ${fmtShort(k.start_date)}${k.end_date!==k.start_date?' – '+fmtShort(k.end_date):''}${k.start_date===ds?' · today':''}</button>`).join('')}</div></div>`:''})()}
     ${sec('What you may notice',i.observation_prompt)}
     ${sec('Consider',i.reflection_prompt)}
-    ${sec('Things you might do',i.recommended_actions,true)}
+    ${sec('Suggestions',i.recommended_actions,true)}
     ${sec('Consider postponing',i.avoidances,true)}
-    ${sec('A possibility to observe',i.prediction)}
     ${sec('Optional practice',i.remedial_note)}
     ${sec('Astrological basis',i.technical_basis)}
     ${disc?`<div class="disc">${esc(disc)}</div>`:''}
@@ -714,11 +732,13 @@ function tabClient({c,reload},body){
   const del=$('#delc');if(del)del.onclick=guard(async()=>{if(confirm(`Permanently delete ${c.name} and every influence in their calendar? This cannot be undone.`)){await api.deleteClient(c.id);go('#/admin')}});
 }
 function tabNatal({c,reload},body){
-  body.innerHTML=`<form id="nf"><div class="card"><h2>Natal chart</h2>${txt('Natal placements and notes','natal',c.natal)}</div>
-   <div class="card"><h2>Jyotish interpretation</h2><div class="grid3">${JYOTISH_FIELDS.map(f=>fld(f[0].toUpperCase()+f.slice(1),'j:'+f,c.jyotish?.[f]||''))}</div>
-   ${txt('Interpretive notes and source references','interpretive_notes',c.interpretive_notes,'record rationale and references here; adapt, do not copy')}
+  const prev=Object.entries(c.jyotish||{}).filter(([,v])=>v);
+  body.innerHTML=`<form id="nf"><div class="card"><h2>Natal chart &amp; Jyotish notes</h2><p class="small muted">Private. Never appears in the client portal.</p>
+   ${txt('Natal placements','natal',c.natal,'lagna, graha by rashi and bhava, nakshatra — in your own words')}
+   ${txt('Dasha, interpretive notes and references','interpretive_notes',c.interpretive_notes,'current dasha / antardasha, rationale, sources (adapt, do not copy)')}
+   ${prev.length?`<p class="small muted">Previously recorded factors: ${prev.map(([k,v])=>`${esc(k)}: ${esc(v)}`).join(' · ')}</p>`:''}
    <p><button class="btn" type="submit">Save</button></p></div></form>`;
-  $('#nf').onsubmit=guard(async e=>{e.preventDefault();const f=new FormData(e.target);const o={...c,jyotish:{...(c.jyotish||{})}};for(const [k,v] of f){if(k.startsWith('j:'))o.jyotish[k.slice(2)]=v;else o[k]=v}await api.saveClient(o);toast('Saved');reload()});
+  $('#nf').onsubmit=guard(async e=>{e.preventDefault();const f=new FormData(e.target);const o={...c};for(const [k,v] of f)o[k]=v;await api.saveClient(o);toast('Saved');reload()});
 }
 function tabCalendar(ctx,body){
   const {c,influences}=ctx;const y=wsCal.year,m=wsCal.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
@@ -747,7 +767,7 @@ function tabCalendar(ctx,body){
 }
 function blankInfluence(clientId){return {id:uuid(),client_id:clientId,parent_id:null,title:'',start_date:todayStr(),start_time:'',end_date:todayStr(),end_time:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
   polarity:'supportive',significant:false,intensity:'',category:'',secondary_categories:[],client_interpretation:'',observation_prompt:'',reflection_prompt:'',recommended_actions:'',avoidances:'',prediction:'',remedial_note:'',disclaimer:'none',custom_disclaimer:'',
-  private_notes:'',technical_basis:'',jyotish:{},source_reference:{},published:false,show_exact_time:false,show_prediction:true,show_technical_basis:false,calendar_sync_enabled:true,accessibility_label:''}}
+  private_notes:'',technical_basis:'',jyotish:{},source_reference:{},supportive_for:[],difficult_for:[],published:false,show_exact_time:false,show_prediction:true,show_technical_basis:false,calendar_sync_enabled:true,accessibility_label:''}}
 function tabInfluences(ctx,body){
   const {c,influences,templates}=ctx;const all=[...influences].sort((a,b)=>a.start_date<b.start_date?-1:1);
   const ent={...ENT_DEFAULT,...(c.entitlements||{})};
@@ -793,27 +813,28 @@ function openEditor(ctx,inf,isNew){
      <label class="f"><span>Primary category</span>${sel('category',[['','— choose —'],...CATEGORIES],inf.category||'')}</label>
     </div>
     <label class="chk"><input type="checkbox" name="significant" ${inf.significant?'checked':''}>Mark as especially significant (star marker)</label>
-    <label class="f"><span>Secondary categories</span></label><div class="row">${CATEGORIES.map(([k,l])=>`<label class="chk" style="margin:0"><input type="checkbox" name="sec" value="${k}" ${(inf.secondary_categories||[]).includes(k)?'checked':''}>${l}</label>`).join('')}</div>
+    <label class="f"><span>Secondary categories (optional)</span></label><div class="row chips">${CATEGORIES.map(([k,l])=>`<label class="chip"><input type="checkbox" name="sec" value="${k}" ${(inf.secondary_categories||[]).includes(k)?'checked':''}><span>${l}</span></label>`).join('')}</div>
     ${fld('Accessibility label (screen readers; blank = auto)','accessibility_label',inf.accessibility_label)}
     <div id="sigpreview" class="small muted" style="margin-top:8px"></div>
    </fieldset>
    <fieldset><legend>Client-facing text</legend>
-    ${txt('Interpretation','client_interpretation',inf.client_interpretation,'“This period may support…”')}
+    ${txt('Interpretation','client_interpretation',inf.client_interpretation,'“This period may support…” — shown first')}
+    ${txt('Prediction (optional, calibrated)','prediction',inf.prediction,'appears in italics directly under the interpretation')}
+    <label class="chk" style="margin-top:2px"><input type="checkbox" name="show_prediction" ${inf.show_prediction?'checked':''}>Show the prediction to the client</label>
+    <div id="mixedareas" class="${inf.polarity==='mixed'?'':'hidden'}"><label class="f"><span>Mixed period — supportive for</span></label><div class="row chips">${CATEGORIES.map(([k,l])=>`<label class="chip"><input type="checkbox" name="sup" value="${k}" ${(inf.supportive_for||[]).includes(k)?'checked':''}><span>${l}</span></label>`).join('')}</div>
+    <label class="f"><span>Mixed period — may be difficult for</span></label><div class="row chips">${CATEGORIES.map(([k,l])=>`<label class="chip"><input type="checkbox" name="dif" value="${k}" ${(inf.difficult_for||[]).includes(k)?'checked':''}><span>${l}</span></label>`).join('')}</div></div>
     ${txt('Notice — what the client may observe','observation_prompt',inf.observation_prompt)}
     ${txt('Consider — what the client may reflect on','reflection_prompt',inf.reflection_prompt)}
-    ${txt('Act — things they might reasonably do','recommended_actions',inf.recommended_actions,'one per line')}
+    ${txt('Suggestions — things they might reasonably do','recommended_actions',inf.recommended_actions,'one per line')}
     ${txt('Consider postponing','avoidances',inf.avoidances,'one per line')}
-    ${txt('Prediction (optional, calibrated)','prediction',inf.prediction,'“A conversation may bring…”')}
-    <label class="chk"><input type="checkbox" name="show_prediction" ${inf.show_prediction?'checked':''}>Show prediction to client (only when they open the day)</label>
     ${txt('Remedial note (optional)','remedial_note',inf.remedial_note,'shown only to clients with the remedial add-on')}
     <label class="f"><span>Professional disclaimer</span>${sel('disclaimer',[...Object.keys(DISCLAIMERS).map(k=>[k,k]),['custom','custom']],inf.disclaimer)}</label>
     ${txt('Custom disclaimer text','custom_disclaimer',inf.custom_disclaimer)}
    </fieldset>
    <fieldset><legend>Private — never shown to the client</legend>
-    ${txt('Private astrologer notes','private_notes',inf.private_notes)}
-    ${txt('Technical basis','technical_basis',inf.technical_basis,'e.g. “Shukra gochara over 10L; Guru drishti”')}
-    <details><summary class="small">Jyotish factors</summary><div class="grid3">${JYOTISH_FIELDS.map(f=>fld(f[0].toUpperCase()+f.slice(1),'j:'+f,inf.jyotish?.[f]||''))}</div></details>
-    <details><summary class="small">Source reference</summary><div class="grid2">${fld('Source title','s:title',inf.source_reference?.title||'')}${fld('URL or bibliographic reference','s:url',inf.source_reference?.url||'')}</div>${fld('Relevant concept','s:concept',inf.source_reference?.concept||'')}${txt('Private source note (adapted interpretation, not quoted text)','s:note',inf.source_reference?.note||'')}</details>
+    ${txt('Private notes','private_notes',inf.private_notes,'your rationale, Jyotish factors, sources — free text')}
+    ${txt('Technical basis','technical_basis',inf.technical_basis,'one line, e.g. “Shukra gochara over 10L; Guru drishti” — can be shown to the client below')}
+    ${(()=>{const j=Object.entries(inf.jyotish||{}).filter(([,v])=>v);const sr=Object.entries(inf.source_reference||{}).filter(([,v])=>v);return (j.length||sr.length)?`<p class="small muted">Previously recorded: ${[...j,...sr].map(([k,v])=>`${esc(k)}: ${esc(v)}`).join(' · ')}</p>`:''})()}
    </fieldset>
    <fieldset><legend>Visibility</legend>
     <label class="chk"><input type="checkbox" name="show_exact_time" ${inf.show_exact_time?'checked':''}>Show exact times to the client</label>
@@ -827,15 +848,16 @@ function openEditor(ctx,inf,isNew){
    </div></form></div>`;
   document.body.appendChild(dlg);dlg.showModal();
   const form=$('#ef',dlg);
-  const collect=()=>{const f=new FormData(form);const o={};const j={},s={};const secs=[];
-    for(const [k,v] of f){if(k==='sec')secs.push(v);else if(k.startsWith('j:'))j[k.slice(2)]=v;else if(k.startsWith('s:'))s[k.slice(2)]=v;else o[k]=v}
+  const collect=()=>{const f=new FormData(form);const o={};const j=inf.jyotish||{},s=inf.source_reference||{};const secs=[],sup=[],dif=[];
+    for(const [k,v] of f){if(k==='sec')secs.push(v);else if(k==='sup')sup.push(v);else if(k==='dif')dif.push(v);else if(k.startsWith('j:'))j[k.slice(2)]=v;else if(k.startsWith('s:'))s[k.slice(2)]=v;else o[k]=v}
+    o.supportive_for=o.polarity==='mixed'?sup:[];o.difficult_for=o.polarity==='mixed'?dif:[];
     for(const cb of ['significant','show_prediction','show_exact_time','show_technical_basis','calendar_sync_enabled'])o[cb]=form.elements[cb].checked;
     o.intensity=o.intensity===''?'':Math.min(5,Math.max(1,Number(o.intensity)||1));o.secondary_categories=secs.filter(x=>x!==o.category);o.jyotish=j;o.source_reference=s;o.parent_id=o.parent_id||null;
     o.start_date=fixYear(o.start_date);o.end_date=fixYear(o.end_date);
     if(o.end_date<o.start_date)o.end_date=o.start_date;return o};
   const datesOk=()=>{const o=collect();if(!yearOk(o.start_date)||!yearOk(o.end_date)){alert(`The year in the dates looks wrong (${yearOf(o.start_date)}). Please enter a four-digit year such as ${new Date().getFullYear()}.`);return false}return true};
   const updateSig=()=>{const o=collect();const p=POLARITY[o.polarity];$('#sigpreview',dlg).innerHTML=`Marker: ${icon(p.shape,p.color)} <strong>${p.label}</strong> · ${p.hint}${o.category?` · Category accent <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--cat-${o.category})"></span> ${esc(CAT[o.category])}`:' · <em>choose a category</em>'}${o.significant?' · '+icon('star','var(--significant)')+' significant':''}${o.category==='remedies'?' · <em>visible only to clients with the remedial add-on</em>':''}`};
-  form.addEventListener('input',updateSig);updateSig();
+  form.addEventListener('input',()=>{updateSig();$('#mixedareas',dlg).classList.toggle('hidden',form.elements.polarity.value!=='mixed')});updateSig();
   const review=()=>{const o=collect();const fields={Title:o.title,Interpretation:o.client_interpretation,Notice:o.observation_prompt,Consider:o.reflection_prompt,Act:o.recommended_actions,Postpone:o.avoidances,Prediction:o.prediction,Remedial:o.remedial_note};
     const hits=Object.entries(fields).map(([k,v])=>[k,langCheck(v)]).filter(([,h])=>h.length);
     const missing=[];if(!o.client_interpretation)missing.push('an interpretation');if(o.category==='health'&&!['health','custom'].includes(o.disclaimer))missing.push('a health boundary disclaimer');if(o.category==='legal'&&!['legal','custom'].includes(o.disclaimer))missing.push('a legal disclaimer');if(o.category==='money'&&!['financial','custom'].includes(o.disclaimer))missing.push('a financial disclaimer');if((o.category==='remedies'||o.remedial_note)&&!['remedy','custom'].includes(o.disclaimer))missing.push('the remedy disclaimer');
@@ -847,7 +869,7 @@ function openEditor(ctx,inf,isNew){
      ${missing.length?`<div class="warn" style="margin-top:8px">Consider adding ${missing.join(', ')}.</div>`:''}
      <h4 style="margin-top:12px">Client will see</h4><div id="pvblock"></div>
      <p class="row"><button class="btn" type="button" id="confirmpub">Publish now</button><button class="btn ghost" type="button" id="backedit">Keep editing</button></p></div>`;
-    const proj={...o,id:inf.id,start_time:o.show_exact_time?o.start_time:'',end_time:o.show_exact_time?o.end_time:'',prediction:o.show_prediction?o.prediction:'',technical_basis:o.show_technical_basis?o.technical_basis:'',custom_disclaimer:o.disclaimer==='custom'?o.custom_disclaimer:''};
+    const proj={...o,id:inf.id,supportive_for:o.supportive_for,difficult_for:o.difficult_for,start_time:o.show_exact_time?o.start_time:'',end_time:o.show_exact_time?o.end_time:'',prediction:o.show_prediction?o.prediction:'',technical_basis:o.show_technical_basis?o.technical_basis:'',custom_disclaimer:o.disclaimer==='custom'?o.custom_disclaimer:''};
     const stub=document.createElement('div');stub.innerHTML='<div id="daypanel"></div>';drawDay({influences:[proj],default_disclaimer:'none'},[proj],o.start_date,stub);$('#pvblock',dlg).innerHTML=stub.querySelector('.inf')?.outerHTML||'';
     $('#review',dlg).scrollIntoView({behavior:'smooth'});
     $('#confirmpub',dlg).onclick=()=>persist(true,'Published');$('#backedit',dlg).onclick=()=>{$('#review',dlg).innerHTML=''}};
