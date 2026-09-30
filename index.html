@@ -229,7 +229,8 @@ legend{font-family:var(--serif);font-size:1.15rem;padding:0 8px;color:var(--prim
 .kundli .p-sel{fill:var(--primary);font-weight:700}
 .kundli .p-mark{fill:var(--significant);font-weight:600;text-decoration:underline}
 .kundli .p-contact{fill:var(--sensitive);font-weight:700;text-decoration:underline double}
-.kundli .drishti line{stroke:var(--caution);stroke-width:.7;stroke-dasharray:2 1.2;opacity:.9;pointer-events:none}
+.kundli .drishti path{fill:none;stroke:var(--caution);stroke-width:.7;stroke-dasharray:2 1.2;opacity:.9;pointer-events:none;stroke-linecap:round}
+.kundli .drishti .dend{fill:var(--caution);pointer-events:none}
 .kundli .drishti .dlab{fill:var(--surface);stroke:var(--caution);stroke-width:.5;pointer-events:none}
 .kundli .drishti .dtxt{font-size:2.6px;fill:#7a5a27;font-weight:700;pointer-events:none}
 .goch .g-time{background:var(--surface-2);border-radius:12px;padding:10px 12px}
@@ -497,7 +498,12 @@ function renderSouthIndianChart(chart,o){const {refSign,planets}=chart;const hi=
     s+=stack(hs.planets,x+12.5,y+14.5,'mid',hi)}
   return s+'</svg>'}
 function drishtiLines(hi,centre){if(!hi.occupied||!hi.drishti||!hi.drishti.length)return '';const from=centre(hi.occupied[0]);let s='<g class="drishti">';
-  for(const d of hi.drishti){const to=centre(d.sign);const mx=from[0]+(to[0]-from[0])*0.7,my=from[1]+(to[1]-from[1])*0.7;s+=`<line x1="${from[0]}" y1="${from[1]}" x2="${to[0]}" y2="${to[1]}"/><circle cx="${mx}" cy="${my}" r="2.5" class="dlab"/><text x="${mx}" y="${my+0.15}" text-anchor="middle" dominant-baseline="middle" class="dtxt">${d.n}</text>`}
+  const list=hi.drishti.slice().sort((a,b)=>a.n-b.n);
+  list.forEach((d,i)=>{const to=centre(d.sign);let dx=to[0]-from[0],dy=to[1]-from[1];const len=Math.hypot(dx,dy)||1;dx/=len;dy/=len;
+    const a=[from[0]+dx*7,from[1]+dy*7],b=[to[0]-dx*11.5,to[1]-dy*11.5]; // start and end clear of the planet labels
+    const bow=(i%2?-1:1)*Math.min(9,len*0.16)*(1+Math.floor(i/2)*0.6);const cx=(a[0]+b[0])/2-dy*bow,cy=(a[1]+b[1])/2+dx*bow; // alternate sides so lines never stack
+    const lx=b[0]-dy*(i%2?-1:1)*2.8,ly=b[1]+dx*(i%2?-1:1)*2.8;
+    s+=`<path d="M${a[0].toFixed(1)},${a[1].toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)}"/><circle cx="${b[0].toFixed(1)}" cy="${b[1].toFixed(1)}" r="1.1" class="dend"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.4" class="dlab"/><text x="${lx.toFixed(1)}" y="${(ly+0.15).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" class="dtxt">${d.n}</text>`});
   return s+'</g>'}
 const render=(chart,o)=>o.style==='south'?renderSouthIndianChart(chart,o):renderNorthIndianChart(chart,o);
 
@@ -611,7 +617,7 @@ function mount(container,client,opts={}){
      </div>
      ${S.ref==='sky'?`<p class="small muted row" style="gap:6px">Transit sky uses location: <input type="number" id="g-lat" step="0.0001" value="${st.skyLat??''}" placeholder="lat" style="width:110px;padding:3px 6px"><input type="number" id="g-lon" step="0.0001" value="${st.skyLon??''}" placeholder="lon (E+)" style="width:110px;padding:3px 6px">${c.skyAsc?`· sky Lagna ${G.RASHI[Math.floor(c.skyAsc.sidereal/30)]} ${G.fmtDeg(c.skyAsc.sidereal%30)}`:'· enter a location'}</p>`:''}
      <div class="g-charts ${st.mobileView}">
-      <figure class="g-fig natal"><figcaption><span class="seg small"><button type="button" data-natalref="lagna" aria-pressed="${S.natalRef==='lagna'}" ${natalAsc?'':'disabled'}>Rasi (Lagna)</button><button type="button" data-natalref="moon" aria-pressed="${S.natalRef==='moon'}">Chandra lagna</button></span><div class="cap">Natal · ${client.name?esc(client.name):''} <span class="muted">${natalAsc?'Lagna '+G.RASHI[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}</span></div></figcaption>${render(natalModel,{style:S.style,highlight:hi.natal,cls:'natal',centreLabel:S.natalRef==='moon'?'Chandra lagna':'Rasi'})}</figure>
+      <figure class="g-fig natal"><figcaption><span class="seg small"><button type="button" data-natalref="lagna" aria-pressed="${S.natalRef==='lagna'}" ${natalAsc?'':'disabled'}>Lagna</button><button type="button" data-natalref="moon" aria-pressed="${S.natalRef==='moon'}">Rasi (Chandra)</button></span><div class="cap">Natal · ${client.name?esc(client.name):''} <span class="muted">${natalAsc?'Lagna '+G.RASHI[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}</span></div></figcaption>${render(natalModel,{style:S.style,highlight:hi.natal,cls:'natal',centreLabel:S.natalRef==='moon'?'Rasi':'Lagna'})}</figure>
       <figure class="g-fig transit"><figcaption><span class="seg small"><button type="button" data-ref="lagna" aria-pressed="${S.ref==='lagna'}" ${natalAsc?'':'disabled'}>from Lagna</button><button type="button" data-ref="moon" aria-pressed="${S.ref==='moon'}">from Chandra</button><button type="button" data-ref="sky" aria-pressed="${S.ref==='sky'}">Sky</button></span><div class="cap">Gochara · ${z.date} ${z.time} <span class="muted">${refWord}</span></div></figcaption>${render(trModel,{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})}</figure>
       <div class="g-legend small muted"><span><i class="sw occ"></i> occupied by the selected graha</span><span><i class="sw dr"></i> receives its drishti</span><span><i class="sw tg"></i> natal graha under transit</span><span><i class="sw sel"></i> selected bhava</span><span><u>marked</u> natal graha affected · <u style="text-decoration-style:double">contact</u> within ${S.orb}°</span></div>
       <div class="g-mobile seg"><button type="button" data-view="natal" aria-pressed="${st.mobileView==='natal'}">Natal</button><button type="button" data-view="both" aria-pressed="${st.mobileView==='both'}">Both</button><button type="button" data-view="transit" aria-pressed="${st.mobileView==='transit'}">Transit</button></div>
