@@ -139,9 +139,10 @@ textarea{min-height:78px;resize:vertical}
 .day.sel{box-shadow:inset 0 0 0 1.5px var(--primary);background:var(--surface-2)}
 .day .num{font-size:.86rem;color:var(--muted);font-weight:500;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px}
 .day.today .num{background:var(--primary);color:#fff}
-.day .marks{display:flex;flex-wrap:wrap;gap:3px;margin-top:auto;min-height:14px}
-.day .band{position:absolute;left:7px;right:7px;top:4px;height:3px;border-radius:3px}
-.day .band.b2{top:9px}
+.day .marks{display:flex;flex-wrap:wrap;gap:3px;margin-top:auto;min-height:14px;align-items:center}
+.day .more{font-size:.68rem;line-height:1;color:var(--muted);letter-spacing:.02em}
+.day .band{position:absolute;left:5px;right:5px;top:4px;height:4px;border-radius:3px}
+.day .band.b2{top:10px}
 .day.tint-supportive{background:linear-gradient(var(--supportive-soft),transparent 80%)}
 .day.tint-caution{background:linear-gradient(var(--caution-soft),transparent 80%)}
 .day.tint-mixed{background:linear-gradient(var(--mixed-soft),transparent 80%)}
@@ -262,6 +263,10 @@ const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.get
 const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const fmtDate=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'short',year:'numeric',month:'long',day:'numeric'})};
 const fmtShort=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{month:'short',day:'numeric'})};
+const fmtYear=s=>{if(!s)return'';const [y,m,d]=s.split('-').map(Number);if(!yearOk(s))return `${d} ${new Date(2000,m-1,1).toLocaleDateString(undefined,{month:'short'})} ${String(y).padStart(4,'0')}`;return new Date(y,m-1,d).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})};
+const yearOf=s=>Number(String(s||'').split('-')[0]);
+const yearOk=s=>{const y=yearOf(s);return y>=2000&&y<=2100};
+const fixYear=s=>{if(!s)return s;const [y,m,d]=String(s).split('-');const n=Number(y);if(n>=0&&n<100)return `${2000+n}-${m}-${d}`;return s};
 const t5=v=>v?String(v).slice(0,5):'';
 const lines=t=>String(t||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
 const nn=v=>v===''||v===undefined?null:v;
@@ -345,7 +350,7 @@ function showError(e){console.error(e);app.innerHTML=`<div class="entry card"><h
 async function route(){
   const h=(location.hash&&location.hash.length>1?location.hash:CUR)||'#/';CUR=h;
   const path=h.slice(1).split('?')[0];
-  window.scrollTo({top:0});
+  window.scrollTo({top:0});stopRefresh();
   try{
     if(!configured()&&!MOCKED){renderSetup();return}
     if(path==='/client')return renderClientLogin();
@@ -402,6 +407,8 @@ function clientSignOut(){localStorage.removeItem(CODE_KEY);go('#/')}
 
 /* ---------------- Client calendar ---------------- */
 let calState={year:new Date().getFullYear(),month:new Date().getMonth(),selected:todayStr()};
+let refreshTimer=null,refreshOnShow=null;
+function stopRefresh(){if(refreshTimer)clearInterval(refreshTimer);refreshTimer=null;if(refreshOnShow)document.removeEventListener('visibilitychange',refreshOnShow);refreshOnShow=null}
 async function renderCalendar(){
   const code=localStorage.getItem(CODE_KEY);
   if(!code){go('#/client');return}
@@ -418,17 +425,35 @@ async function renderCalendar(){
   }
   app.innerHTML=`<h1 style="margin-bottom:14px">Hello, ${esc(pkg.name)}</h1><div id="calroot"></div>`;
   drawCalendar(pkg,$('#calroot'),{code});
+  let last=JSON.stringify(pkg.influences);
+  const refresh=async()=>{if(!$('#calroot')||localStorage.getItem(CODE_KEY)!==code){stopRefresh();return}
+    try{const fresh=await api.openCalendar(code);if(!fresh.ok){stopRefresh();localStorage.removeItem(CODE_KEY);renderClientLogin(fresh.why);return}
+      const now=JSON.stringify(fresh.influences);if(now!==last){last=now;fresh.prefs=pkg.prefs;pkg=fresh;drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
+  stopRefresh();refreshTimer=setInterval(refresh,60000);refreshOnShow=()=>{if(document.visibilityState==='visible')refresh()};document.addEventListener('visibilitychange',refreshOnShow);
 }
+function monthHint(list,y,m,onJump){
+  const ym=`${y}-${String(m+1).padStart(2,'0')}`;
+  const inMonth=list.some(i=>i.start_date.slice(0,7)<=ym&&i.end_date.slice(0,7)>=ym);
+  if(inMonth||!list.length)return '';
+  const later=list.filter(i=>i.start_date.slice(0,7)>ym).sort((a,b)=>a.start_date<b.start_date?-1:1)[0];
+  const earlier=list.filter(i=>i.end_date.slice(0,7)<ym).sort((a,b)=>a.end_date<b.end_date?1:-1)[0];
+  const tgt=later||earlier;if(!tgt)return '';
+  const d=later?later.start_date:earlier.end_date;
+  return `<p class="note small" style="margin:0 0 12px">Nothing in this month. ${later?'Next':'Most recent'}: “${esc(tgt.title)}” on ${fmtDate(d)}. <button type="button" class="btn ghost small" data-jump="${d.slice(0,7)}">Go there</button></p>`;
+}
+function bindJump(root,onJump){root.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{const [y,m]=b.dataset.jump.split('-').map(Number);onJump(y,m-1)})}
 function drawCalendar(pkg,root,opts={}){
   const ent={...ENT_DEFAULT,...(pkg.entitlements||{})};
-  const prefs=Object.assign({mode:'everything',cats:CATEGORIES.map(c=>c[0]),intention:''},pkg.prefs||{});
+  const prefs=Object.assign({mode:'everything',hidden:[],intention:''},pkg.prefs||{});
+  if(Array.isArray(prefs.cats)){prefs.hidden=CATEGORIES.map(c=>c[0]).filter(k=>!prefs.cats.includes(k));delete prefs.cats}
   if(!ent.intentions)prefs.intention='';
+  const shown=k=>!prefs.hidden.includes(k);
   const savePrefs=()=>{pkg.prefs=prefs;if(opts.code&&!opts.preview)api.setPrefs(opts.code,prefs).catch(()=>{})};
   const visible=(pkg.influences||[]).filter(i=>{
     if(prefs.mode==='essential'&&!(i.significant||i.intensity>=4))return false;
     if(prefs.mode==='supportive'&&i.polarity!=='supportive')return false;
     if(prefs.mode==='caution'&&!(i.polarity==='caution'||i.polarity==='especially_sensitive'))return false;
-    if(!prefs.cats.includes(i.category))return false;
+    if(!shown(i.category))return false;
     if(prefs.intention){const rel=INTENTIONS[prefs.intention]||[];if(!(i.significant||rel.includes(i.category)||(i.secondary_categories||[]).some(c=>rel.includes(c))))return false}
     return true});
   const y=calState.year,m=calState.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
@@ -441,23 +466,34 @@ function drawCalendar(pkg,root,opts={}){
     const longs=here.filter(i=>i.start_date!==i.end_date&&!i.parent_id).slice(0,2);
     const points=here.filter(i=>i.start_date===i.end_date||i.parent_id);
     const dominant=points[0];
-    const marks=[...points.map(i=>icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)),...(here.some(i=>i.significant)?[icon('star','var(--significant)')]:[])].slice(0,4).join('');
-    const bands=longs.map((i,ix)=>`<span class="band ${ix?'b2':''}" style="background:${POLARITY[i.polarity].color};opacity:.5"></span>`).join('');
+    const ordered=[...points,...here.filter(i=>!points.includes(i))];
+    const allMarks=[...ordered.map(i=>icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)),...(here.some(i=>i.significant)?[icon('star','var(--significant)')]:[])];
+    const marks=allMarks.slice(0,4).join('')+(allMarks.length>4?`<span class="more">+${allMarks.length-4}</span>`:'');
+    const bands=longs.map((i,ix)=>`<span class="band ${ix?'b2':''}" style="background:${POLARITY[i.polarity].color};opacity:${i.start_date===ds||i.end_date===ds?.95:.6}"></span>`).join('');
     const tint=dominant?` tint-${dominant.polarity}`:'';
     const label=`${fmtDate(ds)}${here.length?', '+here.map(i=>i.accessibility_label||`${POLARITY[i.polarity].label}: ${CAT[i.category]||i.category}`).join('; '):', no entries'}`;
     cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}${ds===calState.selected?' sel':''}${tint}" data-d="${ds}" aria-label="${esc(label)}" ${other?'tabindex="-1"':''}>${bands}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`;
   }
+  const allCats=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(c=>c[0]);
+  const hiddenCats=allCats.filter(k=>prefs.hidden.includes(k));
+  const filtersOn=prefs.mode!=='everything'||!!prefs.intention||hiddenCats.length>0;
+  const hiddenCount=(pkg.influences||[]).length-visible.length;
+  const filterDesc=[prefs.mode!=='everything'?`showing “${{essential:'Essential',supportive:'Supportive',caution:'Caution'}[prefs.mode]}” only`:'',hiddenCats.length?`${hiddenCats.length} area${hiddenCats.length>1?'s':''} hidden`:'',prefs.intention?`intention “${prefs.intention}”`:''].filter(Boolean).join(' · ');
+  const banner=filtersOn?`<p class="note small" style="margin:0 0 12px;background:var(--caution-soft);color:#6d4f22">Display options are limiting this calendar (${esc(filterDesc)}) — ${hiddenCount} influence${hiddenCount===1?'':'s'} hidden. <button type="button" class="btn ghost small" id="resetprefs">${opts.preview?'Reset this client’s display options':'Show everything'}</button></p>`:'';
+  const hint=monthHint(visible,y,m);
   const legend=Object.entries(POLARITY).map(([k,p])=>`<div>${icon(p.shape,p.color)}<span>${p.label}</span></div>`).join('')+`<div>${icon('star','var(--significant)')}<span>Especially significant</span></div><div><span class="mark" style="height:3px;background:var(--mixed);opacity:.6;border-radius:2px"></span><span>Longer period</span></div>`;
-  const catChecks=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(([k,l])=>`<label class="chk"><input type="checkbox" data-cat="${k}" ${prefs.cats.includes(k)?'checked':''}><span class="tag"><span class="dot" style="background:var(--cat-${k})"></span>${l}</span></label>`).join('');
+  const catChecks=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(([k,l])=>`<label class="chk"><input type="checkbox" data-cat="${k}" ${shown(k)?'checked':''}><span class="tag"><span class="dot" style="background:var(--cat-${k})"></span>${l}</span></label>`).join('');
   root.innerHTML=`<div class="layout">
    <section aria-label="Month calendar">
+    ${banner}
     <div class="card">
+     ${hint}
      <div class="cal-head"><button type="button" class="btn ghost small" data-nav="-1" aria-label="Previous month">&larr;</button><h2>${monthName}</h2><button type="button" class="btn ghost small" data-nav="1" aria-label="Next month">&rarr;</button></div>
      <div class="cal" role="grid">${dows}${cells}</div>
      <div class="legend" aria-label="Legend">${legend}</div>
     </div>
     <div class="card" style="margin-top:16px">
-     <details><summary>Display options</summary>
+     <details ${filtersOn?'open':''}><summary>Display options${filtersOn?` <span class="muted" style="font-weight:400">— ${esc(filterDesc)}</span>`:''}</summary>
       <label class="f"><span>Show</span></label>
       <div class="seg" role="group" aria-label="Display mode">${[['essential','Essential'],['supportive','Supportive'],['caution','Caution'],['everything','Everything']].map(([k,l])=>`<button type="button" data-mode="${k}" aria-pressed="${prefs.mode===k}">${l}</button>`).join('')}</div>
             ${ent.intentions?`<label class="f" for="intent"><span>Current intention (optional)</span></label>
@@ -486,17 +522,21 @@ function drawCalendar(pkg,root,opts={}){
    <aside id="daypanel" aria-label="Day detail"></aside>
   </div>`;
   const redraw=()=>drawCalendar(pkg,root,opts);
+  bindJump(root,(yy,mm)=>{calState.year=yy;calState.month=mm;redraw()});
+  const rp=$('#resetprefs',root);if(rp)rp.onclick=()=>{prefs.mode='everything';prefs.intention='';prefs.hidden=[];pkg.prefs=prefs;if(opts.code)api.setPrefs(opts.code,prefs).catch(()=>{});toast(opts.preview?'Display options reset for this client':'Showing everything');redraw()};
+  root.__resetPrefs=()=>{prefs.mode='everything';prefs.hidden=[];prefs.intention='';savePrefs();redraw()};
   root.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calState.month+=Number(b.dataset.nav);if(calState.month<0){calState.month=11;calState.year--}if(calState.month>11){calState.month=0;calState.year++}redraw()});
   root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
   root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();redraw()});
   const intent=$('#intent',root);if(intent)intent.onchange=e=>{prefs.intention=e.target.value;savePrefs();redraw()};
-  root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.cats=[...root.querySelectorAll('[data-cat]:checked')].map(x=>x.dataset.cat);savePrefs();redraw()});
+  root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.hidden=[...root.querySelectorAll('[data-cat]:not(:checked)')].map(x=>x.dataset.cat);savePrefs();redraw()});
   const ics=$('#ics',root);if(ics)ics.onclick=()=>{const pol=[];if($('#ics-sup',root).checked)pol.push('supportive');if($('#ics-cau',root).checked)pol.push('caution','especially_sensitive');if($('#ics-mix',root).checked)pol.push('mixed');
-    download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?prefs.cats:[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');toast('Calendar file downloaded')};
+    download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');toast('Calendar file downloaded')};
   drawDay(pkg,visible,calState.selected,root);
 }
 function drawDay(pkg,visible,ds,root){
   const here=visible.filter(i=>i.start_date<=ds&&ds<=i.end_date).sort((a,b)=>(b.significant-a.significant)||(b.intensity-a.intensity));
+  const hiddenCount=(pkg.influences||[]).filter(i=>i.start_date<=ds&&ds<=i.end_date).length-here.length;
   const longs=here.filter(i=>i.start_date!==i.end_date&&!i.parent_id), windows=here.filter(i=>!longs.includes(i));
   const climate=here.length?(()=>{const s=new Set(here.map(i=>i.polarity));if(s.size===1)return POLARITY[[...s][0]].alt;return 'Variable conditions — more than one influence is active'})():'A quiet day in your calendar';
   const block=i=>{const p=POLARITY[i.polarity];const dur=i.start_date===i.end_date?fmtShort(i.start_date):`${fmtShort(i.start_date)} – ${fmtShort(i.end_date)}`;const parent=i.parent_id&&(pkg.influences||[]).find(x=>x.id===i.parent_id);
@@ -521,8 +561,10 @@ function drawDay(pkg,visible,ds,root){
   $('#daypanel',root).innerHTML=`<div class="card"><h2>${fmtDate(ds)}</h2><p class="muted small" style="margin-top:-6px">${esc(climate)}</p>
    ${longs.length?`<h3 style="margin-top:14px">Longer periods</h3>${longs.map(block).join('')}`:''}
    ${windows.length?`<h3 style="margin-top:14px">${longs.length?'Windows within this day':'Today'}</h3>${windows.map(block).join('')}`:''}
-   ${!here.length?'<p class="muted small">No published guidance for this date with your current display options.</p>':''}
+   ${!here.length?'<p class="muted small">No published guidance for this date'+(hiddenCount?'':' yet')+'.</p>':''}
+   ${hiddenCount>0?`<p class="small muted" style="margin-top:8px">${hiddenCount} ${hiddenCount===1?'entry is':'entries are'} hidden for this day by your display options. <a href="#" data-showopts>Show everything</a></p>`:''}
    ${here.length&&dd?`<p class="daydisc">${esc(dd)}</p>`:''}</div>`;
+  const so=$('[data-showopts]',root);if(so)so.onclick=e=>{e.preventDefault();if(root.__resetPrefs)root.__resetPrefs()};
 }
 /* ICS */
 function icsEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/[,;]/g,m=>'\\'+m)}
@@ -615,6 +657,19 @@ async function runDiagnostics(){
   out.innerHTML=`<div class="card" style="margin-top:8px"><h3>Connection check</h3><table><tbody>${rows.map(([ok,n,m])=>`<tr><td>${ok?'✓':'✗'}</td><td>${esc(n)}</td><td class="small ${ok?'muted':''}" style="${ok?'':'color:var(--sensitive)'}">${esc(m)}</td></tr>`).join('')}</tbody></table>
    <p class="small muted" style="margin-top:8px">${rows.every(r=>r[0])?'Everything is working. If a button still does nothing, reload the page and try again.':'Something is failing — the red line says what. '+esc(explain(rows.find(r=>!r[0])[2])||'')}</p></div>`;
 }
+async function runInfluenceDiagnostics(c){
+  const out=$('#idiagout');out.innerHTML='<p class="loading">Checking…</p>';const rows=[];
+  const t=async(name,fn)=>{try{const r=await fn();rows.push([true,name,r===undefined?'ok':String(r)])}catch(e){rows.push([false,name,e.message||String(e)])}};
+  const id=uuid(),today=todayStr();
+  await t('Client record readable',async()=>{const x=await api.getClient(c.id);return x.name+' · '+x.access_code+' · status '+x.status});
+  await t('Create a test influence',async()=>{const r=await api.saveInfluence({...blankInfluence(c.id),id,title:'Connection test',intensity:1,category:'general',client_interpretation:'Test entry — will be removed.',published:true,start_date:today,end_date:today});return 'saved '+r.id.slice(0,8)+' for '+today});
+  await t('Read it back in your list',async()=>{const l=await api.listInfluences(c.id);const hit=l.find(i=>i.id===id);if(!hit)throw new Error('saved, but not returned in the list ('+l.length+' influences returned)');return 'present ('+l.length+' influences in total)'});
+  await t('Visible in the client’s own view',async()=>{const pkg=await api.openCalendar(c.access_code,true);if(!pkg.ok)throw new Error(pkg.why);const hit=(pkg.influences||[]).find(i=>i.id===id);if(!hit)throw new Error('client view returned '+pkg.influences.length+' influences but not the test one');return 'present ('+pkg.influences.length+' published for this client)'});
+  await t('Client can open with their code',async()=>{const pkg=await api.openCalendar(c.access_code,false);return pkg.ok?'yes':'no — '+pkg.why});
+  await t('Remove the test influence',async()=>{await api.deleteInfluence(id);return 'removed'});
+  out.innerHTML=`<div class="card" style="margin-top:8px;background:var(--surface-2);box-shadow:none"><h3>Calendar check — ${esc(c.name)}</h3><table><tbody>${rows.map(([ok,n,m])=>`<tr><td>${ok?'✓':'✗'}</td><td>${esc(n)}</td><td class="small" style="${ok?'color:var(--muted)':'color:var(--sensitive)'}">${esc(m)}</td></tr>`).join('')}</tbody></table>
+   <p class="small muted" style="margin-top:8px">${rows.every(r=>r[0])?'Saving and reading influences works for this client. If one you added is still missing, check its dates (the calendar shows one month at a time) and whether it was saved as a draft.':'The red line is the step that fails. '+esc(explain(rows.find(r=>!r[0])[2])||'')}</p></div>`;
+}
 async function renderWorkspace(id){
   if(wsClient!==id){wsClient=id;wsTab='client'}
   let c;try{c=await api.getClient(id)}catch(e){go('#/admin');return}
@@ -670,25 +725,44 @@ function tabCalendar(ctx,body){
   let cells='';const total=Math.ceil((startDow+dim)/7)*7;
   for(let k=0;k<total;k++){const dnum=k-startDow+1;const dt=new Date(y,m,dnum);const ds=ymd(dt);const other=dnum<1||dnum>dim;
     const here=influences.filter(i=>i.start_date<=ds&&ds<=i.end_date);
-    const marks=here.map(i=>`<span title="${esc(i.title)}" style="opacity:${i.published?1:.35}">${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)}</span>`).slice(0,5).join('');
+    const marks=here.map(i=>`<span title="${esc(i.title)}" style="opacity:${i.published?1:.35}">${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)}</span>`).slice(0,5).join('')+(here.length>5?`<span class="more">+${here.length-5}</span>`:'');
     cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}" data-d="${ds}" aria-label="${esc(fmtDate(ds))}, ${here.length} influences"><span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`}
-  body.innerHTML=`<div class="card"><div class="cal-head"><button type="button" class="btn ghost small" id="p" aria-label="Previous month">&larr;</button><h2>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h2><button type="button" class="btn ghost small" id="n" aria-label="Next month">&rarr;</button></div>
+  const ym=`${y}-${String(m+1).padStart(2,'0')}`;
+  const outside=influences.filter(i=>!(i.start_date.slice(0,7)<=ym&&i.end_date.slice(0,7)>=ym));
+  const outsideNote=outside.length&&influences.length!==outside.length?`<p class="small muted" style="margin:10px 0 0">${outside.length} influence${outside.length>1?'s':''} outside this month: ${outside.slice(0,6).map(i=>`${esc(i.title)} (${fmtYear(i.start_date)})`).join(' · ')}${outside.length>6?' …':''}</p>`:'';
+  body.innerHTML=`<div class="card">${monthHint(influences,y,m)}<div class="cal-head"><button type="button" class="btn ghost small" id="p" aria-label="Previous month">&larr;</button><h2>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h2><button type="button" class="btn ghost small" id="n" aria-label="Next month">&rarr;</button></div>
    <div class="cal">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
+   <p class="small muted" style="margin:10px 0 0">Faded markers are drafts (not visible to the client). Select a day to see what is on it.</p>${outsideNote}
+   <div id="adminday"></div>
 </div>`;
+  bindJump(body,(yy,mm)=>{wsCal.year=yy;wsCal.month=mm;ctx.reload()});
   $('#p').onclick=()=>{wsCal.month--;if(wsCal.month<0){wsCal.month=11;wsCal.year--}ctx.reload()};
   $('#n').onclick=()=>{wsCal.month++;if(wsCal.month>11){wsCal.month=0;wsCal.year++}ctx.reload()};
-  body.querySelectorAll('.day').forEach(b=>b.onclick=()=>{const i=blankInfluence(c.id);i.start_date=i.end_date=b.dataset.d;openEditor(ctx,i,true)});
+  body.querySelectorAll('.day').forEach(b=>b.onclick=()=>{const ds=b.dataset.d;body.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===ds));
+    const here=influences.filter(i=>i.start_date<=ds&&ds<=i.end_date);
+    $('#adminday',body).innerHTML=`<div class="card" style="margin-top:12px;background:var(--surface-2);box-shadow:none"><div class="row between"><h3 style="margin:0">${fmtDate(ds)}</h3><button type="button" class="btn small" id="addhere">Add influence on this day</button></div>
+      ${here.length?`<ul class="list" style="margin-top:10px">${here.map(i=>`<li><div>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} <strong>${esc(i.title)}</strong> <span class="small muted">${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''} · ${esc(CAT[i.category]||i.category)}</span> <span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></div><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></li>`).join('')}</ul>`:'<p class="small muted" style="margin:8px 0 0">Nothing on this day.</p>'}</div>`;
+    $('#addhere',body).onclick=()=>{const i=blankInfluence(c.id);i.start_date=i.end_date=ds;openEditor(ctx,i,true)};
+    body.querySelectorAll('[data-edit]').forEach(x=>x.onclick=()=>openEditor(ctx,influences.find(i=>i.id===x.dataset.edit),false));});
 }
 function blankInfluence(clientId){return {id:uuid(),client_id:clientId,parent_id:null,title:'',start_date:todayStr(),start_time:'',end_date:todayStr(),end_time:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
   polarity:'supportive',significant:false,intensity:'',category:'',secondary_categories:[],client_interpretation:'',observation_prompt:'',reflection_prompt:'',recommended_actions:'',avoidances:'',prediction:'',remedial_note:'',disclaimer:'none',custom_disclaimer:'',
   private_notes:'',technical_basis:'',jyotish:{},source_reference:{},published:false,show_exact_time:false,show_prediction:true,show_technical_basis:false,calendar_sync_enabled:true,accessibility_label:''}}
 function tabInfluences(ctx,body){
   const {c,influences,templates}=ctx;const all=[...influences].sort((a,b)=>a.start_date<b.start_date?-1:1);
-  const row=i=>`<tr><td>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} ${i.significant?icon('star','var(--significant)'):''}</td><td><strong>${esc(i.title||'Untitled')}</strong>${i.parent_id?`<div class="small muted">within “${esc(all.find(x=>x.id===i.parent_id)?.title||'')}”</div>`:''}</td><td>${fmtShort(i.start_date)}${i.end_date!==i.start_date?' – '+fmtShort(i.end_date):''}</td><td>${esc(CAT[i.category]||i.category)}</td><td>${i.intensity}</td><td><span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></td><td><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></td></tr>`;
-  body.innerHTML=`<div class="card"><div class="row between"><h2 style="margin:0">Influences</h2><div class="row"><select id="tpl"><option value="">Insert from template…</option>${templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select><button type="button" class="btn" id="newi">New influence</button></div></div>
+  const ent={...ENT_DEFAULT,...(c.entitlements||{})};
+  const sees=i=>!i.published?['No','draft — open and choose Review and publish']:(i.category==='remedies'&&!ent.remedial)?['No','remedial add-on is off for this client']:['Yes',''];
+  const row=i=>{const [v,why]=sees(i);return `<tr><td>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} ${i.significant?icon('star','var(--significant)'):''}</td><td><strong>${esc(i.title||'Untitled')}</strong>${i.parent_id?`<div class="small muted">within “${esc(all.find(x=>x.id===i.parent_id)?.title||'')}”</div>`:''}</td><td>${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''}${yearOk(i.start_date)&&yearOk(i.end_date)?'':'<div><span class="pill especially_sensitive">year looks wrong — not on the calendar</span></div>'}</td><td>${esc(CAT[i.category]||i.category)}</td><td>${i.intensity}</td><td><span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></td><td><span class="pill ${v==='Yes'?'supportive':'caution'}">${v}</span>${why?`<div class="small muted">${esc(why)}</div>`:''}</td><td><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></td></tr>`};
+  const badYears=all.filter(i=>!yearOk(i.start_date)||!yearOk(i.end_date));
+  const fixable=badYears.filter(i=>yearOk(fixYear(i.start_date))&&yearOk(fixYear(i.end_date)));
+  const yearBanner=badYears.length?`<p class="warn" style="margin:0 0 12px">${badYears.length} influence${badYears.length>1?'s have':' has'} a year that cannot be right (e.g. ${String(yearOf(badYears[0].start_date)).padStart(4,'0')} instead of ${new Date().getFullYear()}), so ${badYears.length>1?'they do':'it does'} not appear on any calendar. This happens when a date is typed with a two-digit year. ${fixable.length?`<button type="button" class="btn small" id="fixyears">Correct ${fixable.length===badYears.length?'them':fixable.length+' of them'} to 20xx</button>`:''}${fixable.length<badYears.length?' The others need editing by hand.':''}</p>`:'';
+  body.innerHTML=`<div class="card">${yearBanner}<div class="row between"><h2 style="margin:0">Influences</h2><div class="row"><select id="tpl"><option value="">Insert from template…</option>${templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select><button type="button" class="btn" id="newi">New influence</button></div></div>
    <label class="f"><span>Search</span><input type="text" id="q" placeholder="Title, category, note…"></label>
-   <div style="overflow:auto"><table><thead><tr><th></th><th>Title</th><th>Dates</th><th>Category</th><th>Int.</th><th>Status</th><th></th></tr></thead><tbody id="rows">${all.map(row).join('')||'<tr><td colspan="7" class="muted">No influences yet.</td></tr>'}</tbody></table></div>
-   <h3 style="margin-top:18px">Drafts (${all.filter(i=>!i.published).length})</h3><p class="small muted">${all.filter(i=>!i.published).map(i=>esc(i.title)).join(' · ')||'None'}</p></div>`;
+   <div style="overflow:auto"><table><thead><tr><th></th><th>Title</th><th>Dates</th><th>Category</th><th>Int.</th><th>Status</th><th>Client sees</th><th></th></tr></thead><tbody id="rows">${all.map(row).join('')||'<tr><td colspan="8" class="muted">No influences yet.</td></tr>'}</tbody></table></div>
+   <h3 style="margin-top:18px">Drafts (${all.filter(i=>!i.published).length})</h3><p class="small muted">${all.filter(i=>!i.published).map(i=>esc(i.title)).join(' · ')||'None'}${all.some(i=>!i.published)?' — drafts are never shown to the client.':''}</p>
+   <p class="small muted" style="margin-top:14px"><button type="button" class="btn quiet small" id="idiag">Check this client’s calendar</button> <span>— creates a test influence, confirms it can be read back by you and by the client, then removes it.</span></p><div id="idiagout"></div></div>`;
+  $('#idiag').onclick=()=>runInfluenceDiagnostics(c);
+  const fy=$('#fixyears');if(fy)fy.onclick=guard(async()=>{fy.disabled=true;for(const i of fixable)await api.saveInfluence({...i,start_date:fixYear(i.start_date),end_date:fixYear(i.end_date)});toast('Dates corrected');ctx.reload()});
   $('#newi').onclick=()=>openEditor(ctx,blankInfluence(c.id),true);
   $('#tpl').onchange=e=>{const t=templates.find(x=>x.id===e.target.value);if(!t)return;const i=Object.assign(blankInfluence(c.id),{title:t.name},t.data||{});openEditor(ctx,i,true)};
   const bind=()=>body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(ctx,influences.find(i=>i.id===b.dataset.edit),false));bind();
@@ -698,7 +772,7 @@ async function tabPreview({c},body){
   body.innerHTML=`<p class="loading">Loading preview…</p>`;
   const pkg=await api.openCalendar(c.access_code,true);
   if(!pkg.ok){body.innerHTML=`<p class="warn">${esc(pkg.why)}</p>`;return}
-  body.innerHTML='<div id="pv"></div>';drawCalendar(pkg,$('#pv',body),{preview:true});
+  body.innerHTML='<div id="pv"></div>';drawCalendar(pkg,$('#pv',body),{preview:true,code:c.access_code});
 }
 
 /* ---------------- Influence editor ---------------- */
@@ -709,7 +783,8 @@ function openEditor(ctx,inf,isNew){
   dlg.innerHTML=`<div class="dh"><h2 style="margin:0">${isNew?'New influence':'Edit influence'}</h2><button type="button" class="btn quiet small" id="close" aria-label="Close">✕</button></div>
   <div class="db"><form id="ef">
    <div class="grid2">${fld('Title (client-facing)','title',inf.title,'text','required')}<label class="f"><span>Within a longer period (optional)</span>${sel('parent_id',[['','— none —'],...others.map(o=>[o.id,o.title])],inf.parent_id||'')}</label></div>
-   <div class="grid2">${fld('Start date','start_date',inf.start_date,'date','required')}${fld('End date','end_date',inf.end_date,'date','required')}</div>
+   <div class="grid2">${fld('Start date','start_date',inf.start_date,'date','required min="2000-01-01" max="2100-12-31"')}${fld('End date','end_date',inf.end_date,'date','required min="2000-01-01" max="2100-12-31"')}</div>
+   <p class="small muted" style="margin:-4px 0 0">Type the year with four digits (2026). ${yearOk(inf.start_date)&&yearOk(inf.end_date)?'':'<strong style="color:var(--sensitive)">This influence’s saved year looks wrong — please correct it.</strong>'}</p>
    <div class="grid3">${fld('Start time (optional)','start_time',t5(inf.start_time),'time')}${fld('End time (optional)','end_time',t5(inf.end_time),'time')}${fld('Time zone','timezone',inf.timezone)}</div>
    <fieldset><legend>Interpretation signal</legend>
     <div class="grid3">
@@ -756,7 +831,9 @@ function openEditor(ctx,inf,isNew){
     for(const [k,v] of f){if(k==='sec')secs.push(v);else if(k.startsWith('j:'))j[k.slice(2)]=v;else if(k.startsWith('s:'))s[k.slice(2)]=v;else o[k]=v}
     for(const cb of ['significant','show_prediction','show_exact_time','show_technical_basis','calendar_sync_enabled'])o[cb]=form.elements[cb].checked;
     o.intensity=o.intensity===''?'':Math.min(5,Math.max(1,Number(o.intensity)||1));o.secondary_categories=secs.filter(x=>x!==o.category);o.jyotish=j;o.source_reference=s;o.parent_id=o.parent_id||null;
+    o.start_date=fixYear(o.start_date);o.end_date=fixYear(o.end_date);
     if(o.end_date<o.start_date)o.end_date=o.start_date;return o};
+  const datesOk=()=>{const o=collect();if(!yearOk(o.start_date)||!yearOk(o.end_date)){alert(`The year in the dates looks wrong (${yearOf(o.start_date)}). Please enter a four-digit year such as ${new Date().getFullYear()}.`);return false}return true};
   const updateSig=()=>{const o=collect();const p=POLARITY[o.polarity];$('#sigpreview',dlg).innerHTML=`Marker: ${icon(p.shape,p.color)} <strong>${p.label}</strong> · ${p.hint}${o.category?` · Category accent <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--cat-${o.category})"></span> ${esc(CAT[o.category])}`:' · <em>choose a category</em>'}${o.significant?' · '+icon('star','var(--significant)')+' significant':''}${o.category==='remedies'?' · <em>visible only to clients with the remedial add-on</em>':''}`};
   form.addEventListener('input',updateSig);updateSig();
   const review=()=>{const o=collect();const fields={Title:o.title,Interpretation:o.client_interpretation,Notice:o.observation_prompt,Consider:o.reflection_prompt,Act:o.recommended_actions,Postpone:o.avoidances,Prediction:o.prediction,Remedial:o.remedial_note};
@@ -776,8 +853,8 @@ function openEditor(ctx,inf,isNew){
     $('#confirmpub',dlg).onclick=()=>persist(true,'Published');$('#backedit',dlg).onclick=()=>{$('#review',dlg).innerHTML=''}};
   const busy=on=>dlg.querySelectorAll('button').forEach(b=>b.disabled=on);
   const persist=async(pub,msg)=>{busy(true);try{const o={...inf,...collect(),published:pub};await api.saveInfluence(o);dlg.close();dlg.remove();toast(msg);ctx.reload()}catch(e){busy(false);alert('Could not save: '+e.message)}};
-  $('#savedraft',dlg).onclick=()=>{if(!form.reportValidity())return;persist(false,'Draft saved')};
-  $('#publish',dlg).onclick=()=>{if(!form.reportValidity())return;review()};
+  $('#savedraft',dlg).onclick=()=>{if(!form.reportValidity()||!datesOk())return;persist(false,'Draft saved — not visible to the client until published')};
+  $('#publish',dlg).onclick=()=>{if(!form.reportValidity()||!datesOk())return;review()};
   const un=$('#unpub',dlg);if(un)un.onclick=()=>persist(false,'Unpublished');
   $('#astemplate',dlg).onclick=guard(async()=>{const o=collect();const name=prompt('Template name:',o.title);if(!name)return;const data={};for(const k of ['category','polarity','intensity','client_interpretation','observation_prompt','reflection_prompt','recommended_actions','avoidances','disclaimer','remedial_note','private_notes'])data[k]=o[k];await api.saveTemplate({id:uuid(),name,data});toast('Template saved');ctx.templates=await api.listTemplates()});
   const del=$('#del',dlg);if(del)del.onclick=guard(async()=>{if(confirm('Delete this influence? Windows within it will be kept but unlinked.')){busy(true);try{await api.deleteInfluence(inf.id)}catch(e){busy(false);throw e}dlg.close();dlg.remove();ctx.reload()}});
