@@ -9,7 +9,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script async src="https://cdn.jsdelivr.net/npm/astronomy-engine@2/astronomy.browser.min.js"></script>
+<script>
+// High-accuracy ephemeris (MIT-licensed astronomy-engine). Loaded in the background with fallbacks; the page works without it.
+(function(){const srcs=['https://cdn.jsdelivr.net/npm/astronomy-engine@2/astronomy.browser.min.js','https://unpkg.com/astronomy-engine@2/astronomy.browser.min.js','https://cdn.jsdelivr.net/npm/astronomy-engine@2/astronomy.browser.js'];
+  let i=0;function next(){if(i>=srcs.length)return;const s=document.createElement('script');s.src=srcs[i++];s.async=true;s.onload=()=>{if(window.Astronomy)window.dispatchEvent(new Event('ephemeris-ready'));else next()};s.onerror=next;document.head.appendChild(s)}next()})();
+</script>
 <script>
 /* ============================================================================
    CONFIG — the only part of this file you need to edit.
@@ -304,8 +308,11 @@ function deltaT(jd){ // seconds, Espenak–Meeus polynomial (2005–2050 fit)
 const centuries=jdTT=>(jdTT-2451545)/36525;
 
 /* ---------- ayanamsa (Lahiri / Chitrapaksha) ---------- */
-// 23°51′11″ at J2000, advancing with general precession in longitude.
-function ayanamsa(jdTT){const T=centuries(jdTT);return 23.853056+(5028.796195*T+1.1054348*T*T)/3600}
+// Official definition (Indian Calendar Reform Committee, as used by Swiss Ephemeris / AstroSage):
+// 23°15′00.658″ on 21 March 1956 0h (JD 2435553.5), carried forward with general precession in longitude.
+const AYAN_T0=(2435553.5-2451545)/36525, AYAN_A0=23.250182778;
+const precessLon=T=>5028.796195*T+1.1054348*T*T; // arcseconds, cumulative from J2000
+function ayanamsa(jdTT){const T=centuries(jdTT);return AYAN_A0+(precessLon(T)-precessLon(AYAN_T0))/3600}
 
 /* ---------- nutation & obliquity ---------- */
 function nutation(T){const om=norm(125.04452-1934.136261*T), Ls=norm(280.4665+36000.7698*T), Lm=norm(218.3165+481267.8813*T);
@@ -655,32 +662,32 @@ function mount(container,client,opts={}){
       return {ok:true,results,more:links.slice(2)}}
   };
   function researchPanel(c){const T=researchTopics(c);if(!T.length)return '';
-    return `<div class="g-research"><h4>Research <span class="muted" style="font-weight:400">— BPL first, then the wider web</span></h4>
+    return `<div class="g-research"><h4>Research</h4>
      <div class="row chips">${T.map((t,i)=>`<button type="button" class="chip-btn" data-rq="${esc(t.q)}">${esc(t.label)}</button>`).join('')}</div>
      <form class="row" id="g-rform" style="margin-top:8px;gap:6px"><input type="text" id="g-q" placeholder="or type any topic…" style="flex:1;min-width:180px"><button type="submit" class="btn small ghost">Search</button></form>
      <div id="g-rout"></div></div>`}
   async function runResearch(q){const out=$('#g-rout',el);if(!out)return;$('#g-q',el).value=q;
     const links=`<p class="small" style="margin:8px 0 4px"><a target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent('site:barbarapijan.com '+q)}">BPL ↗</a> · <a target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent(q+' jyotish')}">Google ↗</a> · <a target="_blank" rel="noopener" href="https://duckduckgo.com/?q=${encodeURIComponent('site:barbarapijan.com '+q)}">DuckDuckGo ↗</a></p>`;
-    out.innerHTML=`<p class="small muted" style="margin:6px 0 0">Searching for “${esc(q)}”…</p>${links}`;
+    out.innerHTML=`<p class="small muted" style="margin:6px 0 0">Searching…</p>${links}`;
     const block=(title,r)=>`<div class="rres"><h5>${esc(title)}</h5>${r.results.length?r.results.map(x=>`<div class="rsrc"><a target="_blank" rel="noopener" href="${esc(x.url)}">${esc(x.title||x.url)}</a>${x.excerpts.map(e=>`<blockquote>${esc(e)}</blockquote>`).join('')}${!x.excerpts.length?'<p class="small muted">no matching passage on this page</p>':''}</div>`).join(''):`<p class="small muted">${esc(r.why||'nothing found')}</p>`}</div>`;
     try{const useHelper=await helperAvailable();
       const fetchScope=sc=>useHelper?fetch('/.netlify/functions/research?scope='+sc+'&q='+encodeURIComponent(q)).then(r=>r.json()):R.search(q,sc).catch(e=>({ok:false,results:[],why:'could not reach the search service ('+(e.message||e)+') — use the links below'}));
       const [b,w]=await Promise.all([fetchScope('bpl'),fetchScope('web')]);
-      out.innerHTML=`<p class="small muted" style="margin:6px 0 0">“${esc(q)}”</p>${block('BPL',b)}${block('Wider web',w)}${links}<p class="small muted">Excerpts are short quotations for your private study, with the source linked; adapt in your own words for client-facing text.</p>`}
+      out.innerHTML=`${block('BPL',b)}${block('Wider web',w)}${links}`}
     catch(e){out.innerHTML=`<p class="small muted">Could not fetch excerpts (${esc(e.message||e)}).</p>${links}`}}
   function planetTable(c){const sky=st.skyLat!==null?G.ascendant(st.instant,st.skyLat,st.skyLon):null;const lords=dashaLords(c.dasha);
     const rows=c.tr.planets.map(p=>{let ing=null;try{if(!p.outer)ing=G.nextIngress(p.key,st.instant,{nodeMode:S.nodeMode})}catch(e){}
       const state=[p.retro&&!NODE(p.key)?'retrograde':NODE(p.key)?'':'direct',p.dignity,p.combust?'combust':'',lords.includes(p.key)?'dasha lord':''].filter(Boolean).join(' · ');
       return `<tr><td><button type="button" class="lnk" data-pick="transit:${p.key}"><strong>${gname(p.key)}</strong></button><div class="small muted">${p.en}</div></td><td>${G.RASHI[p.sign]}<div class="small muted">${G.RASHI_EN[p.sign]}</div></td><td>${G.fmtDeg(p.deg)}</td><td>${p.nakName}<div class="small muted">pada ${p.pada}</div></td><td>${p.speed>=0?'+':''}${p.speed.toFixed(3)}°/d</td><td class="small">${state||'—'}</td><td>${p.houseLagna}H<div class="small muted">${p.houseMoon}H from Chandra</div></td><td class="small">${ing?`${G.RASHI[ing.sign]} · ${G.utcToZoned(ing.date,tzNow()).date}`:'—'}</td></tr>`}).join('');
     return `<div class="g-planets"><table><thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>Motion</th><th>State</th><th>Bhava</th><th>Next rashi</th></tr></thead><tbody>${rows}</tbody></table>
-     <p class="small muted" style="margin:8px 0 0">Sidereal, Lahiri ayanamsa ${G.fmtDeg(c.tr.ayan)} · ${sky?`sky Lagna at the birth place now: ${G.RASHI[Math.floor(sky.sidereal/30)]} ${G.fmtDeg(sky.sidereal%30)} · `:''}ephemeris: ${esc(c.tr.source)}</p></div>`}
+     <p class="small muted" style="margin:8px 0 0">Lahiri ${G.fmtDeg(c.tr.ayan)}${sky?` · sky Lagna at the birth place: ${G.RASHI[Math.floor(sky.sidereal/30)]} ${G.fmtDeg(sky.sidereal%30)}`:''}</p></div>`}
   /* ---------- Natal planets table (AstroSage-style) ---------- */
   const flagsOf=p=>[p.combust?'Combust':'',p.retro?'Retrograde':'',p.dignity==='exalted'?'Exalted':p.dignity==='debilitated'?'Debilitated':p.dignity==='own sign'?'Own sign':p.dignity==='moolatrikona'?'Moolatrikona':'',p.vargottama?'Vargottama':''].filter(Boolean);
   function natalTable(){const rows=[];const z=G.utcToZoned(natal.instant,natal.tz);
     if(natalAsc){const d=G.describe(natalAsc.sidereal);rows.push(`<tr><td><strong>Lagna</strong><div class="small muted">Ascendant</div></td><td></td><td>${G.RASHI_EN[d.sign]}<div class="small muted">${G.RASHI[d.sign]}</div></td><td>${G.fmtDeg(d.deg)}</td><td>${d.nakName} (${d.pada})</td><td>1</td><td>${G.RASHI_EN[d.navamsa]}${d.vargottama?' <span class="pill significant">Vargottama</span>':''}</td></tr>`)}
     for(const p of natalChart.planets){const fl=flagsOf(p);rows.push(`<tr><td><strong>${p.en}</strong><div class="small muted">${p.name}</div></td><td class="small">${fl.filter(f=>f==='Combust'||f==='Retrograde').map(f=>f==='Combust'?'C':'(R)').join(' ')}</td><td>${G.RASHI_EN[p.sign]}<div class="small muted">${G.RASHI[p.sign]}</div></td><td>${G.fmtDeg(p.deg)}</td><td>${p.nakName} (${p.pada})</td><td>${p.houseLagna}<div class="small muted">${p.houseMoon} from Chandra</div></td><td>${G.RASHI_EN[p.navamsa]}${fl.filter(f=>f!=='Combust'&&f!=='Retrograde').map(f=>` <span class="pill ${f==='Debilitated'?'caution':'significant'}">${f}</span>`).join('')}</td></tr>`)}
-    return `<details class="g-natal" open><summary>Natal planets — ${esc(client.name||'')}</summary><div class="g-planets" style="margin-top:8px"><table><thead><tr><th>Planet</th><th></th><th>Sign</th><th>Degree</th><th>Nakshatra (pada)</th><th>House</th><th>Navamsa · state</th></tr></thead><tbody>${rows.join('')}</tbody></table>
-     <p class="small muted" style="margin:8px 0 0">Birth ${z.date} ${z.time} ${esc(natal.tz)} = ${natal.instant.toISOString().replace('T',' ').slice(0,19)} UTC · ${natal.lat!==null?`${natal.lat}°, ${natal.lon}°`:'no coordinates'} · sidereal, Lahiri ayanamsa ${G.fmtDeg(natalChart.ayan)} · ${S.nodeMode} nodes · whole-sign houses from Lagna. C = combust, (R) = retrograde. Compare these lines with AstroSage: a different Lagna usually means a different birth time zone or coordinates.</p></div></details>`}
+    return `<details class="g-natal" open><summary>Natal planets</summary><div class="g-planets" style="margin-top:8px"><table><thead><tr><th>Planet</th><th></th><th>Sign</th><th>Degree</th><th>Nakshatra (pada)</th><th>House</th><th>Navamsa · state</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+     <p class="small muted" style="margin:8px 0 0">Birth ${z.date} ${z.time} ${esc(natal.tz)} = ${natal.instant.toISOString().replace('T',' ').slice(0,16)} UTC · ${natal.lat!==null?`${natal.lat}°, ${natal.lon}°`:'no coordinates'} · Lahiri ${G.fmtDeg(natalChart.ayan)} · ${S.nodeMode} nodes · C combust · (R) retrograde</p></div></details>`}
 
   /* ---------- Prompt generator (paste into ChatGPT or Claude) ---------- */
   let promptState={text:'',open:false,bpl:[]};
@@ -705,11 +712,11 @@ function mount(container,client,opts={}){
 5. What BPL may say — a synthesis of how Barbara Pijan Lama characteristically reads the placements involved (her bhava/graha/drishti framing and the psychological texture she gives each graha in each rashi and bhava), paraphrased in your own words and marked as a synthesis of her published approach${promptState.bpl.length?', drawing on these passages from her site (paraphrase, do not quote):\n- '+promptState.bpl.join('\n- '):''}.`);
     return L.join('\n')}
   function promptPanel(c){const sel=st.sel;const what=sel?(sel.type==='transit'?'this transit':sel.type==='natal'?'this natal placement':'this house'):'the current gochara';
-    return `<div class="g-ai"><h4>Ask an AI about ${what} <span class="muted" style="font-weight:400">— generates a complete prompt to paste into ChatGPT or Claude (free apps)</span></h4>
+    return `<div class="g-ai"><h4>Ask an AI about ${what}</h4>
      <div class="row" style="gap:6px"><input type="text" id="pr-q" placeholder="optional: a specific question (e.g. career move in November?)" value="${esc(promptState.q||'')}" style="flex:1;min-width:200px"><button type="button" class="btn small" id="pr-gen">Generate prompt</button></div>
      ${promptState.text?`<div class="row" style="gap:6px;margin-top:8px"><button type="button" class="btn small" id="pr-copy">Copy prompt</button><button type="button" class="btn ghost small" id="pr-bpl" ${promptState.busy?'disabled':''}>${promptState.busy?'Fetching BPL passages…':promptState.bpl.length?'BPL passages included ('+promptState.bpl.length+')':'Add BPL passages to the prompt'}</button><span class="small muted">${promptState.text.length.toLocaleString()} characters</span></div>
      <textarea id="pr-text" readonly style="margin-top:8px;min-height:260px;font-size:.9rem;line-height:1.45">${esc(promptState.text)}</textarea>
-     <p class="small muted">Includes every natal planet with its house, the dasha running now, all current transits, your selection and question. Paste it into chatgpt.com or claude.ai; then use the “Client-facing draft” it returns in an influence.</p>`:''}
+     <p class="small muted">Paste into ChatGPT or Claude.</p>`:''}
     </div>`}
   async function addBplToPrompt(c){promptState.busy=true;draw();const notes=[];
     try{const topics=researchTopics(c).slice(0,2);const res=await Promise.race([Promise.all(topics.map(t=>R.search(t.q,'bpl').catch(()=>null))),new Promise(r=>setTimeout(()=>r([]),14000))]);
@@ -737,13 +744,13 @@ function mount(container,client,opts={}){
        <button type="button" class="btn small ${st.live?'':'ghost'}" id="g-now">Now</button></div>
       <div class="row" style="gap:4px;margin-top:6px"><button type="button" class="btn ghost small" data-step="-24">−day</button><button type="button" class="btn ghost small" data-step="-1">−hour</button><button type="button" class="btn ghost small" data-step="1">+hour</button><button type="button" class="btn ghost small" data-step="24">+day</button><button type="button" class="btn ghost small" data-step="168">+week</button><button type="button" class="btn ghost small" data-step="730.5">+month</button>
        <span class="seg" style="margin-left:auto">${Object.keys(SCALES).map(k=>`<button type="button" data-scale="${k}" aria-pressed="${S.scale===k}">${k}</button>`).join('')}</span></div>
-      <input type="range" id="g-slider" min="-100" max="100" value="0" step="1" aria-label="Timeline (${SCALES[S.scale].label})"><div class="small muted" style="text-align:center;margin-top:-4px">timeline · ${SCALES[S.scale].label} around the current moment · release to re-centre</div>
+      <input type="range" id="g-slider" min="-100" max="100" value="0" step="1" aria-label="Timeline (${SCALES[S.scale].label})"><div class="small muted" style="text-align:center;margin-top:-4px">${SCALES[S.scale].label} · release to re-centre</div>
      </div>
      <div class="row between" style="margin:10px 0 6px;gap:8px">
       <span class="seg"><button type="button" data-style="north" aria-pressed="${S.style==='north'}">North Indian</button><button type="button" data-style="south" aria-pressed="${S.style==='south'}">South Indian</button></span>
       <span class="row small" style="gap:10px"><label class="chk" style="margin:0"><input type="checkbox" id="g-outer" ${S.outer?'checked':''}>Uranus, Neptune, Pluto</label><label class="chk" style="margin:0"><input type="checkbox" id="g-node" ${S.nodeMode==='true'?'checked':''}>True nodes <span class="muted">(off = mean, as AstroSage)</span></label><label class="chk" style="margin:0">orb <select id="g-orb" style="width:auto;padding:2px 6px">${[0.5,1,2,3].map(o=>`<option ${S.orb===o?'selected':''}>${o}</option>`).join('')}</select>°</label><label class="chk" style="margin:0"><input type="checkbox" id="g-tz" ${S.tzMode==='mine'?'checked':''}>My time zone</label></span>
      </div>
-     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button></span><span class="small muted">${st.view==='planets'?'Every graha at the selected moment; “Now” keeps it live.':''}</span></div>
+     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button></span></div>
      ${st.view==='planets'?planetTable(c):''}
      <div class="g-charts ${st.mobileView} ${st.view==='planets'?'hidden':''}">
       <figure class="g-fig natal"><figcaption><span class="seg small"><button type="button" data-natalref="lagna" aria-pressed="${S.natalRef==='lagna'}" ${natalAsc?'':'disabled'}>Lagna</button><button type="button" data-natalref="moon" aria-pressed="${S.natalRef==='moon'}">Rasi (Chandra)</button></span><div class="cap">Natal · ${client.name?esc(client.name):''} <span class="muted">${natalAsc?'Lagna '+G.RASHI[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}</span></div></figcaption>${render(natalModel,{style:S.style,highlight:hi.natal,cls:'natal',centreLabel:S.natalRef==='moon'?'Rasi':'Lagna'})}</figure>
@@ -796,8 +803,9 @@ function mount(container,client,opts={}){
     if(timer)clearInterval(timer);if(st.live)timer=setInterval(()=>{if(!document.body.contains(el)){clearInterval(timer);return}if(st.live&&(!st.sel||st.view==='planets')){st.instant=new Date();draw()}},60000);
   }
   function rebuildNatal(){const fresh=G.chart(natal.instant,{nodeMode:S.nodeMode,outer:S.outer});natalChart.planets=fresh.planets}
+  const onEph=()=>{if(!document.body.contains(el)){window.removeEventListener('ephemeris-ready',onEph);return}rebuildNatal();draw()};window.addEventListener('ephemeris-ready',onEph);
   draw();
-  return {setInstant,getSnapshot:()=>snapshot(compute()),destroy(){if(timer)clearInterval(timer);el.innerHTML=''}};
+  return {setInstant,getSnapshot:()=>snapshot(compute()),destroy(){if(timer)clearInterval(timer);window.removeEventListener('ephemeris-ready',onEph);el.innerHTML=''}};
 }
 return {mount,renderNorthIndianChart,renderSouthIndianChart,render,natalFor};
 })();
@@ -1349,7 +1357,7 @@ function tabClient({c,reload},body){
   const del=$('#delc');if(del)del.onclick=guard(async()=>{if(confirm(`Permanently delete ${c.name} and every influence in their calendar? This cannot be undone.`)){await api.deleteClient(c.id);go('#/admin')}});
 }
 function tabNatal(ctx,body){const {c,reload}=ctx;
-  body.innerHTML=`<div class="card"><div class="row between"><h2 style="margin:0">Gochara</h2><span class="small muted">Natal kundli beside the transit sky · sidereal, Lahiri · whole-sign bhava</span></div><div id="gochara"></div></div>`;
+  body.innerHTML=`<div class="card"><div id="gochara"></div></div>`;
   GUI.mount($('#gochara',body),c,{onGeocode:()=>pickLocation(c.birth_location,guard(async p=>{await api.saveClient({...c,birth_latitude:p.lat,birth_longitude:p.lon,timezone:p.timezone||c.timezone||''});toast('Birth place saved: '+[p.name,p.country].filter(Boolean).join(', '));reload()})),onAdd:snap=>{const i=blankInfluence(c.id);i.start_date=i.end_date=snap.local.date;i.start_time=snap.local.time;i.timezone=snap.tz;i.private_notes=snap.text;i.transit_snapshot=snap.json;
     const p=snap.json.selected;if(p){i.technical_basis=`Transit ${GOCHARA.GRAHA.find(g=>g.key===p.key).name} ${GOCHARA.RASHI[p.sign]} ${Math.floor(p.deg)}° — ${p.houseLagna}H from Lagna, ${p.houseMoon}H from Chandra`}
     openEditor(ctx,i,true)}});
