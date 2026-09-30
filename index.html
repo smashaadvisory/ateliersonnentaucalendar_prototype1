@@ -284,8 +284,6 @@ const chk=({data,error})=>{if(error)throw new Error(error.message||String(error)
 function cleanClient(c){const o={...c};delete o.created_at;delete o.updated_at;for(const k of ['birth_date','birth_time','access_start','access_end'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.entitlements={...ENT_DEFAULT,...(o.entitlements||{})};return o}
 function cleanInfluence(i){const o={...i};delete o.created_at;delete o.updated_at;for(const k of ['start_time','end_time','parent_id'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.source_reference=o.source_reference||{};o.secondary_categories=o.secondary_categories||[];if(o.end_date<o.start_date)o.end_date=o.start_date;return o}
 const api={
-  async astrologerStatus(){return chk(await sb.rpc('astrologer_status'))},
-  async astrologerSetPassword(p){return chk(await sb.rpc('astrologer_set_password',{p_password:p}))},
   async adminSignIn(password){
     const r=chk(await sb.rpc('astrologer_login',{p_password:password}));
     if(!r.ok)throw new Error(r.why);
@@ -349,7 +347,7 @@ function renderSetup(){
    <li>Open <strong>SQL Editor → New query</strong>, paste the contents of <code>supabase-setup.sql</code>, and run it.</li>
    <li>Open <strong>Project Settings → API</strong>. Copy the <em>Project URL</em> and the <em>publishable / anon</em> key into the <code>CONFIG</code> block at the top of <code>index.html</code>.</li>
    <li>Upload <code>index.html</code> to Netlify (drag the file onto the Sites page). Every device then shares the same data.</li>
-   <li>Open the site, click <strong>Astrologer login</strong>, and set your password there.</li>
+   <li>Open the site → <strong>Astrologer login</strong> → the default password from the SQL file, then change it from the dashboard.</li>
   </ol>
   <p class="small muted">The anon key is designed to be public; the database rules in the SQL file decide what it may read. Never paste the <em>service_role</em> key into this file.</p></div>`;
 }
@@ -526,22 +524,9 @@ function buildICS(pkg,opts){
 async function renderAstrologerLogin(msg){
   setHeader({left:signedOutNav(),brand:true,right:[]});
   if(localStorage.getItem(TOKEN_KEY)&&!msg){go('#/admin');return}
-  app.innerHTML='<p class="loading">One moment…</p>';
-  let st;try{st=await api.astrologerStatus()}catch(err){app.innerHTML=`<div class="entry card"><h1>Not reachable</h1><p class="muted">Could not reach the database. ${esc(err.message||'')}</p><p class="small muted">If you have not run the latest <code>supabase-setup.sql</code> yet, run it in the Supabase SQL Editor and reload this page.</p></div>`;return}
-  if(st.setup_open){
-    app.innerHTML=`<div class="entry card"><h1>Set your astrologer password</h1><p class="muted small">This is the single astrologer account for this site. Choose a password of at least 8 characters; you can change it later from the dashboard.</p>
-     <form id="setform"><label class="sr-only" for="p1">New password</label><input id="p1" type="password" minlength="8" required autocomplete="new-password" placeholder="New password">
-     <label class="sr-only" for="p2">Confirm password</label><input id="p2" type="password" minlength="8" required autocomplete="new-password" placeholder="Confirm password" style="margin-top:8px">
-     <div class="err" id="perr" role="alert"></div><p><button class="btn" type="submit" id="setbtn">Save password and sign in</button></p></form></div>`;
-    $('#setform').onsubmit=async e=>{e.preventDefault();const a=$('#p1').value,b=$('#p2').value;if(a!==b){$('#perr').textContent='The two passwords do not match.';return}
-      const btn=$('#setbtn');btn.disabled=true;$('#perr').textContent='';
-      try{const r=await api.astrologerSetPassword(a);if(!r.ok){$('#perr').textContent=r.why;btn.disabled=false;return}await api.adminSignIn(a);go('#/admin')}
-      catch(err){$('#perr').textContent=err.message;btn.disabled=false}};
-    return;
-  }
   app.innerHTML=`<div class="entry card"><h1>Astrologer sign-in</h1><p class="muted small">Enter the astrologer password to open the dashboard.</p>
    <form id="pinform"><label class="sr-only" for="pin">Password</label><input id="pin" type="password" required autocomplete="current-password" placeholder="Password"><div class="err" id="perr" role="alert">${esc(msg||'')}</div><p><button class="btn" type="submit" id="pinbtn">Open dashboard</button></p></form>
-   <p class="small muted" style="margin-top:14px">Forgotten it? Run <code>supabase-setup.sql</code> again in the Supabase SQL Editor; this page will then let you set a new one.</p></div>`;
+   <p class="small muted" style="margin-top:14px">Forgotten it? Running <code>supabase-setup.sql</code> again in the Supabase SQL Editor restores the default password.</p></div>`;
   $('#pinform').onsubmit=async e=>{e.preventDefault();const b=$('#pinbtn');b.disabled=true;$('#perr').textContent='';
     try{await api.adminSignIn($('#pin').value);go('#/admin')}
     catch(err){$('#perr').textContent=err.message;b.disabled=false}};
