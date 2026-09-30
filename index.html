@@ -628,6 +628,26 @@ function mount(container,client,opts={}){
       for(const p of natalChart.planets.filter(p=>p.sign===sign))add(`natal ${gname(p.key)} in bhava-${h}`,`${gname(p.key)} bhava-${h}`);for(const t of c.tr.planets.filter(t=>t.sign===sign&&!t.outer))add(`transit ${gname(t.key)} in bhava-${h}`,`${gname(t.key)} gochara bhava-${h}`);return T}
     return T}
   let helper=null;const helperAvailable=()=>{if(helper)return helper;helper=(async()=>{try{if(!/^https?:/.test(location.protocol))return false;const r=await fetch('/.netlify/functions/research?ping=1',{cache:'no-store'});return r.ok}catch(e){return false}})();return helper};
+  // Browser-side researcher (no server needed): search via DuckDuckGo HTML, read pages through public read-through services.
+  const R={
+    timeout:(url,ms,opts={})=>{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),ms);return fetch(url,{...opts,signal:ctl.signal}).finally(()=>clearTimeout(t))},
+    async viaProxy(url){const routes=[u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?'+encodeURIComponent(u),u=>'https://r.jina.ai/'+u];let last='';
+      for(const mk of routes){try{const r=await R.timeout(mk(url),9000);if(r.ok){const t=await r.text();if(t&&t.length>200)return t;last='empty'}else last='HTTP '+r.status}catch(e){last=e.name==='AbortError'?'timed out':(e.message||'blocked')}}
+      throw new Error(last||'unreachable')},
+    decode:s=>String(s).replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&#(\d+);/g,(m,n)=>String.fromCharCode(Number(n))).replace(/&[a-z]+;/g,' '),
+    text:html=>R.decode(String(html).replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<!--[\s\S]*?-->/g,' ').replace(/<(br|p|div|li|tr|h[1-6]|blockquote|section|article)[^>]*>/gi,'\n').replace(/<[^>]+>/g,' ')).replace(/[ \t]+/g,' ').replace(/\n\s*\n+/g,'\n').trim(),
+    title:html=>{const m=String(html).match(/<title[^>]*>([\s\S]*?)<\/title>/i);return m?R.decode(m[1]).replace(/\s+/g,' ').trim().slice(0,140):''},
+    links:html=>{const out=[];const re=/<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;let m;while((m=re.exec(html))&&out.length<8){let href=R.decode(m[1]);const u=href.match(/[?&]uddg=([^&]+)/);if(u)href=decodeURIComponent(u[1]);if(href.startsWith('//'))href='https:'+href;if(!/^https?:/i.test(href))continue;out.push({url:href,title:R.text(m[2]).slice(0,140)})}return out},
+    terms:q=>{const STOP=new Set(['the','a','an','of','in','to','and','or','is','for','on','with','from','by','at','as','transit','natal','site','bhava','house','sign','gochara']);return [...new Set(String(q).toLowerCase().replace(/site:\S+/g,' ').split(/[^a-z0-9\-]+/).filter(w=>w.length>2&&!STOP.has(w)))]},
+    excerpts:(text,terms,max=3)=>{const paras=text.split(/\n+/).map(p=>p.trim()).filter(p=>p.length>60&&p.length<1600);
+      const scored=paras.map(p=>{const l=p.toLowerCase();let sc=0;for(const t of terms){if(l.includes(t))sc+=3;if(new RegExp('\\b'+t.replace(/-/g,'\\-')+'\\b').test(l))sc+=2}return {p,sc}}).filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,max);
+      return scored.map(x=>{let p=x.p;if(p.length>420){const i=Math.max(0,p.toLowerCase().indexOf(terms[0]||'')-120);p=(i>0?'…':'')+p.slice(i,i+400).trim()+'…'}return p})},
+    async search(q,scope){const query=scope==='bpl'?'site:barbarapijan.com '+q:q+' jyotish';const html=await R.viaProxy('https://html.duckduckgo.com/html/?q='+encodeURIComponent(query));
+      let links=R.links(html);if(scope==='bpl')links=links.filter(l=>l.url.includes('barbarapijan.com'));if(!links.length)return {ok:true,results:[],why:'nothing found'};
+      const terms=R.terms(q);const results=[];
+      await Promise.all(links.slice(0,2).map(async l=>{try{const page=await R.viaProxy(l.url);const isText=!/<html|<body|<div/i.test(page.slice(0,2000));const text=isText?page:R.text(page);results.push({url:l.url,title:(isText?'':R.title(page))||l.title,excerpts:R.excerpts(text,terms)})}catch(e){results.push({url:l.url,title:l.title,excerpts:[],error:e.message})}}));
+      return {ok:true,results,more:links.slice(2)}}
+  };
   function researchPanel(c){const T=researchTopics(c);if(!T.length)return '';
     return `<div class="g-research"><h4>Research <span class="muted" style="font-weight:400">— Barbara Pijan Lama first, then the wider web</span></h4>
      <div class="row chips">${T.map((t,i)=>`<button type="button" class="chip-btn" data-rq="${esc(t.q)}">${esc(t.label)}</button>`).join('')}</div>
@@ -636,9 +656,10 @@ function mount(container,client,opts={}){
   async function runResearch(q){const out=$('#g-rout',el);if(!out)return;$('#g-q',el).value=q;
     const links=`<p class="small" style="margin:8px 0 4px"><a target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent('site:barbarapijan.com '+q)}">Barbara Pijan Lama ↗</a> · <a target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent(q+' jyotish')}">Google ↗</a> · <a target="_blank" rel="noopener" href="https://duckduckgo.com/?q=${encodeURIComponent('site:barbarapijan.com '+q)}">DuckDuckGo ↗</a></p>`;
     out.innerHTML=`<p class="small muted" style="margin:6px 0 0">Searching for “${esc(q)}”…</p>${links}`;
-    if(!(await helperAvailable())){out.innerHTML=`<p class="small muted" style="margin:6px 0 0">“${esc(q)}” — open a source:</p>${links}<p class="small muted">Excerpts appear here in-page when the site is deployed as a folder with its <code>netlify/functions</code> helper.</p>`;return}
     const block=(title,r)=>`<div class="rres"><h5>${esc(title)}</h5>${r.results.length?r.results.map(x=>`<div class="rsrc"><a target="_blank" rel="noopener" href="${esc(x.url)}">${esc(x.title||x.url)}</a>${x.excerpts.map(e=>`<blockquote>${esc(e)}</blockquote>`).join('')}${!x.excerpts.length?'<p class="small muted">no matching passage on this page</p>':''}</div>`).join(''):`<p class="small muted">${esc(r.why||'nothing found')}</p>`}</div>`;
-    try{const [b,w]=await Promise.all([fetch('/.netlify/functions/research?scope=bpl&q='+encodeURIComponent(q)).then(r=>r.json()),fetch('/.netlify/functions/research?scope=web&q='+encodeURIComponent(q)).then(r=>r.json())]);
+    try{const useHelper=await helperAvailable();
+      const fetchScope=sc=>useHelper?fetch('/.netlify/functions/research?scope='+sc+'&q='+encodeURIComponent(q)).then(r=>r.json()):R.search(q,sc).catch(e=>({ok:false,results:[],why:'could not reach the search service ('+(e.message||e)+') — use the links below'}));
+      const [b,w]=await Promise.all([fetchScope('bpl'),fetchScope('web')]);
       out.innerHTML=`<p class="small muted" style="margin:6px 0 0">“${esc(q)}”</p>${block('Barbara Pijan Lama',b)}${block('Wider web',w)}${links}<p class="small muted">Excerpts are short quotations for your private study, with the source linked; adapt in your own words for client-facing text.</p>`}
     catch(e){out.innerHTML=`<p class="small muted">Could not fetch excerpts (${esc(e.message||e)}).</p>${links}`}}
   function planetTable(c){const sky=st.skyLat!==null?G.ascendant(st.instant,st.skyLat,st.skyLon):null;const lords=dashaLords(c.dasha);
@@ -1043,9 +1064,6 @@ function drawCalendar(pkg,root,opts={}){
       <label class="f"><span>Areas of life</span></label>${catChecks}
      </details>
     </div>
-    <div class="card" style="margin-top:16px">
-     <details id="planets-today"><summary>Planets today</summary><div id="planets-body"><p class="loading">Calculating…</p></div></details>
-    </div>
     ${ent.export?`<div class="card" style="margin-top:16px">
      <details><summary>Add to your own calendar app</summary>
       <div class="grid2">
@@ -1066,9 +1084,6 @@ function drawCalendar(pkg,root,opts={}){
    <aside id="daypanel" aria-label="Day detail"></aside>
   </div>`;
   const redraw=()=>drawCalendar(pkg,root,opts);
-  const pt=$('#planets-today',root);if(pt){const fill=()=>{if(!pt.open)return;const body=$('#planets-body',root);try{const ch=GOCHARA.chart(new Date(),{nodeMode:'true',outer:false});const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;const z=GOCHARA.utcToZoned(new Date(),tz);
-      body.innerHTML=`<p class="small muted" style="margin:6px 0 8px">Where each planet is right now — ${z.date} ${z.time} (${esc(tz)}), sidereal zodiac.</p><div style="overflow:auto"><table><thead><tr><th>Planet</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th></tr></thead><tbody>${ch.planets.map(p=>`<tr><td>${p.en}${p.retro&&p.key!=='rahu'&&p.key!=='ketu'?' <span class="small muted">(retrograde)</span>':''}</td><td>${GOCHARA.RASHI_EN[p.sign]} <span class="small muted">${GOCHARA.RASHI[p.sign]}</span></td><td>${Math.floor(p.deg)}°${String(Math.floor((p.deg%1)*60)).padStart(2,'0')}′</td><td>${p.nakName}</td><td>${p.pada}</td></tr>`).join('')}</tbody></table></div>`}
-      catch(e){body.innerHTML='<p class="small muted">Positions are unavailable right now.</p>'}};pt.addEventListener('toggle',fill);fill();if(root._ptTimer)clearInterval(root._ptTimer);root._ptTimer=setInterval(fill,60000)}
   bindJump(root,(yy,mm)=>{calState.year=yy;calState.month=mm;redraw()});
   root.addEventListener('click',e=>{const b=e.target.closest('[data-goto]');if(!b)return;const d=b.dataset.goto;const [yy,mm]=d.split('-').map(Number);if(yy!==calState.year||mm-1!==calState.month){calState.year=yy;calState.month=mm-1;calState.selected=d;redraw()}else{calState.selected=d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===d));drawDay(pkg,visible,d,root)}});
   const rp=$('#resetprefs',root);if(rp)rp.onclick=()=>{prefs.mode='everything';prefs.intention='';prefs.hidden=[];pkg.prefs=prefs;if(opts.code)api.setPrefs(opts.code,prefs).catch(()=>{});toast(opts.preview?'Display options reset for this client':'Showing everything');redraw()};
