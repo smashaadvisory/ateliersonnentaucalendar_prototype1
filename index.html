@@ -248,7 +248,15 @@ legend{font-family:var(--serif);font-size:1.15rem;padding:0 8px;color:var(--prim
 .goch.compact .g-charts{grid-template-columns:1fr}.goch.compact .g-charts.natal .transit,.goch.compact .g-charts.transit .natal{display:none}.goch.compact .g-mobile{display:inline-flex}
 .g-dasha{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0;padding:8px 12px;background:var(--surface-2);border-radius:10px}
 .g-detail{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.g-planets{overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:10px}
+.g-planets table{font-size:.9rem}.g-planets td,.g-planets th{padding:6px 8px;white-space:nowrap}
 .g-detail h3{margin-top:0;font-size:1.2rem}.g-detail h4{margin:10px 0 2px}
+.g-research{border-top:1px dashed var(--line-strong);margin-top:12px;padding-top:10px}
+.chip-btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:999px;padding:2px 11px;font-size:.86rem;cursor:pointer;color:var(--primary)}
+.chip-btn:hover{background:var(--surface-2)}
+.rres{margin-top:8px}.rres h5{margin:0 0 4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.rsrc{margin:6px 0 10px}.rsrc a{font-weight:600}
+.rsrc blockquote{margin:4px 0 0;padding:6px 12px;border-left:3px solid var(--caution);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.93rem;line-height:1.5}
 ul.plain{padding-left:18px;margin:6px 0}ul.plain li{margin:2px 0}
 .lnk{background:none;border:0;padding:0;color:var(--primary);cursor:pointer;font:inherit;text-decoration:underline}
 dl.kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:.92rem;margin:8px 0}
@@ -417,6 +425,16 @@ function chart(date,opts={}){const base=tropicalAll(date,opts);const ayan=base.a
   const moon=planets.find(p=>p.key==='moon');
   return {date,jd:base.jd,jdTT:base.jdTT,ayan,source:base.source,planets,moonSign:moon.sign,tropicalSun:base.lons.sun}}
 
+/* ---------- single body + next ingress ---------- */
+function bodySidereal(key,date,opts={}){const jd=jdFromDate(date);const jdTT=jd+deltaT(jd)/86400;const T=centuries(jdTT);let lon;
+  if(key==='sun')lon=sunLongitude(T);else if(key==='moon')lon=moonLongitude(T);else if(key==='rahu')lon=opts.nodeMode==='mean'?meanNode(T):trueNode(T);else if(key==='ketu')lon=norm((opts.nodeMode==='mean'?meanNode(T):trueNode(T))+180);else lon=planetLongitude(key,T);
+  return norm(lon-ayanamsa(jdTT))}
+function nextIngress(key,date,opts={}){const sign0=Math.floor(bodySidereal(key,date,opts)/30);const maxDays=key==='saturn'?1100:key==='rahu'||key==='ketu'?700:key==='jupiter'?500:key==='moon'?4:120;
+  let t0=date.getTime(),t1=t0;const step=key==='moon'?3600e3*3:86400e3;let found=false;
+  for(let i=0;i<maxDays*(key==='moon'?8:1);i++){t1=t0+step;const s=Math.floor(bodySidereal(key,new Date(t1),opts)/30);if(s!==sign0){found=true;break}t0=t1}
+  if(!found)return null;let lo=t0,hi=t1;for(let i=0;i<24;i++){const mid=(lo+hi)/2;const s=Math.floor(bodySidereal(key,new Date(mid),opts)/30);if(s===sign0)lo=mid;else hi=mid}
+  return {date:new Date(hi),sign:Math.floor(bodySidereal(key,new Date(hi+60000),opts)/30)}}
+
 /* ---------- ascendant ---------- */
 function gmst(jdUT){const T=(jdUT-2451545)/36525;return norm(280.46061837+360.98564736629*(jdUT-2451545)+0.000387933*T*T-T*T*T/38710000)}
 function ascendant(date,lat,lonE){const jd=jdFromDate(date);const jdTT=jd+deltaT(jd)/86400;const T=centuries(jdTT);
@@ -450,7 +468,7 @@ function utcToZoned(date,tz){const off=tzOffsetMinutes(tz,date);const z=new Date
   return {date:`${z.getUTCFullYear()}-${String(z.getUTCMonth()+1).padStart(2,'0')}-${String(z.getUTCDate()).padStart(2,'0')}`,time:`${String(z.getUTCHours()).padStart(2,'0')}:${String(z.getUTCMinutes()).padStart(2,'0')}`,offset:off}}
 function fmtOffset(min){const s=min<0?'-':'+';const a=Math.abs(min);return `UTC${s}${String(Math.floor(a/60)).padStart(2,'0')}:${String(a%60).padStart(2,'0')}`}
 
-return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,ascendant,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
+return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
   _internals:{sunLongitude,moonLongitude,meanNode,trueNode,planetLongitude,centuries,gmst}};
 })();
 if(typeof module!=='undefined')module.exports=GOCHARA;
@@ -497,7 +515,7 @@ function renderSouthIndianChart(chart,o){const {refSign,planets}=chart;const hi=
     s+=`<text x="${x+(h===1?4.5:2)}" y="${y+3.6}" class="sign" dominant-baseline="middle">${G.RASHI_AB[sign]}</text><text x="${x+23}" y="${y+3.6}" class="hnum" text-anchor="end" dominant-baseline="middle">${h}</text>`;
     s+=stack(hs.planets,x+12.5,y+14.5,'mid',hi)}
   return s+'</svg>'}
-function drishtiLines(hi,centre){if(!hi.occupied||!hi.drishti||!hi.drishti.length)return '';const from=centre(hi.occupied[0]);let s='<g class="drishti">';
+function drishtiLines(hi,centre){if(hi.noLines||!hi.occupied||!hi.drishti||!hi.drishti.length)return '';const from=centre(hi.occupied[0]);let s='<g class="drishti">';
   const list=hi.drishti.slice().sort((a,b)=>a.n-b.n);
   list.forEach((d,i)=>{const to=centre(d.sign);let dx=to[0]-from[0],dy=to[1]-from[1];const len=Math.hypot(dx,dy)||1;dx/=len;dy/=len;
     const a=[from[0]+dx*7,from[1]+dy*7],b=[to[0]-dx*11.5,to[1]-dy*11.5]; // start and end clear of the planet labels
@@ -534,7 +552,8 @@ function mount(container,client,opts={}){
   const natalAsc=natal.lat!==null?G.ascendant(natal.instant,natal.lat,natal.lon):null;
   const natalMoon=natalChart.planets.find(p=>p.key==='moon');
   const natalLagnaSign=natalAsc?Math.floor(natalAsc.sidereal/30):natalMoon.sign;
-  if(!natalAsc){if(S.ref==='lagna')S.ref='moon';S.natalRef='moon'}
+  if(S.ref==='sky')S.ref='lagna';if(!natalAsc){if(S.ref==='lagna')S.ref='moon';S.natalRef='moon'}
+  st.view=st.view||'charts';
   let timer=null;const el=container;
   const tzNow=()=>S.tzMode==='client'?natal.tz:BROWSER_TZ;
   const refSign=()=>S.ref==='moon'?natalMoon.sign:natalLagnaSign;
@@ -551,7 +570,7 @@ function mount(container,client,opts={}){
 
   function highlights(c){const hi={natal:{},transit:{}};const sel=st.sel;if(!sel)return hi;const sg=h=>(c.ref+h-1)%12;
     if(sel.type==='transit'){const p=c.tr.planets.find(x=>x.key===sel.key);if(!p)return hi;const dr=G.drishtiTargets(p.key,p.house).map(d=>({n:d.n,sign:sg(d.house)}));
-      hi.transit={selPlanet:p.key,occupied:[p.sign],drishti:dr};hi.natal={occupied:[p.sign],drishti:dr,marked:natalChart.planets.filter(n=>n.sign===p.sign||dr.some(d=>d.sign===n.sign)).map(n=>n.key),contact:c.contacts.filter(x=>x.t===p.key).map(x=>x.n)}}
+      hi.transit={selPlanet:p.key,occupied:[p.sign],drishti:dr};hi.natal={noLines:true,occupied:[p.sign],drishti:dr,marked:natalChart.planets.filter(n=>n.sign===p.sign||dr.some(d=>d.sign===n.sign)).map(n=>n.key),contact:c.contacts.filter(x=>x.t===p.key).map(x=>x.n)}}
     else if(sel.type==='natal'){const n=natalChart.planets.find(x=>x.key===sel.key);if(!n)return hi;
       const affecting=c.tr.planets.filter(t=>t.sign===n.sign||G.drishtiTargets(t.key,t.house).some(d=>sg(d.house)===n.sign));
       hi.natal={selPlanet:n.key,occupied:[n.sign],drishti:G.drishtiTargets(n.key,n.house).map(d=>({n:d.n,sign:sg(d.house)})),contact:c.contacts.filter(x=>x.n===n.key).map(x=>x.n)};
@@ -589,6 +608,45 @@ function mount(container,client,opts={}){
        <dt>Outgoing natal drishti</dt><dd>${outN.join('; ')||'—'}</dd><dt>Nodes</dt><dd>${[...natIn,...trIn].filter(p=>p.key==='rahu'||p.key==='ketu').map(p=>gname(p.key)).join(', ')||'—'}</dd>
        <dt>Close contacts</dt><dd>${cts.map(x=>`transit ${gname(x.t)} ↔ natal ${gname(x.n)} (${G.fmtDeg(x.d)})`).join('; ')||'—'}</dd></dl>`}
     return ''}
+  const BPL_SIGN=['Mesha','Vrishabha','Mithuna','Karkata','Simha','Kanya','Tula','Vrischika','Dhanus','Makara','Kumbha','Meena'];
+  function researchTopics(c){const sel=st.sel;const ref=c.ref;const d=c.dasha;const T=[];const add=(label,q)=>{if(!T.some(t=>t.q===q))T.push({label,q})};
+    const dashaTopic=()=>{if(d){add(`${gname(d.maha.lord)} Mahadasha${d.antar?' · '+gname(d.antar.lord)+' bhukti':''}`,`${gname(d.maha.lord)} Mahadasha ${d.antar?gname(d.antar.lord)+' bhukti':''}`.trim())}};
+    if(!sel){for(const p of c.tr.planets.filter(x=>!x.outer))add(`${gname(p.key)} in bhava-${p.houseLagna}`,`${gname(p.key)} bhava-${p.houseLagna}`);dashaTopic();return T}
+    if(sel.type==='transit'){const p=c.tr.planets.find(x=>x.key===sel.key);if(!p)return T;
+      add(`${gname(p.key)} in ${BPL_SIGN[p.sign]}`,`${gname(p.key)} ${BPL_SIGN[p.sign]}`);add(`${gname(p.key)} in bhava-${p.houseLagna} (from Lagna)`,`${gname(p.key)} bhava-${p.houseLagna}`);if(p.houseMoon!==p.houseLagna)add(`${gname(p.key)} in bhava-${p.houseMoon} from Chandra`,`${gname(p.key)} bhava-${p.houseMoon} from Chandra`);
+      add(`${gname(p.key)} in ${p.nakName}`,`${gname(p.key)} ${p.nakName}`);if(p.retro&&!NODE(p.key))add(`${gname(p.key)} retrograde`,`${gname(p.key)} vakri retrograde`);
+      for(const x of G.drishtiTargets(p.key,p.house))add(`${gname(p.key)} drishti to bhava-${x.house}`,`${gname(p.key)} drishti bhava-${x.house}`);
+      for(const x of c.contacts.filter(y=>y.t===p.key))add(`${gname(p.key)} with natal ${gname(x.n)}`,`${gname(p.key)} yuti ${gname(x.n)}`);
+      for(const n of natalChart.planets.filter(n=>n.sign===p.sign))add(`transit ${gname(p.key)} over natal ${gname(n.key)}`,`${gname(p.key)} gochara natal ${gname(n.key)}`);
+      dashaTopic();return T}
+    if(sel.type==='natal'){const n=natalChart.planets.find(x=>x.key===sel.key);if(!n)return T;
+      add(`${gname(n.key)} in bhava-${n.houseLagna}`,`${gname(n.key)} bhava-${n.houseLagna}`);add(`${gname(n.key)} in ${BPL_SIGN[n.sign]}`,`${gname(n.key)} ${BPL_SIGN[n.sign]}`);add(`${gname(n.key)} in ${n.nakName}`,`${gname(n.key)} ${n.nakName}`);
+      if(n.dignity)add(`${gname(n.key)} ${n.dignity}`,`${gname(n.key)} ${n.dignity==='exalted'?'uttama':n.dignity==='debilitated'?'nichha':n.dignity==='own sign'?'svakshetra':'moolatrikona'}`);
+      for(const t of c.tr.planets.filter(t=>t.sign===n.sign&&!t.outer))add(`transit ${gname(t.key)} over natal ${gname(n.key)}`,`${gname(t.key)} gochara natal ${gname(n.key)}`);dashaTopic();return T}
+    if(sel.type==='house'){const sign=sel.sign;const h=G.houseFrom(sign,ref);const lord=G.SIGN_LORD[sign];const L=natalChart.planets.find(p=>p.key===lord);
+      add(`bhava-${h} ${BPL_SIGN[sign]}`,`bhava-${h} ${BPL_SIGN[sign]}`);if(L)add(`lord of bhava-${h}, ${gname(lord)}, in bhava-${L.houseLagna}`,`${gname(lord)} bhava-${L.houseLagna}`);
+      for(const p of natalChart.planets.filter(p=>p.sign===sign))add(`natal ${gname(p.key)} in bhava-${h}`,`${gname(p.key)} bhava-${h}`);for(const t of c.tr.planets.filter(t=>t.sign===sign&&!t.outer))add(`transit ${gname(t.key)} in bhava-${h}`,`${gname(t.key)} gochara bhava-${h}`);return T}
+    return T}
+  let helper=null;const helperAvailable=()=>{if(helper)return helper;helper=(async()=>{try{if(!/^https?:/.test(location.protocol))return false;const r=await fetch('/.netlify/functions/research?ping=1',{cache:'no-store'});return r.ok}catch(e){return false}})();return helper};
+  function researchPanel(c){const T=researchTopics(c);if(!T.length)return '';
+    return `<div class="g-research"><h4>Research <span class="muted" style="font-weight:400">— Barbara Pijan Lama first, then the wider web</span></h4>
+     <div class="row chips">${T.map((t,i)=>`<button type="button" class="chip-btn" data-rq="${esc(t.q)}">${esc(t.label)}</button>`).join('')}</div>
+     <form class="row" id="g-rform" style="margin-top:8px;gap:6px"><input type="text" id="g-q" placeholder="or type any topic…" style="flex:1;min-width:180px"><button type="submit" class="btn small ghost">Search</button></form>
+     <div id="g-rout"></div></div>`}
+  async function runResearch(q){const out=$('#g-rout',el);if(!out)return;$('#g-q',el).value=q;
+    const links=`<p class="small" style="margin:8px 0 4px"><a target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent('site:barbarapijan.com '+q)}">Barbara Pijan Lama ↗</a> · <a target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent(q+' jyotish')}">Google ↗</a> · <a target="_blank" rel="noopener" href="https://duckduckgo.com/?q=${encodeURIComponent('site:barbarapijan.com '+q)}">DuckDuckGo ↗</a></p>`;
+    out.innerHTML=`<p class="small muted" style="margin:6px 0 0">Searching for “${esc(q)}”…</p>${links}`;
+    if(!(await helperAvailable())){out.innerHTML=`<p class="small muted" style="margin:6px 0 0">“${esc(q)}” — open a source:</p>${links}<p class="small muted">Excerpts appear here in-page when the site is deployed as a folder with its <code>netlify/functions</code> helper.</p>`;return}
+    const block=(title,r)=>`<div class="rres"><h5>${esc(title)}</h5>${r.results.length?r.results.map(x=>`<div class="rsrc"><a target="_blank" rel="noopener" href="${esc(x.url)}">${esc(x.title||x.url)}</a>${x.excerpts.map(e=>`<blockquote>${esc(e)}</blockquote>`).join('')}${!x.excerpts.length?'<p class="small muted">no matching passage on this page</p>':''}</div>`).join(''):`<p class="small muted">${esc(r.why||'nothing found')}</p>`}</div>`;
+    try{const [b,w]=await Promise.all([fetch('/.netlify/functions/research?scope=bpl&q='+encodeURIComponent(q)).then(r=>r.json()),fetch('/.netlify/functions/research?scope=web&q='+encodeURIComponent(q)).then(r=>r.json())]);
+      out.innerHTML=`<p class="small muted" style="margin:6px 0 0">“${esc(q)}”</p>${block('Barbara Pijan Lama',b)}${block('Wider web',w)}${links}<p class="small muted">Excerpts are short quotations for your private study, with the source linked; adapt in your own words for client-facing text.</p>`}
+    catch(e){out.innerHTML=`<p class="small muted">Could not fetch excerpts (${esc(e.message||e)}).</p>${links}`}}
+  function planetTable(c){const sky=st.skyLat!==null?G.ascendant(st.instant,st.skyLat,st.skyLon):null;const lords=dashaLords(c.dasha);
+    const rows=c.tr.planets.map(p=>{let ing=null;try{if(!p.outer)ing=G.nextIngress(p.key,st.instant,{nodeMode:S.nodeMode})}catch(e){}
+      const state=[p.retro&&!NODE(p.key)?'retrograde':NODE(p.key)?'':'direct',p.dignity,p.combust?'combust':'',lords.includes(p.key)?'dasha lord':''].filter(Boolean).join(' · ');
+      return `<tr><td><button type="button" class="lnk" data-pick="transit:${p.key}"><strong>${gname(p.key)}</strong></button><div class="small muted">${p.en}</div></td><td>${G.RASHI[p.sign]}<div class="small muted">${G.RASHI_EN[p.sign]}</div></td><td>${G.fmtDeg(p.deg)}</td><td>${p.nakName}<div class="small muted">pada ${p.pada}</div></td><td>${p.speed>=0?'+':''}${p.speed.toFixed(3)}°/d</td><td class="small">${state||'—'}</td><td>${p.houseLagna}H<div class="small muted">${p.houseMoon}H from Chandra</div></td><td class="small">${ing?`${G.RASHI[ing.sign]} · ${G.utcToZoned(ing.date,tzNow()).date}`:'—'}</td></tr>`}).join('');
+    return `<div class="g-planets"><table><thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>Motion</th><th>State</th><th>Bhava</th><th>Next rashi</th></tr></thead><tbody>${rows}</tbody></table>
+     <p class="small muted" style="margin:8px 0 0">Sidereal, Lahiri ayanamsa ${G.fmtDeg(c.tr.ayan)} · ${sky?`sky Lagna at the birth place now: ${G.RASHI[Math.floor(sky.sidereal/30)]} ${G.fmtDeg(sky.sidereal%30)} · `:''}ephemeris: ${esc(c.tr.source)}</p></div>`}
   const addBtn=p=>opts.onAdd?`<p><button type="button" class="btn small" id="g-add">${opts.addLabel||'Add influence from this moment'}</button></p>`:'';
 
   function snapshot(c){const z=G.utcToZoned(st.instant,tzNow());const p=st.sel&&st.sel.type==='transit'?c.tr.planets.find(x=>x.key===st.sel.key):null;
@@ -615,15 +673,16 @@ function mount(container,client,opts={}){
       <span class="seg"><button type="button" data-style="north" aria-pressed="${S.style==='north'}">North Indian</button><button type="button" data-style="south" aria-pressed="${S.style==='south'}">South Indian</button></span>
       <span class="row small" style="gap:10px"><label class="chk" style="margin:0"><input type="checkbox" id="g-outer" ${S.outer?'checked':''}>Uranus, Neptune, Pluto</label><label class="chk" style="margin:0"><input type="checkbox" id="g-node" ${S.nodeMode==='mean'?'checked':''}>Mean nodes</label><label class="chk" style="margin:0">orb <select id="g-orb" style="width:auto;padding:2px 6px">${[0.5,1,2,3].map(o=>`<option ${S.orb===o?'selected':''}>${o}</option>`).join('')}</select>°</label><label class="chk" style="margin:0"><input type="checkbox" id="g-tz" ${S.tzMode==='mine'?'checked':''}>My time zone</label></span>
      </div>
-     ${S.ref==='sky'?`<p class="small muted row" style="gap:6px">Transit sky uses location: <input type="number" id="g-lat" step="0.0001" value="${st.skyLat??''}" placeholder="lat" style="width:110px;padding:3px 6px"><input type="number" id="g-lon" step="0.0001" value="${st.skyLon??''}" placeholder="lon (E+)" style="width:110px;padding:3px 6px">${c.skyAsc?`· sky Lagna ${G.RASHI[Math.floor(c.skyAsc.sidereal/30)]} ${G.fmtDeg(c.skyAsc.sidereal%30)}`:'· enter a location'}</p>`:''}
-     <div class="g-charts ${st.mobileView}">
+     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button></span><span class="small muted">${st.view==='planets'?'Every graha at the selected moment; “Now” keeps it live.':''}</span></div>
+     ${st.view==='planets'?planetTable(c):''}
+     <div class="g-charts ${st.mobileView} ${st.view==='planets'?'hidden':''}">
       <figure class="g-fig natal"><figcaption><span class="seg small"><button type="button" data-natalref="lagna" aria-pressed="${S.natalRef==='lagna'}" ${natalAsc?'':'disabled'}>Lagna</button><button type="button" data-natalref="moon" aria-pressed="${S.natalRef==='moon'}">Rasi (Chandra)</button></span><div class="cap">Natal · ${client.name?esc(client.name):''} <span class="muted">${natalAsc?'Lagna '+G.RASHI[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}</span></div></figcaption>${render(natalModel,{style:S.style,highlight:hi.natal,cls:'natal',centreLabel:S.natalRef==='moon'?'Rasi':'Lagna'})}</figure>
-      <figure class="g-fig transit"><figcaption><span class="seg small"><button type="button" data-ref="lagna" aria-pressed="${S.ref==='lagna'}" ${natalAsc?'':'disabled'}>from Lagna</button><button type="button" data-ref="moon" aria-pressed="${S.ref==='moon'}">from Chandra</button><button type="button" data-ref="sky" aria-pressed="${S.ref==='sky'}">Sky</button></span><div class="cap">Gochara · ${z.date} ${z.time} <span class="muted">${refWord}</span></div></figcaption>${render(trModel,{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})}</figure>
+      <figure class="g-fig transit"><figcaption><span class="seg small"><button type="button" data-ref="lagna" aria-pressed="${S.ref==='lagna'}" ${natalAsc?'':'disabled'}>from Lagna</button><button type="button" data-ref="moon" aria-pressed="${S.ref==='moon'}">from Chandra</button></span><div class="cap">Gochara · ${z.date} ${z.time} <span class="muted">${refWord}</span></div></figcaption>${render(trModel,{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})}</figure>
       <div class="g-legend small muted"><span><i class="sw occ"></i> occupied by the selected graha</span><span><i class="sw dr"></i> receives its drishti</span><span><i class="sw tg"></i> natal graha under transit</span><span><i class="sw sel"></i> selected bhava</span><span><u>marked</u> natal graha affected · <u style="text-decoration-style:double">contact</u> within ${S.orb}°</span></div>
       <div class="g-mobile seg"><button type="button" data-view="natal" aria-pressed="${st.mobileView==='natal'}">Natal</button><button type="button" data-view="both" aria-pressed="${st.mobileView==='both'}">Both</button><button type="button" data-view="transit" aria-pressed="${st.mobileView==='transit'}">Transit</button></div>
      </div>
      <div class="g-dasha small">${dstr}</div>
-     <div class="g-detail">${inspector(c)}${st.sel?'<p><button type="button" class="btn quiet small" id="g-clear">Clear selection</button></p>':''}${!st.sel&&opts.onAdd?addBtn():''}</div>
+     <div class="g-detail">${inspector(c)}${st.sel?'<p><button type="button" class="btn quiet small" id="g-clear">Clear selection</button></p>':''}${!st.sel&&opts.onAdd?addBtn():''}${researchPanel(c)}</div>
      <details class="small" style="margin-top:8px"><summary>Diagnostics</summary><table class="small"><tbody><tr><td>Local</td><td>${z.date} ${z.time} ${esc(tzNow())}</td></tr><tr><td>UTC</td><td>${st.instant.toISOString()}</td></tr><tr><td>JD (TT)</td><td>${c.tr.jdTT.toFixed(5)}</td></tr><tr><td>Ayanamsa</td><td>Lahiri ${G.fmtDeg(c.tr.ayan)}</td></tr><tr><td>Nodes</td><td>${S.nodeMode}</td></tr><tr><td>Ephemeris</td><td>${esc(c.tr.source)}</td></tr>
       ${c.tr.planets.map(p=>`<tr><td>${p.en}</td><td>tropical ${G.fmtDeg(p.tropical)} · sidereal ${G.fmtDeg(p.lon)} · ${G.RASHI[p.sign]} ${G.fmtDeg(p.deg)} · ${p.speed.toFixed(4)}°/d ${p.retro?'R':'D'}</td></tr>`).join('')}</tbody></table></details>
     </div>`;
@@ -640,6 +699,7 @@ function mount(container,client,opts={}){
     el.querySelectorAll('[data-natalref]').forEach(b=>b.onclick=()=>{S.natalRef=b.dataset.natalref;saveSettings(S);draw()});
     el.querySelectorAll('[data-style]').forEach(b=>b.onclick=()=>{S.style=b.dataset.style;saveSettings(S);draw()});
     el.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{st.mobileView=b.dataset.view;draw()});
+    el.querySelectorAll('[data-gview]').forEach(b=>b.onclick=()=>{st.view=b.dataset.gview;draw()});
     $('#g-outer',el).onchange=e=>{S.outer=e.target.checked;saveSettings(S);rebuildNatal();draw()};
     $('#g-node',el).onchange=e=>{S.nodeMode=e.target.checked?'mean':'true';saveSettings(S);rebuildNatal();draw()};
     $('#g-orb',el).onchange=e=>{S.orb=Number(e.target.value);saveSettings(S);draw()};
@@ -654,9 +714,11 @@ function mount(container,client,opts={}){
     el.querySelectorAll('.kundli [data-house]').forEach(t=>t.onclick=()=>{st.sel={type:'house',sign:Number(t.dataset.sign)};draw()});
     el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const [type,key]=b.dataset.pick.split(':');st.sel={type,key};draw()});
     const cl=$('#g-clear',el);if(cl)cl.onclick=()=>{st.sel=null;draw()};
+    el.querySelectorAll('[data-rq]').forEach(b=>b.onclick=()=>runResearch(b.dataset.rq));
+    const rf=$('#g-rform',el);if(rf)rf.onsubmit=e=>{e.preventDefault();const q=$('#g-q',el).value.trim();if(q)runResearch(q)};
     const add=$('#g-add',el);if(add)add.onclick=()=>opts.onAdd(snapshot(c));
     const gg=$('#g-geo',el);if(gg)gg.onclick=()=>{gg.disabled=true;gg.textContent='Looking up…';opts.onGeocode()};
-    if(timer)clearInterval(timer);if(st.live)timer=setInterval(()=>{if(!document.body.contains(el)){clearInterval(timer);return}if(st.live&&!st.sel){st.instant=new Date();draw()}},60000);
+    if(timer)clearInterval(timer);if(st.live)timer=setInterval(()=>{if(!document.body.contains(el)){clearInterval(timer);return}if(st.live&&(!st.sel||st.view==='planets')){st.instant=new Date();draw()}},60000);
   }
   function rebuildNatal(){const fresh=G.chart(natal.instant,{nodeMode:S.nodeMode,outer:S.outer});natalChart.planets=fresh.planets}
   draw();
@@ -981,6 +1043,9 @@ function drawCalendar(pkg,root,opts={}){
       <label class="f"><span>Areas of life</span></label>${catChecks}
      </details>
     </div>
+    <div class="card" style="margin-top:16px">
+     <details id="planets-today"><summary>Planets today</summary><div id="planets-body"><p class="loading">Calculating…</p></div></details>
+    </div>
     ${ent.export?`<div class="card" style="margin-top:16px">
      <details><summary>Add to your own calendar app</summary>
       <div class="grid2">
@@ -1001,6 +1066,9 @@ function drawCalendar(pkg,root,opts={}){
    <aside id="daypanel" aria-label="Day detail"></aside>
   </div>`;
   const redraw=()=>drawCalendar(pkg,root,opts);
+  const pt=$('#planets-today',root);if(pt){const fill=()=>{if(!pt.open)return;const body=$('#planets-body',root);try{const ch=GOCHARA.chart(new Date(),{nodeMode:'true',outer:false});const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;const z=GOCHARA.utcToZoned(new Date(),tz);
+      body.innerHTML=`<p class="small muted" style="margin:6px 0 8px">Where each planet is right now — ${z.date} ${z.time} (${esc(tz)}), sidereal zodiac.</p><div style="overflow:auto"><table><thead><tr><th>Planet</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th></tr></thead><tbody>${ch.planets.map(p=>`<tr><td>${p.en}${p.retro&&p.key!=='rahu'&&p.key!=='ketu'?' <span class="small muted">(retrograde)</span>':''}</td><td>${GOCHARA.RASHI_EN[p.sign]} <span class="small muted">${GOCHARA.RASHI[p.sign]}</span></td><td>${Math.floor(p.deg)}°${String(Math.floor((p.deg%1)*60)).padStart(2,'0')}′</td><td>${p.nakName}</td><td>${p.pada}</td></tr>`).join('')}</tbody></table></div>`}
+      catch(e){body.innerHTML='<p class="small muted">Positions are unavailable right now.</p>'}};pt.addEventListener('toggle',fill);fill();if(root._ptTimer)clearInterval(root._ptTimer);root._ptTimer=setInterval(fill,60000)}
   bindJump(root,(yy,mm)=>{calState.year=yy;calState.month=mm;redraw()});
   root.addEventListener('click',e=>{const b=e.target.closest('[data-goto]');if(!b)return;const d=b.dataset.goto;const [yy,mm]=d.split('-').map(Number);if(yy!==calState.year||mm-1!==calState.month){calState.year=yy;calState.month=mm-1;calState.selected=d;redraw()}else{calState.selected=d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===d));drawDay(pkg,visible,d,root)}});
   const rp=$('#resetprefs',root);if(rp)rp.onclick=()=>{prefs.mode='everything';prefs.intention='';prefs.hidden=[];pkg.prefs=prefs;if(opts.code)api.setPrefs(opts.code,prefs).catch(()=>{});toast(opts.preview?'Display options reset for this client':'Showing everything');redraw()};
@@ -1306,6 +1374,7 @@ function openEditor(ctx,inf,isNew){
    <fieldset><legend>Private — never shown to the client</legend>
     ${txt('Private notes','private_notes',inf.private_notes,'your rationale, Jyotish factors, sources — free text')}
     ${txt('Technical basis','technical_basis',inf.technical_basis,'one line, e.g. “Shukra gochara over 10L; Guru drishti” — can be shown to the client below')}
+    <p class="small" style="margin:-4px 0 6px"><button type="button" class="btn ghost small" id="tb-research">Research this online ↗</button> <span class="muted">opens Barbara Pijan Lama’s site for the technical basis text; the Gochara pane offers excerpts in-page.</span></p>
     ${(()=>{const j=Object.entries(inf.jyotish||{}).filter(([,v])=>v);const sr=Object.entries(inf.source_reference||{}).filter(([,v])=>v);return (j.length||sr.length)?`<p class="small muted">Previously recorded: ${[...j,...sr].map(([k,v])=>`${esc(k)}: ${esc(v)}`).join(' · ')}</p>`:''})()}
    </fieldset>
    <fieldset><legend>Visibility</legend>
@@ -1319,6 +1388,7 @@ function openEditor(ctx,inf,isNew){
     ${isNew?'':'<button class="btn quiet" type="button" id="del">Delete</button>'}
    </div></form><aside class="gpane hidden" id="gpane" aria-label="Gochara"></aside></div>`;
   document.body.appendChild(dlg);dlg.showModal();
+  const tbr=$('#tb-research',dlg);if(tbr)tbr.onclick=()=>{const q=($('#ef',dlg).elements.technical_basis.value||$('#ef',dlg).elements.title.value).trim();if(!q){alert('Type a technical basis (or a title) first.');return}window.open('https://www.google.com/search?q='+encodeURIComponent('site:barbarapijan.com '+q),'_blank','noopener')};
   let gws=null;const gt=$('#gtoggle',dlg);
   gt.onclick=()=>{const on=gt.getAttribute('aria-pressed')!=='true';gt.setAttribute('aria-pressed',on);dlg.classList.toggle('wide',on);$('.db',dlg).classList.toggle('split',on);$('#gpane',dlg).classList.toggle('hidden',!on);
     if(on&&!gws){const f=$('#ef',dlg);const tz=c.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone;const when=GOCHARA.zonedToUtc(f.elements.start_date.value||todayStr(),f.elements.start_time.value||'12:00',tz);
