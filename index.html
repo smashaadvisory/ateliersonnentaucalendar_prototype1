@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // High-accuracy ephemeris (MIT-licensed astronomy-engine). Loaded in the background with fallbacks; the page works without it.
@@ -206,40 +206,56 @@ textarea{min-height:78px;resize:vertical}
 .day{position:relative}
 .cal-contact{text-align:center;margin-top:18px}
 /* gift opening */
-.gift{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);overflow:hidden;animation:gfade .9s ease}
+.gift{position:fixed;inset:0;z-index:45;display:flex;align-items:flex-start;justify-content:center;padding:max(10vh,56px) 16px 24px;background:var(--bg);overflow-y:auto;overflow-x:hidden;animation:gfade .9s ease;--script:"Great Vibes","Cormorant Garamond",cursive}
 @keyframes gfade{from{opacity:0}to{opacity:1}}
-.gift.leaving{animation:gleave .7s ease forwards}
+.gift.leaving{animation:gleave .7s .9s ease forwards}
 @keyframes gleave{to{opacity:0}}
-.gift .stage{position:relative;width:min(560px,100%);text-align:center}
-.gift .hello{font-family:var(--sans);font-size:.85rem;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;padding-left:.32em;opacity:0;animation:gin .9s .2s ease forwards}
-.gift h1{font-family:var(--brand);font-style:italic;font-size:clamp(2.6rem,7vw,4rem);color:var(--primary);margin:0;font-weight:500;line-height:1.05;opacity:0;animation:gin 1s .6s ease forwards}
+.gift .stage{position:relative;width:min(560px,100%);margin:0 auto;text-align:center}
+.gift .hello{font-family:var(--script);font-weight:400;font-size:clamp(2.6rem,9vw,4rem);color:var(--primary);margin:0;line-height:1.15;opacity:0;animation:gin 1.1s .3s ease forwards;word-break:break-word}
+.gift .hello small{display:block;font-family:var(--sans);font-size:.78rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-top:4px;padding-left:.3em}
 @keyframes gin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.gift .box{position:relative;width:180px;height:170px;margin:34px auto 0;opacity:0;animation:gin .9s 1.5s ease forwards}
+.gift .scene{position:relative;height:480px;margin-top:6vh}
+.gift .box{position:absolute;left:50%;top:300px;width:180px;height:170px;margin-left:-90px;opacity:0;animation:gin .9s 1.4s ease forwards;z-index:2}
 .gift .body{position:absolute;left:20px;right:20px;bottom:0;height:110px;background:var(--g1);border-radius:6px;box-shadow:inset 0 -18px 0 rgba(0,0,0,.08)}
 .gift .body:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:26px;margin-left:-13px;background:var(--g2)}
-.gift .lid{position:absolute;left:8px;right:8px;top:48px;height:34px;background:var(--g1);border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.12);transform-origin:12% 100%;animation:lid 1.4s 2.6s cubic-bezier(.3,.9,.4,1.2) forwards}
+.gift .lid{position:absolute;left:8px;right:8px;top:48px;height:34px;background:var(--g1);border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.12);transform-origin:12% 100%;animation:lid 1.4s 2.5s cubic-bezier(.3,.9,.4,1.2) forwards;z-index:4}
 .gift .lid:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:26px;margin-left:-13px;background:var(--g2)}
-.gift .bow{position:absolute;left:50%;top:20px;width:64px;height:40px;margin-left:-32px;animation:bow 1.2s 2.6s ease forwards}
+.gift .bow{position:absolute;left:50%;top:20px;width:64px;height:40px;margin-left:-32px;animation:bow 1.2s 2.5s ease forwards;z-index:5}
 .gift .bow i{position:absolute;top:8px;width:30px;height:24px;border:6px solid var(--g2);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:transparent}
 .gift .bow i:first-child{left:0;transform:rotate(-20deg)}.gift .bow i:last-child{right:0;transform:rotate(20deg)}
 .gift .bow b{position:absolute;left:50%;top:14px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--g2)}
 @keyframes lid{0%{transform:none}60%{transform:translateY(-40px) rotate(-14deg)}100%{transform:translate(-120px,-130px) rotate(-38deg);opacity:0}}
 @keyframes bow{to{transform:translate(-120px,-150px) rotate(-30deg);opacity:0}}
-.gift .card{position:relative;margin:-56px auto 0;max-width:460px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px 26px 22px;box-shadow:0 18px 40px rgba(60,45,20,.14);opacity:0;transform:translateY(40px) scale(.96);animation:card 1.1s 3.5s cubic-bezier(.2,.8,.3,1) forwards}
-@keyframes card{to{opacity:1;transform:none}}
-.gift .card p{margin:0 0 10px;font-size:1.05rem;line-height:1.5}
-.gift .card .from{font-family:var(--sans);font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
-.gift .card blockquote{margin:0 0 14px;font-family:var(--brand);font-style:italic;font-size:1.3rem;line-height:1.4;color:var(--primary);white-space:pre-line}
-.gift .card .btn{margin-top:6px}
-.gift .glow{position:absolute;left:50%;top:50%;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;background:radial-gradient(circle,var(--g3) 0%,rgba(255,255,255,0) 65%);opacity:0;animation:glow 1.6s 2.8s ease forwards;pointer-events:none}
+.gift .front{position:absolute;left:50%;top:360px;width:140px;height:110px;margin-left:-70px;background:var(--g1);border-radius:6px;box-shadow:inset 0 -18px 0 rgba(0,0,0,.08);z-index:3;opacity:0;animation:gin .9s 1.4s ease forwards}
+.gift .front:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:26px;margin-left:-13px;background:var(--g2)}
+/* the rolled letter rises out of the box, then unrolls downwards */
+.gift .paper{position:absolute;left:50%;top:370px;width:min(440px,calc(100vw - 40px));z-index:2;opacity:0;transform:translate(-50%,0);animation:rise 1.2s 3.4s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,0);z-index:2}30%{opacity:1}99%{z-index:2}100%{opacity:1;transform:translate(-50%,-340px);z-index:7}}
+.gift .sheet{position:relative;background:linear-gradient(180deg,#FDF9EE 0%,#F8F1DD 100%);border:1px solid var(--line);border-radius:6px;padding:28px 28px 26px;box-shadow:0 18px 40px rgba(60,45,20,.14);clip-path:inset(0 0 100% 0);animation:unroll 1.5s 4.4s cubic-bezier(.3,.6,.3,1) forwards}
+.gift .sheet:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 31px,rgba(70,58,35,.06) 31px 32px);pointer-events:none;border-radius:6px}
+@keyframes unroll{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+.gift .roll{position:absolute;left:-6px;right:-6px;top:-10px;height:22px;border-radius:11px;background:linear-gradient(180deg,#FFFDF5,#E8DFC6 60%,#D4C8A8);box-shadow:0 6px 14px rgba(60,45,20,.22);z-index:3;animation:rollmove 1.5s 4.4s cubic-bezier(.3,.6,.3,1) forwards}
+@keyframes rollmove{from{top:-10px;opacity:1}85%{opacity:1}to{top:calc(100% - 12px);opacity:0}}
+.gift.rolling .sheet{animation:reroll .9s cubic-bezier(.4,.2,.6,1) forwards}
+@keyframes reroll{from{clip-path:inset(0 0 0 0)}to{clip-path:inset(0 0 100% 0)}}
+.gift.rolling .roll{animation:rollback .9s cubic-bezier(.4,.2,.6,1) forwards}
+@keyframes rollback{from{top:calc(100% - 12px);opacity:1}to{top:-10px;opacity:1}}
+.gift .sheet h2{font-family:var(--script);font-weight:400;font-size:clamp(1.7rem,6vw,2.3rem);color:var(--primary);margin:0 0 10px;line-height:1.2}
+.gift .sheet p{margin:0 0 8px;font-size:1.05rem;line-height:1.5}
+.gift .sheet .lbl{font-family:var(--sans);font-size:.76rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
+.gift .sheet blockquote{margin:0 0 16px;font-family:var(--brand);font-style:italic;font-size:1.25rem;line-height:1.4;color:var(--primary);white-space:pre-line}
+.gift .sheet .btn{margin-top:4px}
+.gift .glow{position:absolute;left:50%;top:360px;width:420px;height:420px;margin:-150px 0 0 -210px;border-radius:50%;background:radial-gradient(circle,var(--g3) 0%,rgba(255,255,255,0) 65%);opacity:0;animation:glow 1.6s 2.7s ease forwards;pointer-events:none;z-index:1}
 @keyframes glow{to{opacity:.9}}
-.gift .pc{position:absolute;top:-20px;font-size:14px;opacity:0;animation:fall linear forwards;pointer-events:none}
-@keyframes fall{0%{opacity:0;transform:translateY(0) rotate(0)}10%{opacity:1}100%{opacity:0;transform:translateY(110vh) rotate(540deg)}}
-.gift.birthday{--g1:#E8B4C8;--g2:#B58A4A;--g3:rgba(232,180,200,.55)}
+/* confetti bursts out of the box when the lid comes off, then falls and fades */
+.gift .pc{position:absolute;left:50%;top:370px;font-size:14px;opacity:0;animation:burst var(--dur,2s) 2.7s cubic-bezier(.2,.6,.3,1) forwards;pointer-events:none;z-index:6;will-change:transform}
+@keyframes burst{0%{opacity:0;transform:translate(0,0) scale(.4) rotate(0)}8%{opacity:1}35%{opacity:1;transform:translate(calc(var(--dx)*.7),var(--dy)) scale(1) rotate(calc(var(--rot)*.4))}100%{opacity:0;transform:translate(var(--dx),calc(var(--dy) + 320px)) scale(.9) rotate(var(--rot))}}
+.gift.birthday{--g1:#5B74B5;--g2:#C9443F;--g3:rgba(91,116,181,.35)}
 .gift.valentines{--g1:#C2504F;--g2:#F2D6D1;--g3:rgba(194,80,79,.35)}
 .gift.christmas{--g1:#8F3B3B;--g2:#6F9B82;--g3:rgba(111,155,130,.4)}
 .gift.anniversary{--g1:#D9C7A2;--g2:#B58A4A;--g3:rgba(181,138,74,.35)}
 .gift.neutral{--g1:#DED3BE;--g2:#3F466B;--g3:rgba(63,70,107,.22)}
+@media(max-width:480px){.gift{padding-top:max(6vh,36px)}.gift .scene{margin-top:4vh;height:500px}.gift .sheet{padding:22px 18px 20px}}
 @media(prefers-reduced-motion:reduce){.gift *{animation-duration:.01s!important;animation-delay:0s!important}}
 details summary{cursor:pointer;font-weight:600;font-size:.93rem;list-style:none;display:flex;align-items:center;gap:8px}
 details summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin-left:2px}
@@ -1555,18 +1571,21 @@ function renderClientLogin(msg){
 function clientSignOut(){ACT.stop('signed out');localStorage.removeItem(CODE_KEY);go('#/')}
 /* The gift opening shown on a gifted client's first visit (and previewed by the astrologer). */
 const GIFT_OCCASIONS=[['neutral','Neutral'],['birthday','Birthday'],['valentines','Valentine’s'],['christmas','Christmas'],['anniversary','Anniversary']];
-const GIFT_PARTICLES={birthday:['✦','●','▲','■'],valentines:['♥','♡','✦'],christmas:['❄','✦','❅'],anniversary:['✦','❋'],neutral:['✦','·']};
-const GIFT_COLORS={birthday:['#E8B4C8','#B58A4A','#6F9B82','#4F5D86','#C08A5A'],valentines:['#C2504F','#E8B4C8','#B58A4A'],christmas:['#FFFFFF','#6F9B82','#8F3B3B','#B58A4A'],anniversary:['#B58A4A','#D9C7A2','#FFFFFF'],neutral:['#B58A4A','#3F466B']};
-function showGift(name,gift,onDone){const occ=GIFT_OCCASIONS.some(([k])=>k===gift.occasion)?gift.occasion:'neutral';const sender=String(gift.sender||'a friend').trim()||'a friend';
+const GIFT_PARTICLES={birthday:['▮','●','▲','■','✦'],valentines:['♥','♡','✦'],christmas:['❄','✦','❅'],anniversary:['✦','❋','●'],neutral:['✦','●','·']};
+const GIFT_COLORS={birthday:['#5B74B5','#C9443F','#B58A4A','#3F466B','#E6A23C'],valentines:['#C2504F','#E8B4C8','#B58A4A'],christmas:['#FFFFFF','#6F9B82','#8F3B3B','#B58A4A'],anniversary:['#B58A4A','#D9C7A2','#FFFFFF'],neutral:['#B58A4A','#3F466B']};
+function showGift(name,gift,onDone){const occ=GIFT_OCCASIONS.some(([k])=>k===gift.occasion)?gift.occasion:'neutral';const sender=String(gift.sender||'a friend').trim()||'a friend';const msg=String(gift.message||'').trim();
   const g=document.createElement('div');g.className='gift '+occ;g.setAttribute('role','dialog');g.setAttribute('aria-label','A gift for you');
-  const parts=GIFT_PARTICLES[occ],cols=GIFT_COLORS[occ];let pcs='';for(let i=0;i<28;i++){pcs+=`<span class="pc" style="left:${Math.round(Math.random()*100)}%;color:${cols[i%cols.length]};font-size:${10+Math.round(Math.random()*12)}px;animation-duration:${(5+Math.random()*5).toFixed(1)}s;animation-delay:${(2.8+Math.random()*4).toFixed(1)}s">${parts[i%parts.length]}</span>`}
-  g.innerHTML=`${pcs}<div class="stage"><div class="glow"></div><p class="hello">Hello,</p><h1>${esc(name)}</h1>
-    <div class="box" aria-hidden="true"><div class="body"></div><div class="lid"></div><div class="bow"><i></i><b></b><i></i></div></div>
-    <div class="card"><p>Hello, ${esc(name)}, welcome to my astrological calendar.</p><p>This was sent to you as a gift from <strong>${esc(sender)}</strong>.</p>
-     <p class="from">A note from ${esc(sender)}</p><blockquote>“${esc(String(gift.message||'').trim()||'With love.')}”</blockquote>
-     <button type="button" class="btn" id="giftgo">Let’s dive in →</button></div></div>`;
+  const parts=GIFT_PARTICLES[occ],cols=GIFT_COLORS[occ];let pcs='';
+  for(let i=0;i<46;i++){const ang=(-160+Math.random()*140)*Math.PI/180;const v=120+Math.random()*220;const dx=Math.round(Math.cos(ang)*v),dy=Math.round(Math.sin(ang)*v)-60;
+    pcs+=`<span class="pc" style="--dx:${dx}px;--dy:${dy}px;--rot:${Math.round(-540+Math.random()*1080)}deg;--dur:${(1.7+Math.random()*1.3).toFixed(2)}s;color:${cols[i%cols.length]};font-size:${9+Math.round(Math.random()*11)}px">${parts[i%parts.length]}</span>`}
+  g.innerHTML=`<div class="stage"><h1 class="hello">Hello, ${esc(name)}</h1>
+    <div class="scene"><div class="glow"></div>
+     <div class="box" aria-hidden="true"><div class="body"></div><div class="lid"></div><div class="bow"><i></i><b></b><i></i></div></div>
+     <div class="paper"><div class="roll" aria-hidden="true"></div><div class="sheet"><h2>Welcome to my astrological calendar!</h2><p>This gift was sent to you by <strong>${esc(sender)}</strong>.</p>
+      ${msg?`<p class="lbl">Gift message</p><blockquote>“${esc(msg)}”</blockquote>`:''}<button type="button" class="btn" id="giftgo">Let’s dive in →</button></div></div>
+     <div class="front" aria-hidden="true"></div>${pcs}</div></div>`;
   document.body.appendChild(g);
-  const done=()=>{if(g.classList.contains('leaving'))return;g.classList.add('leaving');setTimeout(()=>g.remove(),720);if(onDone)onDone()};
+  const done=()=>{if(g.classList.contains('rolling'))return;g.classList.add('rolling');g.classList.add('leaving');setTimeout(()=>g.remove(),1700);if(onDone)onDone()};
   $('#giftgo',g).onclick=done;return {close:done}}
 
 /* ---------------- Client calendar ---------------- */
@@ -2072,13 +2091,14 @@ function tabInfluences(ctx,body){
   const {c,influences,templates}=ctx;const all=[...influences].sort((a,b)=>a.start_date<b.start_date?-1:1);
   const ent={...ENT_DEFAULT,...(c.entitlements||{})};
   const sees=i=>!i.published?['No','draft — open and choose Review and publish']:(i.category==='remedies'&&!ent.remedial)?['No','remedial add-on is off for this client']:['Yes',''];
-  const row=i=>{const [v,why]=sees(i);return `<tr><td>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} ${i.significant?icon('star','var(--significant)'):''}</td><td><strong>${esc(i.title||'Untitled')}</strong>${i.parent_id?`<div class="small muted">within “${esc(all.find(x=>x.id===i.parent_id)?.title||'')}”</div>`:''}</td><td>${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''}${yearOk(i.start_date)&&yearOk(i.end_date)?'':'<div><span class="pill especially_sensitive">year looks wrong — not on the calendar</span></div>'}</td><td>${esc(CAT[i.category]||i.category)}</td><td>${i.intensity}</td><td><span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></td><td><span class="pill ${v==='Yes'?'supportive':'caution'}">${v}</span>${why?`<div class="small muted">${esc(why)}</div>`:''}</td><td><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></td></tr>`};
+  const row=i=>{const [v,why]=sees(i);return `<tr data-row="${i.id}"><td><input type="checkbox" data-sel="${i.id}" aria-label="Select ${esc(i.title||'influence')}"></td><td>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} ${i.significant?icon('star','var(--significant)'):''}</td><td><strong>${esc(i.title||'Untitled')}</strong>${i.parent_id?`<div class="small muted">within “${esc(all.find(x=>x.id===i.parent_id)?.title||'')}”</div>`:''}</td><td>${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''}${yearOk(i.start_date)&&yearOk(i.end_date)?'':'<div><span class="pill especially_sensitive">year looks wrong — not on the calendar</span></div>'}</td><td>${esc(CAT[i.category]||i.category)}</td><td>${i.intensity}</td><td><span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></td><td><span class="pill ${v==='Yes'?'supportive':'caution'}">${v}</span>${why?`<div class="small muted">${esc(why)}</div>`:''}</td><td><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></td></tr>`};
   const badYears=all.filter(i=>!yearOk(i.start_date)||!yearOk(i.end_date));
   const fixable=badYears.filter(i=>yearOk(fixYear(i.start_date))&&yearOk(fixYear(i.end_date)));
   const yearBanner=badYears.length?`<p class="warn" style="margin:0 0 12px">${badYears.length} influence${badYears.length>1?'s have':' has'} a year that cannot be right (e.g. ${String(yearOf(badYears[0].start_date)).padStart(4,'0')} instead of ${new Date().getFullYear()}), so ${badYears.length>1?'they do':'it does'} not appear on any calendar. This happens when a date is typed with a two-digit year. ${fixable.length?`<button type="button" class="btn small" id="fixyears">Correct ${fixable.length===badYears.length?'them':fixable.length+' of them'} to 20xx</button>`:''}${fixable.length<badYears.length?' The others need editing by hand.':''}</p>`:'';
   body.innerHTML=`<div class="card">${yearBanner}<div class="row between"><h2 style="margin:0">Influences</h2><div class="row"><select id="tpl"><option value="">Insert from template…</option>${templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select><button type="button" class="btn ghost" id="impai">Import AI answers</button><button type="button" class="btn" id="newi">New influence</button></div></div>
    <label class="f"><span>Search</span><input type="text" id="q" placeholder="Title, category, note…"></label>
-   <div style="overflow:auto"><table><thead><tr><th></th><th>Title</th><th>Dates</th><th>Category</th><th>Int.</th><th>Status</th><th>Client sees</th><th></th></tr></thead><tbody id="rows">${all.map(row).join('')||'<tr><td colspan="8" class="muted">No influences yet.</td></tr>'}</tbody></table></div>
+   <div style="overflow:auto"><table><thead><tr><th><input type="checkbox" id="selall" aria-label="Select all shown"></th><th></th><th>Title</th><th>Dates</th><th>Category</th><th>Int.</th><th>Status</th><th>Client sees</th><th></th></tr></thead><tbody id="rows">${all.map(row).join('')||'<tr><td colspan="9" class="muted">No influences yet.</td></tr>'}</tbody></table></div>
+   <p class="row" id="bulkbar" style="gap:6px;margin:10px 0 0;align-items:center;display:none"><span class="small" id="bulkcount">0 selected</span><button type="button" class="btn ghost small" id="bulkpub">Publish selected</button><button type="button" class="btn ghost small" id="bulkunpub">Unpublish selected</button><button type="button" class="btn quiet small" id="bulkdel">Delete selected</button><button type="button" class="btn quiet small" id="bulkclear">Clear selection</button></p>
    <h3 style="margin-top:18px">Drafts (${all.filter(i=>!i.published).length})</h3><p class="small muted">${all.filter(i=>!i.published).map(i=>esc(i.title)).join(' · ')||'None'}${all.some(i=>!i.published)?' — drafts are never shown to the client.':''}</p>
    <p class="small muted" style="margin-top:14px"><button type="button" class="btn quiet small" id="idiag">Check this client’s calendar</button> <span>— creates a test influence, confirms it can be read back by you and by the client, then removes it.</span></p><div id="idiagout"></div></div>`;
   $('#idiag').onclick=()=>runInfluenceDiagnostics(c);
@@ -2086,7 +2106,15 @@ function tabInfluences(ctx,body){
   $('#newi').onclick=()=>openEditor(ctx,blankInfluence(c.id),true);
   $('#impai').onclick=()=>openImportDialog(ctx);
   $('#tpl').onchange=e=>{const t=templates.find(x=>x.id===e.target.value);if(!t)return;const i=Object.assign(blankInfluence(c.id),{title:t.name},t.data||{});openEditor(ctx,i,true)};
-  const bind=()=>body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(ctx,influences.find(i=>i.id===b.dataset.edit),false));bind();
+  const selected=()=>[...body.querySelectorAll('[data-sel]:checked')].map(x=>x.dataset.sel);
+  const refreshBulk=()=>{const k=selected().length;$('#bulkbar',body).style.display=k?'flex':'none';$('#bulkcount',body).textContent=`${k} selected`;const boxes=[...body.querySelectorAll('[data-sel]')];$('#selall',body).checked=boxes.length>0&&boxes.every(b=>b.checked);$('#selall',body).indeterminate=k>0&&k<boxes.length};
+  const bind=()=>{body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(ctx,influences.find(i=>i.id===b.dataset.edit),false));body.querySelectorAll('[data-sel]').forEach(cb=>cb.onchange=refreshBulk);refreshBulk()};bind();
+  $('#selall',body).onchange=e=>{body.querySelectorAll('[data-sel]').forEach(cb=>cb.checked=e.target.checked);refreshBulk()};
+  $('#bulkclear',body).onclick=()=>{body.querySelectorAll('[data-sel]').forEach(cb=>cb.checked=false);refreshBulk()};
+  const bulk=async(fn,done)=>{const ids=selected();if(!ids.length)return;body.querySelectorAll('#bulkbar button').forEach(b=>b.disabled=true);let k=0;for(const id of ids){const i=influences.find(x=>x.id===id);if(i){await fn(i);k++}}toast(done(k));ctx.reload()};
+  $('#bulkdel',body).onclick=guard(async()=>{const ids=selected();const titles=ids.map(id=>(influences.find(x=>x.id===id)||{}).title).filter(Boolean);if(!confirm(`Delete ${ids.length} influence${ids.length===1?'':'s'}?\n\n${titles.slice(0,8).join('\n')}${titles.length>8?'\n…':''}\n\nWindows within a deleted period are kept but unlinked. This cannot be undone.`))return;await bulk(i=>api.deleteInfluence(i.id),k=>`${k} influence${k===1?'':'s'} deleted`)});
+  $('#bulkpub',body).onclick=guard(async()=>{const ids=selected();const missing=ids.map(id=>influences.find(x=>x.id===id)).filter(i=>i&&(!i.category||!i.client_interpretation));if(missing.length&&!confirm(`${missing.length} of these ${missing.length===1?'has':'have'} no category or interpretation yet (${missing.slice(0,5).map(i=>i.title).join(', ')}). Publish anyway?`))return;await bulk(i=>api.saveInfluence({...i,published:true}),k=>`${k} published`)});
+  $('#bulkunpub',body).onclick=guard(async()=>bulk(i=>api.saveInfluence({...i,published:false}),k=>`${k} unpublished — now drafts`));
   $('#q').oninput=e=>{const q=e.target.value.toLowerCase();$('#rows').innerHTML=all.filter(i=>JSON.stringify(i).toLowerCase().includes(q)).map(row).join('');bind()};
 }
 async function tabPreview({c},body){
