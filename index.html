@@ -469,7 +469,18 @@ function dashaAt(birthDate,moonLon,when){const md=vimshottari(birthDate,moonLon)
   // the first mahadasha's antardashas start from the *natal* balance point: compute from the full period start
   const fullStart=new Date(m.end.getTime()-DASHA_YEARS[m.lord]*YEAR_DAYS*86400000);const ads=subPeriods({lord:m.lord,start:fullStart,end:m.end}).filter(a=>a.end>m.start);
   const a=ads.find(p=>w>=p.start.getTime()&&w<p.end.getTime());const pds=a?subPeriods(a):[];const p=pds.find(q=>w>=q.start.getTime()&&w<q.end.getTime());
-  return {maha:m,antar:a,pratyantar:p}}
+  const sds=p?subPeriods(p):[];const sd=sds.find(q=>w>=q.start.getTime()&&w<q.end.getTime());
+  return {maha:m,antar:a,pratyantar:p,sookshma:sd}}
+// Build a natal chart from manually entered positions (sign index + degree within sign), filling gaps from the computed chart.
+function chartFromOverride(computed,ov,opts={}){const out={...computed,planets:computed.planets.map(p=>({...p})),manual:true};const ayan=computed.ayan;
+  for(const g of GRAHA){const o=ov&&ov.planets&&ov.planets[g.key];if(!o||!Number.isFinite(Number(o.sign))||!Number.isFinite(Number(o.deg)))continue;
+    const lon=norm(Number(o.sign)*30+Number(o.deg));const d=describe(lon);let p=out.planets.find(x=>x.key===g.key);
+    if(!p){p={...g,speed:0};out.planets.push(p)}
+    Object.assign(p,d,{tropical:norm(lon+ayan),retro:(g.key==='rahu'||g.key==='ketu')?true:(o.retro!==undefined?!!o.retro:p.retro),dignity:dignity(g.key,d.sign,d.deg),signLord:SIGN_LORD[d.sign],manual:true})}
+  const sun=out.planets.find(p=>p.key==='sun');
+  for(const p of out.planets){const o=ov&&ov.planets&&ov.planets[p.key];if(o&&o.combust!==undefined)p.combust=!!o.combust;else if(sun&&COMBUST[p.key]){const dist=Math.abs(norm(p.lon-sun.lon+180)-180);p.combust=dist<(p.retro&&COMBUST_RETRO[p.key]?COMBUST_RETRO[p.key]:COMBUST[p.key])}}
+  if(!opts.outer)out.planets=out.planets.filter(p=>!p.outer);
+  const moon=out.planets.find(p=>p.key==='moon');out.moonSign=moon.sign;return out}
 
 /* ---------- timezone helpers ---------- */
 function tzOffsetMinutes(tz,date){try{const f=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -481,7 +492,7 @@ function utcToZoned(date,tz){const off=tzOffsetMinutes(tz,date);const z=new Date
   return {date:`${z.getUTCFullYear()}-${String(z.getUTCMonth()+1).padStart(2,'0')}-${String(z.getUTCDate()).padStart(2,'0')}`,time:`${String(z.getUTCHours()).padStart(2,'0')}:${String(z.getUTCMinutes()).padStart(2,'0')}`,offset:off}}
 function fmtOffset(min){const s=min<0?'-':'+';const a=Math.abs(min);return `UTC${s}${String(Math.floor(a/60)).padStart(2,'0')}:${String(a%60).padStart(2,'0')}`}
 
-return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
+return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,chartFromOverride,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
   _internals:{sunLongitude,moonLongitude,meanNode,trueNode,planetLongitude,centuries,gmst}};
 })();
 if(typeof module!=='undefined')module.exports=GOCHARA;
@@ -561,8 +572,11 @@ function mount(container,client,opts={}){
   const S=loadSettings();const natal=natalFor(client);
   if(natal.error){container.innerHTML=`<p class="warn">${esc(natal.error)}</p>`;return {destroy(){}}}
   const st={instant:opts.instant||new Date(),live:!opts.instant,sel:null,anchor:null,skyLat:natal.lat,skyLon:natal.lon,compact:!!opts.compact,mobileView:opts.compact?'transit':'both'};
-  const natalChart=G.chart(natal.instant,{nodeMode:S.nodeMode,outer:S.outer});
-  const natalAsc=natal.lat!==null?G.ascendant(natal.instant,natal.lat,natal.lon):null;
+  const OV=client.natal_override&&(client.natal_override.planets||client.natal_override.lagna)?client.natal_override:null;
+  const buildNatal=()=>{const comp=G.chart(natal.instant,{nodeMode:S.nodeMode,outer:true});return OV?G.chartFromOverride(comp,OV,{outer:S.outer}):(S.outer?comp:{...comp,planets:comp.planets.filter(p=>!p.outer)})};
+  const natalChart=buildNatal();
+  const natalAsc=OV&&OV.lagna&&Number.isFinite(Number(OV.lagna.sign))?{sidereal:G.norm(Number(OV.lagna.sign)*30+Number(OV.lagna.deg||0)),manual:true}:(natal.lat!==null?G.ascendant(natal.instant,natal.lat,natal.lon):null);
+  if(OV)natal.warn=natal.warn.filter(w=>!/Lagna cannot be calculated|Coordinates for/.test(w));
   const natalMoon=natalChart.planets.find(p=>p.key==='moon');
   const natalLagnaSign=natalAsc?Math.floor(natalAsc.sidereal/30):natalMoon.sign;
   if(S.ref==='sky')S.ref='lagna';if(!natalAsc){if(S.ref==='lagna')S.ref='moon';S.natalRef='moon'}
@@ -687,7 +701,7 @@ function mount(container,client,opts={}){
     if(natalAsc){const d=G.describe(natalAsc.sidereal);rows.push(`<tr><td><strong>Lagna</strong><div class="small muted">Ascendant</div></td><td></td><td>${G.RASHI_EN[d.sign]}<div class="small muted">${G.RASHI[d.sign]}</div></td><td>${G.fmtDeg(d.deg)}</td><td>${d.nakName} (${d.pada})</td><td>1</td><td>${G.RASHI_EN[d.navamsa]}${d.vargottama?' <span class="pill significant">Vargottama</span>':''}</td></tr>`)}
     for(const p of natalChart.planets){const fl=flagsOf(p);rows.push(`<tr><td><strong>${p.en}</strong><div class="small muted">${p.name}</div></td><td class="small">${fl.filter(f=>f==='Combust'||f==='Retrograde').map(f=>f==='Combust'?'C':'(R)').join(' ')}</td><td>${G.RASHI_EN[p.sign]}<div class="small muted">${G.RASHI[p.sign]}</div></td><td>${G.fmtDeg(p.deg)}</td><td>${p.nakName} (${p.pada})</td><td>${p.houseLagna}<div class="small muted">${p.houseMoon} from Chandra</div></td><td>${G.RASHI_EN[p.navamsa]}${fl.filter(f=>f!=='Combust'&&f!=='Retrograde').map(f=>` <span class="pill ${f==='Debilitated'?'caution':'significant'}">${f}</span>`).join('')}</td></tr>`)}
     return `<details class="g-natal" open><summary>Natal planets</summary><div class="g-planets" style="margin-top:8px"><table><thead><tr><th>Planet</th><th></th><th>Sign</th><th>Degree</th><th>Nakshatra (pada)</th><th>House</th><th>Navamsa · state</th></tr></thead><tbody>${rows.join('')}</tbody></table>
-     <p class="small muted" style="margin:8px 0 0">Birth ${z.date} ${z.time} ${esc(natal.tz)} = ${natal.instant.toISOString().replace('T',' ').slice(0,16)} UTC · ${natal.lat!==null?`${natal.lat}°, ${natal.lon}°`:'no coordinates'} · Lahiri ${G.fmtDeg(natalChart.ayan)} · ${S.nodeMode} nodes · C combust · (R) retrograde</p></div></details>`}
+     <p class="small muted" style="margin:8px 0 0">${OV?`<strong>Manual positions in use</strong> (${esc(OV.source||'entered on Client &amp; access')}${OV.saved?', '+esc(String(OV.saved).slice(0,10)):''}) — grahas not entered are calculated. `:''}Birth ${z.date} ${z.time} ${esc(natal.tz)} = ${natal.instant.toISOString().replace('T',' ').slice(0,16)} UTC · ${natal.lat!==null?`${natal.lat}°, ${natal.lon}°`:'no coordinates'} · Lahiri ${G.fmtDeg(natalChart.ayan)} · ${S.nodeMode} nodes · C combust · (R) retrograde</p></div></details>`}
 
   /* ---------- Prompt generator (paste into ChatGPT or Claude) ---------- */
   let promptState={text:'',open:false,bpl:[]};
@@ -696,7 +710,7 @@ function mount(container,client,opts={}){
     L.push(`You are an experienced Jyotisha (Vedic astrology) consultant helping a professional astrologer. Sidereal zodiac, Lahiri ayanamsa, whole-sign houses counted from the natal Lagna (Moon-lagna as a secondary view), Parashari graha drishti (all planets 7th; Mars 4/8; Jupiter 5/9; Saturn 3/10; Rahu 5/7/9; Ketu none), Vimshottari dasha as the activating context.`);
     L.push(`\nNATAL CHART (${natalAsc?'Lagna '+G.RASHI_EN[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unknown — Moon used as lagna'}; Moon ${G.RASHI_EN[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}, ${natalMoon.nakName} pada ${natalMoon.pada}):`);
     for(const p of natalChart.planets)L.push('- '+pl(p));
-    const d=c.dasha;if(d)L.push(`\nVIMSHOTTARI DASHA NOW: ${gname(d.maha.lord)} mahadasha (until ${d.maha.end.toISOString().slice(0,10)}) → ${d.antar?gname(d.antar.lord)+' antardasha (until '+d.antar.end.toISOString().slice(0,10)+')':'—'} → ${d.pratyantar?gname(d.pratyantar.lord)+' pratyantardasha (until '+d.pratyantar.end.toISOString().slice(0,10)+')':'—'}.`);
+    const d=c.dasha;if(d)L.push(`\nVIMSHOTTARI DASHA NOW: ${gname(d.maha.lord)} mahadasha (until ${d.maha.end.toISOString().slice(0,10)}) → ${d.antar?gname(d.antar.lord)+' antardasha (until '+d.antar.end.toISOString().slice(0,10)+')':'—'} → ${d.pratyantar?gname(d.pratyantar.lord)+' pratyantardasha (until '+d.pratyantar.end.toISOString().slice(0,10)+')':'—'} → ${d.sookshma?gname(d.sookshma.lord)+' sookshma ('+d.sookshma.start.toISOString().slice(0,10)+' to '+d.sookshma.end.toISOString().slice(0,10)+')':'—'}.${OV?' Natal positions were entered manually by the astrologer from the native’s reference chart.':''}`);
     L.push(`\nTRANSITS on ${z.date} ${z.time} (${tzNow()}):`);for(const p of c.tr.planets)L.push('- transit '+pl(p));
     if(c.contacts.length)L.push('\nCLOSE CONTACTS (within '+S.orb+'°): '+c.contacts.map(x=>`transit ${gname(x.t)} on natal ${gname(x.n)} (${G.fmtDeg(x.d)})`).join('; ')+'.');
     const sel=st.sel;let focus='the overall gochara picture at this moment for this native';
@@ -729,13 +743,14 @@ function mount(container,client,opts={}){
     const d=c.dasha;const text=[`${z.date} ${z.time} ${tzNow()} · ayanamsa ${G.fmtDeg(c.tr.ayan)} (Lahiri)`,
       p?`Transit ${gname(p.key)} ${G.RASHI[p.sign]} ${G.fmtDeg(p.deg)} (${p.nakName} p${p.pada}${p.retro&&p.key!=='rahu'&&p.key!=='ketu'?', R':''}) — ${p.houseLagna}H from Lagna, ${p.houseMoon}H from Chandra; drishti to ${G.drishtiTargets(p.key,p.house).map(x=>x.house+'H').join(', ')||'none'}`:'',
       ...c.contacts.filter(x=>!p||x.t===p.key).map(x=>`Contact: transit ${gname(x.t)} within ${G.fmtDeg(x.d)} of natal ${gname(x.n)}`),
-      d?`Dasha: ${gname(d.maha.lord)} / ${d.antar?gname(d.antar.lord):'—'} / ${d.pratyantar?gname(d.pratyantar.lord):'—'}`:''].filter(Boolean).join('\n');
-    return {text,local:z,tz:tzNow(),instant:st.instant.toISOString(),json:{instant:st.instant.toISOString(),tz:tzNow(),ref:S.ref,nodeMode:S.nodeMode,ayan:c.tr.ayan,source:c.tr.source,selected:p?{key:p.key,lon:p.lon,sign:p.sign,deg:p.deg,house:p.house,houseLagna:p.houseLagna,houseMoon:p.houseMoon}:null,transits:c.tr.planets.map(q=>({key:q.key,lon:+q.lon.toFixed(4),retro:q.retro})),dasha:d?{maha:d.maha.lord,antar:d.antar&&d.antar.lord,pratyantar:d.pratyantar&&d.pratyantar.lord}:null,contacts:c.contacts}}}
+      d?`Dasha: ${gname(d.maha.lord)} / ${d.antar?gname(d.antar.lord):'—'} / ${d.pratyantar?gname(d.pratyantar.lord):'—'} / ${d.sookshma?gname(d.sookshma.lord):'—'}`:''].filter(Boolean).join('\n');
+    return {text,local:z,tz:tzNow(),instant:st.instant.toISOString(),json:{instant:st.instant.toISOString(),tz:tzNow(),ref:S.ref,nodeMode:S.nodeMode,ayan:c.tr.ayan,source:c.tr.source,selected:p?{key:p.key,lon:p.lon,sign:p.sign,deg:p.deg,house:p.house,houseLagna:p.houseLagna,houseMoon:p.houseMoon}:null,transits:c.tr.planets.map(q=>({key:q.key,lon:+q.lon.toFixed(4),retro:q.retro})),dasha:d?{maha:d.maha.lord,antar:d.antar&&d.antar.lord,pratyantar:d.pratyantar&&d.pratyantar.lord,sookshma:d.sookshma&&d.sookshma.lord}:null,contacts:c.contacts}}}
 
   function draw(){const c=compute();const hi=highlights(c);const z=G.utcToZoned(st.instant,tzNow());
     const natalModel={refSign:natalRefSign(),planets:natalChart.planets};const trModel={refSign:c.ref,planets:c.tr.planets};
     const refWord={lagna:'from Lagna',moon:'from Chandra',sky:'from the sky Lagna'}[S.ref];
-    const d=c.dasha;const dstr=d?`<span><b>MD</b> ${gname(d.maha.lord)} <span class="muted">→ ${d.maha.end.toISOString().slice(0,10)}</span></span><span><b>AD</b> ${d.antar?gname(d.antar.lord):'—'}${d.antar?` <span class="muted">→ ${d.antar.end.toISOString().slice(0,10)}</span>`:''}</span><span><b>PD</b> ${d.pratyantar?gname(d.pratyantar.lord):'—'}${d.pratyantar?` <span class="muted">→ ${d.pratyantar.end.toISOString().slice(0,10)}</span>`:''}</span>`:'';
+    const d=c.dasha;const per=(lbl,p)=>p?`<span><b>${lbl}</b> ${gname(p.lord)} <span class="muted">${G.utcToZoned(p.start,tzNow()).date} → ${G.utcToZoned(p.end,tzNow()).date}</span></span>`:`<span><b>${lbl}</b> —</span>`;
+    const dstr=d?per('Mahadasha',d.maha)+per('Antardasha',d.antar)+per('Pratyantardasha',d.pratyantar)+per('Sookshma',d.sookshma):'';
     el.innerHTML=`<div class="goch ${st.compact?'compact':''}">
      ${natal.warn.length?`<p class="warn small">${natal.warn.map(esc).join(' ')}${natalAsc?'':(client.birth_location&&opts.onGeocode?` <button type="button" class="btn small" id="g-geo">Find birth place for “${esc(client.birth_location)}”</button>`:' <em>Enter the birth location on the Client &amp; access tab and save.</em>')}</p>`:''}
      ${natalTable()}
@@ -802,7 +817,7 @@ function mount(container,client,opts={}){
     const gg=$('#g-geo',el);if(gg)gg.onclick=()=>opts.onGeocode();
     if(timer)clearInterval(timer);if(st.live)timer=setInterval(()=>{if(!document.body.contains(el)){clearInterval(timer);return}if(st.live&&(!st.sel||st.view==='planets')){st.instant=new Date();draw()}},60000);
   }
-  function rebuildNatal(){const fresh=G.chart(natal.instant,{nodeMode:S.nodeMode,outer:S.outer});natalChart.planets=fresh.planets}
+  function rebuildNatal(){natalChart.planets=buildNatal().planets}
   const onEph=()=>{if(!document.body.contains(el)){window.removeEventListener('ephemeris-ready',onEph);return}rebuildNatal();draw()};window.addEventListener('ephemeris-ready',onEph);
   draw();
   return {setInstant,getSnapshot:()=>snapshot(compute()),destroy(){if(timer)clearInterval(timer);window.removeEventListener('ephemeris-ready',onEph);el.innerHTML=''}};
@@ -922,6 +937,61 @@ const fld=(label,name,val,type='text',extra='')=>`<label class="f"><span>${label
 const txt=(label,name,val,hint='')=>`<label class="f"><span>${label}${hint?` <em>— ${hint}</em>`:''}</span><textarea name="${name}">${esc(val??'')}</textarea></label>`;
 const sel=(name,opts,val,id='')=>`<select name="${name}" ${id?`id="${id}"`:''} ${opts[0]&&opts[0][0]===''&&name==='category'?'required':''}>${opts.map(([k,l])=>`<option value="${k}" ${val===k?'selected':''}>${l}</option>`).join('')}</select>`;
 
+
+/* ---------- Natal position parser: pasted table text (AstroSage-style) or OCR output ---------- */
+const NP={
+  planets:[['lagna',['lagna','lag','asc','ascendant']],['sun',['sun','surya','sur']],['moon',['moon','mon','chandra','cha']],['mars',['mars','mar','mangala','kuja']],['mercury',['mercury','mer','budha','bud']],['jupiter',['jupiter','jup','guru','gur']],['venus',['venus','ven','shukra','shu']],['saturn',['saturn','sat','shani','sha']],['rahu',['rahu','rah']],['ketu',['ketu','ket']],['uranus',['uranus','ura']],['neptune',['neptune','nep']],['pluto',['pluto','plu']]],
+  signs:[['vrishc',7],['vrisc',7],['vrisha',1],['vrish',1],['ari',0],['mesh',0],['tau',1],['gem',2],['mith',2],['can',3],['kark',3],['leo',4],['simh',4],['vir',5],['kany',5],['lib',6],['tula',6],['sco',7],['sag',8],['dhan',8],['cap',9],['maka',9],['aqu',10],['aq',10],['kumb',10],['pis',11],['meen',11]],
+  naks:[['ashw',0],['aswi',0],['bhar',1],['krit',2],['kritt',2],['rohi',3],['mrig',4],['ardr',5],['puna',6],['push',7],['pushy',7],['ashl',8],['asle',8],['magh',9],['ppha',10],['purva pha',10],['p.pha',10],['upha',11],['uttara pha',11],['u.pha',11],['hast',12],['chit',13],['swat',14],['swa',14],['vish',15],['visa',15],['anur',16],['jyes',17],['jye',17],['mool',18],['mula',18],['psha',19],['purva ash',19],['p.ash',19],['usha',20],['uttara ash',20],['u.ash',20],['shra',21],['srav',21],['dhani',22],['danis',22],['shat',23],['sata',23],['pbha',24],['purva bha',24],['p.bha',24],['ubha',25],['uttara bha',25],['u.bha',25],['reva',26]],
+  planetOf(tok){const t=tok.toLowerCase().replace(/[^a-z]/g,'');for(const [key,al] of NP.planets)for(const a of al)if(t===a||(a.length>=3&&t.startsWith(a)&&t.length<=a.length+2))return key;return null},
+  lev(a,b){if(Math.abs(a.length-b.length)>2)return 9;const m=[];for(let i=0;i<=a.length;i++){m[i]=[i];for(let j=1;j<=b.length;j++)m[i][j]=i===0?j:Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1))}return m[a.length][b.length]},
+  signOf(tok){const t=tok.toLowerCase().replace(/[^a-z]/g,'');if(t.length<2)return null;for(const [pre,idx] of NP.signs)if(t.startsWith(pre))return idx;
+    if(t.length>=4&&!NP.naks.some(([pre])=>t.startsWith(pre.replace(/[. ]/g,'')))&&!NP.planets.some(([,al])=>al.some(a=>a.length>=3&&t.startsWith(a)))){const names=GOCHARA.RASHI_EN.map(n=>n.toLowerCase()).concat(GOCHARA.RASHI.map(n=>n.toLowerCase()));let best=null,bd=2;names.forEach((n,i)=>{const d=NP.lev(t,n);if(d<bd){bd=d;best=i%12}});if(best!==null)return best}return null},
+  nakOf(tok){const t=tok.toLowerCase().replace(/[^a-z. ]/g,'').replace(/[. ]/g,'');if(t.length<3)return null;for(const [pre,idx] of NP.naks)if(t.startsWith(pre.replace(/[. ]/g,'')))return idx;
+    if(t.length>=5){const names=GOCHARA.NAK.map(n=>n.toLowerCase().replace(/[^a-z]/g,''));let best=null,bd=2;names.forEach((n,i)=>{const d=NP.lev(t,n);if(d<bd){bd=d;best=i}});if(best!==null)return best}return null},
+  parse(text){const rows={};const warnings=[];
+    for(let raw of String(text||'').split(/\n+/)){const line=raw.replace(/[|]/g,' ').replace(/\s+/g,' ').trim();if(!line)continue;
+      const toks=line.split(' ');let key=null,ti=0;for(;ti<Math.min(2,toks.length);ti++){key=NP.planetOf(toks[ti]);if(key)break}if(!key)continue;
+      const rest=line.slice(line.indexOf(toks[ti])+toks[ti].length);
+      const dm=rest.match(/(\d{1,2})\s*[°º*o:]?\s*(\d{1,2})\s*['’′:]?\s*(\d{1,2})?/);if(!dm){warnings.push(`${key}: no degree found`);continue}
+      let sign=null,glued='';for(const t of rest.slice(0,rest.indexOf(dm[0])).split(' ')){let s=NP.signOf(t);if(s===null&&/^[CR][A-Z]/.test(t)){s=NP.signOf(t.slice(1));if(s!==null)glued=t[0]}if(s!==null){sign=s;break}}
+      if(sign===null){warnings.push(`${key}: sign not recognised`);continue}
+      const deg=Number(dm[1])+Number(dm[2])/60+(dm[3]?Number(dm[3])/3600:0);if(deg>=30){warnings.push(`${key}: degree ${dm[1]} is not within a sign`);continue}
+      const retro=glued==='R'||/\(\s*R\s*\)|\bR\b/i.test(rest.slice(0,rest.indexOf(dm[0])))||/\bR\b/.test(rest.slice(rest.indexOf(dm[0])+dm[0].length));
+      const combust=glued==='C'||/(^|\s)C[cC]?(?=\s|$)/.test(rest.slice(0,rest.indexOf(dm[0])));
+      let nak=null,pada=null;const after=rest.slice(rest.indexOf(dm[0])+dm[0].length);const pm=after.match(/([A-Za-z. ]{3,})\s*\(?\s*(\d)\s*\)?/);if(pm){nak=NP.nakOf(pm[1]);pada=Number(pm[2])}
+      const lon=GOCHARA.norm(sign*30+deg);const d=GOCHARA.describe(lon);
+      if(nak!==null&&nak!==d.nak)warnings.push(`${key}: the nakshatra reads as ${GOCHARA.NAK[nak]} but ${GOCHARA.RASHI_EN[sign]} ${dm[1]}°${dm[2]}′ falls in ${d.nakName} — check the degree`);
+      else if(pada&&pada!==d.pada)warnings.push(`${key}: pada reads ${pada} but the degree gives pada ${d.pada} — check the minutes`);
+      rows[key]={sign,deg:Number(deg.toFixed(4)),retro,combust:combust?true:undefined}}
+    if(Object.keys(rows).length<3){const col=NP.parseColumns(text);if(Object.keys(col.rows).length>Object.keys(rows).length)return col}
+    return {rows,warnings}},
+  // Fallback for text that was read column by column (all planet names, then all signs, then all degrees…): re-zip the columns in order.
+  parseColumns(text){const rows={};const warnings=[];const lines=String(text||'').split(/\n+/).map(l=>l.replace(/[|]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+    const planets=[],signs=[],degs=[],naks=[];const DEG=/^(\d{1,2})\s*[°º*o:]?\s*(\d{1,2})\s*['’′:]?\s*(\d{1,2})?\s*["”″']*$/;
+    for(const l of lines){const toks=l.split(' ');const first=toks[0].replace(/^[CR](?=[A-Z])/,'');
+      if(toks.length<=2&&NP.planetOf(toks[0])&&!DEG.test(l)){planets.push({key:NP.planetOf(toks[0]),flag:toks[1]||''});continue}
+      const dm=l.match(DEG);if(dm){degs.push(dm);continue}
+      const nm=l.match(/^([A-Za-z. ]{3,}?)\s*\(?\s*(\d)?\s*\)?$/);if(nm&&NP.nakOf(nm[1])!==null){naks.push({nak:NP.nakOf(nm[1]),pada:nm[2]?Number(nm[2]):null});continue}
+      if(toks.length<=2&&NP.signOf(first)!==null&&!/\d/.test(l)){signs.push({sign:NP.signOf(first),glued:first!==toks[0]?toks[0][0]:'',flag:toks[1]||''});continue}}
+    if(planets.length<3||signs.length!==planets.length||degs.length!==planets.length)return {rows,warnings:['The text could not be matched up into rows — paste the table as text, or crop the screenshot to the planet table.']};
+    planets.forEach((p,i)=>{const dm=degs[i];const deg=Number(dm[1])+Number(dm[2])/60+(dm[3]?Number(dm[3])/3600:0);if(deg>=30){warnings.push(`${p.key}: degree ${dm[1]} is not within a sign`);return}
+      const s=signs[i];const flags=(p.flag+' '+s.flag+' '+s.glued).toUpperCase();const retro=/\bR\b|\(R\)/.test(flags),combust=/\bCC?\b/.test(flags);
+      const d=GOCHARA.describe(GOCHARA.norm(s.sign*30+deg));const nk=naks.length===planets.length?naks[i]:null;
+      if(nk&&nk.nak!==d.nak)warnings.push(`${p.key}: the nakshatra reads as ${GOCHARA.NAK[nk.nak]} but ${GOCHARA.RASHI_EN[s.sign]} ${dm[1]}°${dm[2]}′ falls in ${d.nakName} — check the degree`);
+      rows[p.key]={sign:s.sign,deg:Number(deg.toFixed(4)),retro,combust:combust?true:undefined}});
+    return {rows,warnings}}
+};
+// Upscale, grey and sharpen a screenshot (and flip dark themes to dark-on-light) so the text recogniser reads tables reliably.
+async function prepImage(file){const url=URL.createObjectURL(file);try{const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Could not read the image'));i.src=url});
+  const scale=Math.max(1,Math.min(3,1800/img.naturalWidth));const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(img,0,0,c.width,c.height);
+  const id=x.getImageData(0,0,c.width,c.height);const p=id.data;let sum=0;for(let i=0;i<p.length;i+=4)sum+=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];const dark=sum/(p.length/4)<110;
+  for(let i=0;i<p.length;i+=4){let g=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];if(dark)g=255-g;g=(g-128)*1.5+128;g=g<0?0:g>255?255:g;p[i]=p[i+1]=p[i+2]=g;p[i+3]=255}x.putImageData(id,0,0);
+  return await new Promise(res=>c.toBlob(res,'image/png'))}finally{URL.revokeObjectURL(url)}}
+async function ocrImage(file,onProgress){if(!window.Tesseract){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=()=>rej(new Error('Could not load the text-recognition library'));document.head.appendChild(s)})}
+  const src=await prepImage(file).catch(()=>file);const logger=m=>{if(onProgress&&m&&m.status)onProgress(m.status.replace(/_/g,' ')+(m.progress?' '+Math.round(m.progress*100)+'%':''))};
+  if(window.Tesseract.createWorker){let w=null;try{w=await window.Tesseract.createWorker('eng',1,{logger});await w.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});const r=await w.recognize(src);return r.data.text}finally{if(w)try{await w.terminate()}catch(e){}}}
+  const r=await window.Tesseract.recognize(src,'eng',{logger});return r.data.text}
 /* ---------------- Data layer (Supabase) ---------------- */
 let sb=null;
 const TOKEN_KEY='as.astrologer_token';
@@ -1331,6 +1401,13 @@ function tabClient({c,reload},body){
    ${txt('Private notes','private_notes',c.private_notes,'never shown to the client')}
    <label class="f"><span>Default client-facing disclaimer (shown beneath each day with entries)</span>${sel('default_disclaimer',Object.keys(DISCLAIMERS).map(k=>[k,k]),c.default_disclaimer)}</label>
    <p style="margin-top:14px"><button class="btn" type="submit">Save client</button></p></form>
+  <div class="card" id="ovcard"><h2>Natal positions (manual)</h2>
+   <p class="small muted">Use this when the calculated chart does not match the reference you trust. Paste the planet table from AstroSage (or read it from a screenshot); the positions below then replace the calculated ones for this client. Nakshatra and pada are derived from the degree and checked against what you pasted.</p>
+   <div class="row" style="gap:6px"><textarea id="ov-text" placeholder="Paste lines like:  Sun  Ari  25°48'21''  Bharani(4)" style="flex:1;min-height:90px"></textarea></div>
+   <div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn ghost small" id="ov-parse">Read pasted text</button><label class="btn ghost small" style="cursor:pointer">Read from image<input type="file" id="ov-img" accept="image/*" style="display:none"></label><span id="ov-status" class="small muted"></span></div>
+   <div id="ov-rows" style="margin-top:10px"></div>
+   <p class="row" style="gap:6px;margin-top:10px"><button type="button" class="btn small" id="ov-save">Use these positions for the chart</button>${c.natal_override?'<button type="button" class="btn quiet small" id="ov-clear">Back to calculated positions</button>':''}<span class="small muted">${c.natal_override?'Manual positions are in use'+(c.natal_override.source?' ('+esc(c.natal_override.source)+')':'')+'.':'Calculated positions are in use.'}</span></p>
+  </div>
   <div class="card"><h2>Access</h2>
    <p class="${st.ok?'ok':'warn'}">${st.ok?'This client can open their calendar now.':'This client cannot open their calendar at the moment ('+esc(st.why)+').'}</p>
    <div class="grid3">
@@ -1350,6 +1427,22 @@ function tabClient({c,reload},body){
   $('#cf').onsubmit=guard(async e=>{e.preventDefault();const form=e.target;let note='';
     if(form.elements.birth_location.value.trim()&&!form.elements.birth_latitude.value&&!form.elements.birth_longitude.value){try{await fillGeo(form)}catch(err){note=' (coordinates not found: '+err.message+')'}}
     const f=new FormData(form);const o={...c};for(const [k,v] of f)o[k]=v;await api.saveClient(o);toast('Client saved'+note);reload()});
+  const OVP=[['lagna','Lagna'],...GOCHARA.GRAHA.map(g=>[g.key,g.en])];
+  const ovState={rows:Object.assign({},(c.natal_override&&c.natal_override.planets)||{},c.natal_override&&c.natal_override.lagna?{lagna:c.natal_override.lagna}:{}),source:c.natal_override&&c.natal_override.source||''};
+  const drawOv=()=>{const rows=ovState.rows;$('#ov-rows').innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Planet</th><th>Sign</th><th>Deg</th><th>Min</th><th>Sec</th><th>Nakshatra · pada</th><th>R</th><th>C</th></tr></thead><tbody>${OVP.map(([k,l])=>{const r=rows[k];const dms=r?GOCHARA.dms(r.deg):{d:'',m:'',s:''};const d=r?GOCHARA.describe(GOCHARA.norm(r.sign*30+r.deg)):null;
+    return `<tr data-k="${k}"><td><strong>${l}</strong></td><td><select data-f="sign"><option value="">—</option>${GOCHARA.RASHI_EN.map((n,i)=>`<option value="${i}" ${r&&r.sign===i?'selected':''}>${n}</option>`).join('')}</select></td><td><input type="number" data-f="d" min="0" max="29" value="${dms.d}" style="width:64px"></td><td><input type="number" data-f="m" min="0" max="59" value="${dms.m}" style="width:64px"></td><td><input type="number" data-f="s" min="0" max="59" value="${dms.s}" style="width:64px"></td><td class="small muted">${d?d.nakName+' ('+d.pada+')':''}</td><td>${k==='lagna'?'':k==='rahu'||k==='ketu'?'<span class="small muted">always</span>':`<input type="checkbox" data-f="retro" ${r&&r.retro?'checked':''}>`}</td><td>${k==='lagna'?'':`<input type="checkbox" data-f="combust" ${r&&r.combust?'checked':''}>`}</td></tr>`}).join('')}</tbody></table></div>`;
+    $('#ov-rows').querySelectorAll('tr[data-k]').forEach(tr=>tr.querySelectorAll('[data-f]').forEach(inp=>inp.onchange=()=>{const k=tr.dataset.k;const g=f=>tr.querySelector(`[data-f=${f}]`);const sign=g('sign').value;const nakCell=tr.children[5];
+      if(sign===''){delete rows[k];nakCell.textContent='';return}
+      const deg=Number(g('d').value||0)+Number(g('m').value||0)/60+Number(g('s').value||0)/3600;rows[k]={sign:Number(sign),deg:Number(Math.min(29.9999,deg).toFixed(4)),retro:g('retro')?g('retro').checked:false,combust:g('combust')?g('combust').checked:false};
+      const d=GOCHARA.describe(GOCHARA.norm(rows[k].sign*30+rows[k].deg));nakCell.textContent=d.nakName+' ('+d.pada+')';ovState.source=ovState.source||'manual'}))};
+  drawOv();
+  const applyParsed=(text,source)=>{const {rows,warnings}=NP.parse(text);const n=Object.keys(rows).length;if(!n){$('#ov-status').textContent='No planet lines recognised — expected lines like “Sun Ari 25°48′21″ Bharani(4)”.';return}
+    Object.assign(ovState.rows,rows);ovState.source=source;drawOv();$('#ov-status').innerHTML=`${n} position${n>1?'s':''} read.${warnings.length?' <span style="color:var(--sensitive)">'+esc(warnings.join(' · '))+'</span>':''}`};
+  $('#ov-parse').onclick=()=>applyParsed($('#ov-text').value,'pasted text');
+  $('#ov-img').onchange=guard(async e=>{const f=e.target.files[0];if(!f)return;$('#ov-status').textContent='Reading image…';try{const text=await ocrImage(f,m=>{$('#ov-status').textContent=m});$('#ov-text').value=text;applyParsed(text,'image')}catch(err){$('#ov-status').textContent=err.message}});
+  $('#ov-save').onclick=guard(async()=>{const rows={...ovState.rows};const lagna=rows.lagna;delete rows.lagna;if(!Object.keys(rows).length&&!lagna){alert('Enter at least one position first.');return}
+    await api.saveClient({...c,natal_override:{planets:rows,lagna:lagna||null,source:ovState.source||'manual',saved:new Date().toISOString()}});toast('Manual positions saved — the chart now uses them');reload()});
+  const ovc=$('#ov-clear');if(ovc)ovc.onclick=guard(async()=>{if(confirm('Go back to the calculated positions for this client?')){await api.saveClient({...c,natal_override:null});toast('Calculated positions restored');reload()}});
   $('#saveaccess').onclick=guard(async()=>{const o={...c,status:$('#status').value,access_start:$('#access_start').value,access_end:$('#access_end').value,entitlements:{}};body.querySelectorAll('[data-ent]').forEach(x=>o.entitlements[x.dataset.ent]=x.checked);await api.saveClient(o);toast('Access updated');reload()});
   $('#regen').onclick=guard(async()=>{if(confirm('Regenerate the access code? The old code will stop working everywhere.')){await api.saveClient({...c,access_code:genCode()});toast('New code generated');reload()}});
   $('#copycode').onclick=()=>copy(c.access_code,'Code copied');
