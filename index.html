@@ -1570,7 +1570,7 @@ function showGift(name,gift,onDone){const occ=GIFT_OCCASIONS.some(([k])=>k===gif
   for(let i=0;i<30;i++){pcs+=`<span class="pc" style="left:${2+Math.round(Math.random()*90)}%;color:${cols[i%cols.length]};font-size:${10+Math.round(Math.random()*12)}px;animation-duration:${(5+Math.random()*5).toFixed(1)}s;animation-delay:${(2.8+Math.random()*4).toFixed(1)}s">${parts[i%parts.length]}</span>`}
   g.innerHTML=`<div class="stage"><h1 class="hello">Hello, ${esc(name)}</h1>
     <div class="scene"><div class="glow"></div>
-     <div class="paper"><div class="roll" aria-hidden="true"></div><div class="sheet"><h2>Welcome to my astrological calendar!</h2><p>This gift was sent to you by <strong>${esc(sender)}</strong>.</p>
+     <div class="paper"><div class="roll" aria-hidden="true"></div><div class="sheet"><h2>Welcome to your astrological calendar!</h2><p>This gift was sent to you by <strong>${esc(sender)}</strong>.</p>
       ${msg?`<p class="lbl">Gift message</p><blockquote>“${esc(msg)}”</blockquote>`:''}<button type="button" class="btn" id="giftgo">Let’s dive in →</button></div></div>
      <div class="box" aria-hidden="true"><div class="body"></div><div class="lid"></div><div class="bow"><i></i><b></b><i></i></div></div></div></div>${pcs}`;
   document.body.appendChild(g);
