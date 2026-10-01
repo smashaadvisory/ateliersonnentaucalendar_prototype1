@@ -185,6 +185,62 @@ textarea{min-height:78px;resize:vertical}
 .winlink:hover{background:var(--surface-2)}
 .inf .disc{font-size:.8rem;line-height:1.45;color:var(--muted);opacity:.85;border-top:1px dashed var(--line-strong);padding-top:7px;margin-top:10px}
 .daydisc{font-size:.8rem;line-height:1.45;color:var(--muted);opacity:.8;margin-top:14px}
+/* collapsible entries on a day with several */
+.infd{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:10px;overflow:hidden}
+.infd>summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:10px;font-size:1.02rem}
+.infd>summary::-webkit-details-marker{display:none}
+.infd>summary::marker{content:''}
+.infd .inf h4{display:none}
+.infd>summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s;font-size:.8rem}
+.infd[open]>summary .chev{transform:rotate(90deg)}
+.infd>summary .tag{font-size:.75rem}
+.infd>summary strong{font-weight:500}
+.infd .inf{border:0;border-top:1px solid var(--line);border-radius:0;margin:0}
+.infd>summary:hover{background:var(--surface-2)}
+/* a note from the astrologer for the day */
+.daynote{border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;margin:12px 0 14px;background:linear-gradient(180deg,#FDF9EE,#F9F3E3)}
+.daynote h3{margin:0 0 6px;font-family:var(--brand);font-style:italic;font-weight:500;font-size:1.35rem;color:var(--primary)}
+.daynote p{margin:0;white-space:pre-line}
+.daynote .sig{margin-top:8px;font-size:.8rem;color:var(--muted);font-style:italic}
+.day .nt{position:absolute;top:4px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--surface)}
+.day{position:relative}
+.cal-contact{text-align:center;margin-top:18px}
+/* gift opening */
+.gift{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);overflow:hidden;animation:gfade .9s ease}
+@keyframes gfade{from{opacity:0}to{opacity:1}}
+.gift.leaving{animation:gleave .7s ease forwards}
+@keyframes gleave{to{opacity:0}}
+.gift .stage{position:relative;width:min(560px,100%);text-align:center}
+.gift .hello{font-family:var(--sans);font-size:.85rem;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;padding-left:.32em;opacity:0;animation:gin .9s .2s ease forwards}
+.gift h1{font-family:var(--brand);font-style:italic;font-size:clamp(2.6rem,7vw,4rem);color:var(--primary);margin:0;font-weight:500;line-height:1.05;opacity:0;animation:gin 1s .6s ease forwards}
+@keyframes gin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.gift .box{position:relative;width:180px;height:170px;margin:34px auto 0;opacity:0;animation:gin .9s 1.5s ease forwards}
+.gift .body{position:absolute;left:20px;right:20px;bottom:0;height:110px;background:var(--g1);border-radius:6px;box-shadow:inset 0 -18px 0 rgba(0,0,0,.08)}
+.gift .body:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:26px;margin-left:-13px;background:var(--g2)}
+.gift .lid{position:absolute;left:8px;right:8px;top:48px;height:34px;background:var(--g1);border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.12);transform-origin:12% 100%;animation:lid 1.4s 2.6s cubic-bezier(.3,.9,.4,1.2) forwards}
+.gift .lid:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:26px;margin-left:-13px;background:var(--g2)}
+.gift .bow{position:absolute;left:50%;top:20px;width:64px;height:40px;margin-left:-32px;animation:bow 1.2s 2.6s ease forwards}
+.gift .bow i{position:absolute;top:8px;width:30px;height:24px;border:6px solid var(--g2);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:transparent}
+.gift .bow i:first-child{left:0;transform:rotate(-20deg)}.gift .bow i:last-child{right:0;transform:rotate(20deg)}
+.gift .bow b{position:absolute;left:50%;top:14px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--g2)}
+@keyframes lid{0%{transform:none}60%{transform:translateY(-40px) rotate(-14deg)}100%{transform:translate(-120px,-130px) rotate(-38deg);opacity:0}}
+@keyframes bow{to{transform:translate(-120px,-150px) rotate(-30deg);opacity:0}}
+.gift .card{position:relative;margin:-56px auto 0;max-width:460px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px 26px 22px;box-shadow:0 18px 40px rgba(60,45,20,.14);opacity:0;transform:translateY(40px) scale(.96);animation:card 1.1s 3.5s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes card{to{opacity:1;transform:none}}
+.gift .card p{margin:0 0 10px;font-size:1.05rem;line-height:1.5}
+.gift .card .from{font-family:var(--sans);font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.gift .card blockquote{margin:0 0 14px;font-family:var(--brand);font-style:italic;font-size:1.3rem;line-height:1.4;color:var(--primary);white-space:pre-line}
+.gift .card .btn{margin-top:6px}
+.gift .glow{position:absolute;left:50%;top:50%;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;background:radial-gradient(circle,var(--g3) 0%,rgba(255,255,255,0) 65%);opacity:0;animation:glow 1.6s 2.8s ease forwards;pointer-events:none}
+@keyframes glow{to{opacity:.9}}
+.gift .pc{position:absolute;top:-20px;font-size:14px;opacity:0;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{0%{opacity:0;transform:translateY(0) rotate(0)}10%{opacity:1}100%{opacity:0;transform:translateY(110vh) rotate(540deg)}}
+.gift.birthday{--g1:#E8B4C8;--g2:#B58A4A;--g3:rgba(232,180,200,.55)}
+.gift.valentines{--g1:#C2504F;--g2:#F2D6D1;--g3:rgba(194,80,79,.35)}
+.gift.christmas{--g1:#8F3B3B;--g2:#6F9B82;--g3:rgba(111,155,130,.4)}
+.gift.anniversary{--g1:#D9C7A2;--g2:#B58A4A;--g3:rgba(181,138,74,.35)}
+.gift.neutral{--g1:#DED3BE;--g2:#3F466B;--g3:rgba(63,70,107,.22)}
+@media(prefers-reduced-motion:reduce){.gift *{animation-duration:.01s!important;animation-delay:0s!important}}
 details summary{cursor:pointer;font-weight:600;font-size:.93rem;list-style:none;display:flex;align-items:center;gap:8px}
 details summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin-left:2px}
 details[open] summary::before{transform:rotate(45deg)}
@@ -810,10 +866,22 @@ function mount(container,client,opts={}){
      <p class="small muted" style="margin:8px 0 0">${r.info.map(esc).join(' · ')}${r.info.length?' · ':''}Whole-sign houses from the ${natalAsc?'Lagna':'Moon (Lagna unavailable)'}, Lahiri${OV?', manual positions':''}. Checked: Pancha Mahapurusha, Gajakesari, Chandra-Mangala, Budha-Aditya, Guru-Chandala, Sunapha/Anapha/Durudhara/Kemadruma, Vesi/Vasi/Ubhayachari, Adhi, Amala, Shakata, Kala Sarpa, Mangal, Grahan, Shrapit, Angarak, Pitru, Kartari, Neecha Bhanga, Vipareeta Raja, Parivartana, Raja &amp; Yogakaraka, Dharma-Karmadhipati, Lakshmi, Saraswati, Daridra, gandanta. Definitions follow common Parashari usage; strengths, cancellations and exceptions differ between authorities — a checklist to verify, not a verdict.</p></div>`}
 
   /* ---------- Prompt generator (paste into ChatGPT or Claude) ---------- */
-  let promptState={text:'',open:false,bpl:[]};
+  let promptState={text:'',open:false,bpl:[],remedial:true};
+  // Sign changes and stations ahead, so the AI can divide the forecast without recalculating an ephemeris.
+  function forwardEphemeris(from,days){const limit=from.getTime()+days*86400000;const ingress=[],stations=[];const dOf=d=>G.utcToZoned(d,tzNow()).date;
+    for(const g of G.GRAHA){if(g.outer||g.key==='moon')continue;let t=from.getTime();const path=[];for(let i=0;i<24;i++){const ing=G.nextIngress(g.key,new Date(t),{nodeMode:S.nodeMode});if(!ing||ing.date.getTime()>limit)break;path.push(`${G.RASHI_EN[ing.sign]} from ${dOf(ing.date)}`);t=ing.date.getTime()+3600000}
+      if(path.length)ingress.push(`- ${g.en}: now ${G.RASHI_EN[Math.floor(G.bodySidereal(g.key,from,{nodeMode:S.nodeMode})/30)]} → `+path.join(' → '))}
+    for(const key of ['mercury','venus','mars','jupiter','saturn']){const sp=t=>G.norm(G.bodySidereal(key,new Date(t+43200000))-G.bodySidereal(key,new Date(t-43200000))+180)-180;let prev=sp(from.getTime());
+      for(let t=from.getTime()+86400000;t<=limit;t+=86400000){const cur=sp(t);if((prev<0)!==(cur<0)){let lo=t-86400000,hi=t;for(let i=0;i<20;i++){const mid=(lo+hi)/2;if((sp(mid)<0)===(prev<0))lo=mid;else hi=mid}const d=G.describe(G.bodySidereal(key,new Date(hi),{}));stations.push(`- ${gname(key)} stations ${cur<0?'retrograde':'direct'} ${dOf(new Date(hi))} at ${G.RASHI_EN[d.sign]} ${G.fmtDeg(d.deg)}`)}prev=cur}}
+    return {ingress,stations}}
+  function dashaChanges(from,days){const out=[];const limit=from.getTime()+days*86400000;let t=from.getTime();const lbl=d=>`${gname(d.maha.lord)} / ${d.antar?gname(d.antar.lord):'—'} / ${d.pratyantar?gname(d.pratyantar.lord):'—'}`;
+    let d=G.dashaAt(natal.instant,natalMoon.lon,new Date(t));for(let i=0;i<40&&d;i++){const ends=[d.pratyantar&&d.pratyantar.end,d.antar&&d.antar.end,d.maha.end].filter(Boolean).map(x=>x.getTime());const next=Math.min(...ends);if(next>limit)break;
+      const nd=G.dashaAt(natal.instant,natalMoon.lon,new Date(next+60000));if(!nd)break;const level=nd.maha.lord!==d.maha.lord?'mahadasha':nd.antar&&d.antar&&nd.antar.lord!==d.antar.lord?'antardasha':'pratyantardasha';
+      out.push(`- ${G.utcToZoned(new Date(next),tzNow()).date}: ${level} changes → ${lbl(nd)}`);d=nd;t=next+60000}
+    return out}
   function buildPrompt(c){const ref=c.ref;const L=[];const z=G.utcToZoned(st.instant,tzNow());
     const pl=p=>`${p.en} (${p.name}): ${G.RASHI_EN[p.sign]} ${G.fmtDeg(p.deg)}, ${p.nakName} pada ${p.pada}, house ${p.houseLagna} from Lagna (${p.houseMoon} from Moon)${flagsOf(p).length?' — '+flagsOf(p).join(', '):''}`;
-    L.push(`You are an experienced Jyotisha (Vedic astrology) consultant helping a professional astrologer. Sidereal zodiac, Lahiri ayanamsa, whole-sign houses counted from the natal Lagna (Moon-lagna as a secondary view), Parashari graha drishti (all planets 7th; Mars 4/8; Jupiter 5/9; Saturn 3/10; Rahu 5/7/9; Ketu none), Vimshottari dasha as the activating context.`);
+    L.push(`You are an experienced Jyotiṣa consultant generating predictive calendar entries for a professional astrologer.\n\nUse sidereal Jyotiṣa with Lahiri ayanāṃśa, whole-sign houses from the natal Lagna, the natal Moon chart as a secondary reference, Parāśari graha dṛṣṭi (all grahas 7th; Mars 4/8; Jupiter 5/9; Saturn 3/10; Rahu 5/7/9), natal house lordship, planetary dignity, nakṣatra where materially relevant, natal promise, and Vimśottarī daśā as the activating context. The chart data below is calculated (Lahiri, ${S.nodeMode} nodes); use it rather than recalculating positions.`);
     L.push(`\nNATAL CHART (${natalAsc?'Lagna '+G.RASHI_EN[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unknown — Moon used as lagna'}; Moon ${G.RASHI_EN[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}, ${natalMoon.nakName} pada ${natalMoon.pada}):`);
     for(const p of natalChart.planets)L.push('- '+pl(p));
     const d=c.dasha;if(d)L.push(`\nVIMSHOTTARI DASHA NOW: ${gname(d.maha.lord)} mahadasha (until ${d.maha.end.toISOString().slice(0,10)}) → ${d.antar?gname(d.antar.lord)+' antardasha (until '+d.antar.end.toISOString().slice(0,10)+')':'—'} → ${d.pratyantar?gname(d.pratyantar.lord)+' pratyantardasha (until '+d.pratyantar.end.toISOString().slice(0,10)+')':'—'} → ${d.sookshma?gname(d.sookshma.lord)+' sookshma ('+d.sookshma.start.toISOString().slice(0,10)+' to '+d.sookshma.end.toISOString().slice(0,10)+')':'—'}.${OV?' Natal positions were entered manually by the astrologer from the native’s reference chart.':''}`);
@@ -825,58 +893,223 @@ function mount(container,client,opts={}){
     if(sel&&sel.type==='transit'){const p=c.tr.planets.find(x=>x.key===sel.key);if(p){const dr=G.drishtiTargets(p.key,p.house);focus=`transit ${p.en} (${p.name}) in ${G.RASHI_EN[p.sign]} ${G.fmtDeg(p.deg)}, ${p.nakName} pada ${p.pada}, in natal house ${p.house} counted from ${S.ref==='moon'?'the Moon':'the Lagna'}${dr.length?', casting graha drishti to house '+dr.map(x=>x.house+' ('+G.RASHI_EN[(ref+x.house-1)%12]+(natalChart.planets.filter(n=>n.house===x.house).length?' — natal '+natalChart.planets.filter(n=>n.house===x.house).map(n=>n.en).join(', ')+' there':'')+')').join(', '):''}${natalChart.planets.filter(n=>n.house===p.house).length?'; natal '+natalChart.planets.filter(n=>n.house===p.house).map(n=>n.en).join(', ')+' in that house':''}`}}
     else if(sel&&sel.type==='natal'){const n=natalChart.planets.find(x=>x.key===sel.key);if(n)focus=`natal ${n.en} in ${G.RASHI_EN[n.sign]}, house ${n.houseLagna} (${n.nakName} pada ${n.pada}) and the transits currently affecting it`}
     else if(sel&&sel.type==='house'){const h=G.houseFrom(sel.sign,ref);focus=`natal house ${h} (${G.RASHI_EN[sel.sign]}), its lord ${gname(G.SIGN_LORD[sel.sign])}, its occupants and the transits touching it now`}
-    L.push(`\nPLEASE ANALYSE: ${focus}.${promptState.q?'\nSpecific question: '+promptState.q:''}`);
+    try{const ahead=forwardEphemeris(st.instant,365);if(ahead.ingress.length)L.push(`\nUPCOMING SIGN CHANGES (next 12 months, from ${z.date}):\n`+ahead.ingress.join('\n'));if(ahead.stations.length)L.push(`\nSTATIONS (next 12 months):\n`+ahead.stations.join('\n'))}catch(e){}
+    try{const dch=dashaChanges(st.instant,365);if(dch.length)L.push(`\nVIMSHOTTARI CHANGES (next 12 months):\n`+dch.join('\n'))}catch(e){}
+    L.push(`\nSTARTING DATE for the forecast: ${z.date} (${tzNow()}). PLEASE ANALYSE: ${focus}.${promptState.q?'\nSpecific question: '+promptState.q:''}`);
     const cats=(typeof CATEGORIES!=='undefined'?CATEGORIES:[]).map(x=>x[1]);
-    L.push(`\nWrite for this chart specifically — name the houses, lords, occupants and dasha lords involved and say which factors strengthen or soften the effect. Use calibrated language ("may", "tends to"); never present outcomes as certain. Answer directly and completely, without disclaimers or referrals elsewhere.
-Work out the period yourself from the transit(s) in focus — sign/house entry and exit dates (the "in this sign until" dates above), stations, exact contacts and the dasha sub-period boundaries — and give real calendar dates.
-Approved categories (use these exact names): ${cats.join('; ')}.
+    L.push(`
+CORE METHOD
 
-Respond in exactly this format — keep the labels, one label per line, fill in the brackets, plain text (no tables, no markdown headings):
+Do the astrological reasoning internally.
 
-[1–3 WORD SIGNPOST TITLE]
-Dates: [start date – end date]
-Duration: [number of days or approximate duration]
-Polarity: [Supportive / Mixed / Danger]
-Intensity: [1–5]
-Especially significant: [Yes / No]
-Primary category: [exactly one approved category]
-Secondary categories: [zero to three approved categories, or None]
-Supportive for: [approved categories that benefit — only when Polarity is Mixed, otherwise None]
-Difficult for: [approved categories that need care — only when Polarity is Mixed, otherwise None]
-Peak dates: [exact dates or narrow trigger windows, or None]
-Technical basis: [one line of Jyotiṣa reasoning for the astrologer — activated houses, their lords, natal occupants, daśā lords, transit contacts, and what strengthens or softens the effect]
+The final calendar entries are client-facing and must NOT contain astrological information.
 
-Interpretation:
-[2–4 calm paragraphs written for the client in a non-deterministic voice: what this period may concretely indicate for this native, what may go well, open up or become productive, and what may become difficult, excessive, delayed or vulnerable to poor judgment. No astrological jargon here.]
+Do not mention planets, signs, houses, aspects, nakṣatras, daśās, yogas, doṣas, transits, combustion, retrogradation, dignity, planetary lordship or other Jyotiṣa terminology in any client-facing field.
 
-Notice:
-[1–3 sentences on what the client may observe in daily life during this period.]
+Translate the astrological analysis into ordinary descriptions of what the native may experience, notice, reconsider or reasonably do.
 
-Consider:
-[1–3 sentences or questions the client may reflect on.]
+Automatically calculate the forecast period
 
-Suggestions:
-* […]
-* […]
-* […]
+Do not rely only on the transit snapshot supplied at the starting date.
 
-Consider postponing:
-* […]
-* […]
-* […]
-${promptState.remedial?`
-Remedial work:
-[Traditional observances or practices suited to this period and this chart — mantra, charity, fasting day, colour, gemstone caution, temple or nature practice as appropriate — stated as gentle options, never as obligations, with the planet each addresses.]
+Calculate future planetary movement forward from the starting date in order to determine when meaningful conditions begin, peak, change and end. The sign changes, stations and daśā changes listed above are calculated for you — use them.
+
+Automatically identify:
+
+* sign ingresses and exits
+* stations retrograde and direct
+* exact conjunctions with natal grahas or nodes
+* exact Parāśari aspects to natal placements
+* repeated direct-retrograde-direct contacts
+* conjunctions and important aspects between transiting grahas
+* nakṣatra changes when they materially alter the interpretation
+* changes in dignity
+* changes in the active Vimśottarī subperiod
+* clusters of several triggers occurring within the same short interval
+
+Use these calculations to divide the forecast into meaningful predictive windows.
+
+Do not create arbitrary weekly periods.
+
+A period should begin or end when the underlying astrological condition meaningfully changes.
+
+Short exact triggers may produce windows of several days. Longer background influences may modify several periods without becoming separate entries of their own.
+
+HOW TO ANALYZE EACH PERIOD
+
+For every potential period, first establish the natal promise.
+
+Determine whether the natal chart actually supports the topic before predicting its manifestation.
+
+Then cross-reference the following layers:
+
+1. Vimśottarī activation
+
+Assess: mahādaśā lord; antardaśā lord; pratyantardaśā lord; smaller daśā levels when supplied; natal houses owned by each daśā lord; natal houses occupied by each daśā lord; planets associated with the daśā lords; whether the transit is activating a daśā lord directly.
+
+Give substantially more weight to a transit when it activates the current daśā sequence.
+
+2. Transit through the Lagna chart
+
+For every important transiting graha determine: which natal house it occupies; which natal house or houses it aspects; what natal planets occupy those houses; the natal lord of the occupied house; the natal lord of the houses receiving its dṛṣṭi; the houses ruled by the transiting graha for this specific Lagna; whether it is activating natal planets, nodes or sensitive degrees; whether benefic or malefic grahas reinforce or modify the result.
+
+Judge the transit according to the native’s actual chart rather than relying on generic meanings.
+
+3. Transit from the natal Moon
+
+Repeat the important transit analysis from the natal Moon.
+
+Use the Moon chart especially to understand: subjective experience; emotional atmosphere; mental preoccupation; perceived pressure or ease; interpersonal sensitivity; what may occupy the native’s attention; whether an objectively supportive period may nevertheless feel difficult; whether an objectively demanding period may be psychologically manageable.
+
+The Lagna view should describe circumstances and manifestation. The Moon/rāśi view should help describe how the native may experience and mentally process those circumstances. Neither view should automatically override the other.
+
+4. Natal triggers
+
+Check whether the transit activates: natal Lagna or Lagna lord; natal Moon; natal daśā lords; natal house lords relevant to the predicted topic; planets already involved in important natal combinations; natal nodes; natal yogas relevant to the topic; repeated house themes elsewhere in the natal chart.
+
+A strong prediction should normally have reinforcement from more than one layer.
+
+5. Modifiers
+
+Assess what strengthens, softens or complicates the effect: exaltation or debilitation; own sign or mūlatrikoṇa; combustion; retrogression; benefic protection; malefic pressure; dispositor condition; repeated transit contacts; exactness of aspect or conjunction; whether the event is supported by the natal promise; whether the active daśā agrees with the transit.
+
+Do not make a strong prediction from one isolated transit.
+
+MENTAL AND SUBJECTIVE EXPERIENCE
+
+Every period should include the likely subjective atmosphere as part of the interpretation.
+
+Infer this primarily through: natal Moon and Moon-lagna; transits to the natal Moon; transits through houses counted from the Moon; Moon’s dispositor and relevant daśā activation; Saturn, Rahu, Ketu, Jupiter and other major influences upon the Moon; 1H, 4H, 5H, 6H, 8H and 12H activation where relevant.
+
+Translate this into normal client language.
+
+Do not write: “Saturn aspects your natal Moon.”
+Write: “You may feel more serious, self-contained or mentally occupied than circumstances alone would seem to warrant.”
+
+Do not write: “Rahu activates the 5H.”
+Write: “An idea, attraction or creative project may become unusually absorbing, making it harder to judge how much attention it actually deserves.”
+
+PERIOD CLASSIFICATION
+
+For each period provide:
+
+Title: A professional 1–3 word signpost title describing the likely manifestation (for example Professional Momentum, Financial Review, Creative Acceleration, Relationship Reassessment, Critical Decisions, Restoration Period, Administrative Resolution, Network Expansion, Travel Adjustment, Private Reassessment). Never title a period after an astrological configuration.
+
+Dates: Give the actual start and end dates.
+
+Duration: Give the duration in days or an appropriate approximate duration.
+
+Polarity: Choose exactly one: Supportive, Mixed, Danger. Use Mixed when meaningful opportunity and difficulty coexist. Use Danger sparingly — only when several independent factors converge strongly enough that increased caution is genuinely warranted.
+
+Intensity: Choose 1–5. 1 = subtle, 2 = noticeable, 3 = significant, 4 = strong, 5 = unusually concentrated or consequential.
+
+Especially significant: Yes or No. Mark Yes only for genuinely reinforced periods such as exact activation of current daśā lords, major repeated contacts, a daśā transition coinciding with a transit trigger, or several predictive layers converging.
+
+Primary category: Choose exactly one from: ${cats.join('; ')}.
+
+Secondary categories: Choose zero to three from the same approved list. Do not invent additional categories.
+
+CLIENT-FACING CONTENT
+
+After the classification fields, write only the following client-facing sections. There must be no astrological terminology in these sections.
+
+Interpretation / This period may support — one concise paragraph explaining what this period may be useful for or what kinds of circumstances it may support. Include both external circumstances and the likely subjective atmosphere where relevant. For Mixed periods, describe both the opening and the complication naturally. For Danger periods, explain the area requiring greater caution without frightening or deterministic language.
+
+Notice — concrete things the client may observe occurring around them (changes in workload, increased correspondence, an offer returning, an expense appearing, somebody reconsidering an agreement, a relationship becoming more demanding, a project suddenly accelerating, disrupted sleep, greater need for solitude, renewed contact from someone, administrative delays, unusual creative focus). Use 2–5 concise bullet points. Do not explain the astrology behind them.
+
+Consider — 2–4 reflective questions or things the client might usefully think about during the period, concerning judgment, priorities, patterns or choices (for example whether urgency is actually the same thing as importance; whether the present arrangement remains sustainable; what has changed since the issue first appeared; whether the opportunity justifies the resources it requires; which obligations are necessary and which are habitual). Do not simply repeat the Notice section.
+
+Suggestions — 2–5 reasonable, practical, proportionate actions directly related to the forecast (review the agreement before confirming it; leave additional time between commitments; put important terms in writing; concentrate on work already underway; follow up with useful contacts; build additional recovery time into the week). Use bullet points.
+
+Consider postponing — 1–4 specific actions that may be better delayed until the period changes. Only include actions for which the forecast provides a meaningful reason to wait. Do not manufacture warnings merely to fill this section. If no postponement is particularly indicated, write: * Nothing specifically indicated.
+${promptState.remedial===false?`
+Do not include a Remedial work section.
 `:`
-Do not include a remedial-work section.
+REMEDIAL WORK
+
+After the practical sections, include one short paragraph headed Remedial work. It should be client-facing and should not explain the astrological reasoning. The remedy should be selected specifically for the character of the period rather than copied generically into every entry. Research suitable options from reputable online sources before selecting them.
+
+Consider remedies from the following traditions when genuinely appropriate: classical Jyotiṣa remedial practice; seva or charitable service; yogic disciplines; meditation; prāṇāyāma; mantra or japa; restorative or contemplative yoga; Ayurveda-inspired daily routine; Traditional Chinese Medicine-informed lifestyle practices; tai chi or qigong; colour or environmental remedy; fasting or observance only when appropriate and low-risk; devotional or contemplative practice; sleep, rest or sensory-reduction practices; timing of practice. Do not force every tradition into every period. Select only one coherent remedial programme, generally containing 2–4 mutually compatible elements.
+
+Research standard for remedial work: distinguish traditional practice from modern evidence; use reputable medical or academic sources for wellness or body-based claims. Evidence is stronger for some mind-body practices such as appropriately taught yoga, meditation, tai chi and qigong than for many herbal or energetic claims (NCCIH notes that yoga may support general wellness, stress management and sleep, while tai chi and qigong are generally considered low-risk when appropriately practiced). Traditional Chinese herbal preparations and Ayurvedic medicinal products should not be prescribed by the calendar; safety and evidence vary, and contamination, toxicity or interactions may occur. Therefore: prefer low-risk lifestyle, contemplative, movement, service and environmental remedies; do not prescribe medicinal herbs, supplements, metals, minerals or ingestible preparations; do not claim that a remedy treats disease; do not present TCM, Ayurveda, colour practice or Jyotiṣa remedies as scientifically proven when evidence is absent; acupuncture may only be suggested as something to discuss with an appropriately qualified practitioner; do not recommend extreme fasting, forceful breath retention or physically advanced yoga; match movement practices to the period’s overall energy rather than automatically recommending stimulation.
+
+Remedial timing: when useful, specify a simple timing recommendation based on the predictive character of the period, traditional Jyotiṣa observance, or practical rhythm (morning for establishing steadiness and intention; evening for calming, release or sensory reduction; before important negotiations for a brief centering practice; during the exact peak window for a simple mantra, prayer or charitable act; on the traditional weekday associated with a remedial observance when relevant; daily throughout the period when consistency matters more than an exact election). Do not create false precision; do not claim that performing something at an exact minute guarantees protection or an outcome.
+
+Seva: when appropriate, make it concrete and proportionate (helping somebody with an administrative task, donating food, supporting education, volunteering, caring for animals, assisting an elder, contributing anonymously to someone in need), chosen according to the period rather than listing several unrelated acts.
+
+Yogic discipline: distinguish among āsana, prāṇāyāma, meditation, yoga nidrā, japa, svādhyāya, mauna or deliberate reduction of unnecessary speech, disciplined routine, restorative practice; choose the discipline that actually matches the forecast; prefer gentler practices during periods characterized by fatigue, pressure, agitation or reduced recovery.
+
+Ayurveda: focus on low-risk dinacaryā-style practices (regular meal timing, regular sleep and waking rhythm, reducing overstimulation, warm or grounding routines, simplified daily schedules, gentle self-care rituals) rather than medical treatment; do not diagnose doṣa imbalance from the astrology alone.
+
+Traditional Chinese Medicine: remain at the level of low-risk traditional lifestyle principles or appropriately supervised practices (gentle qigong, tai chi, regular sleep-wake rhythm, balancing activity with rest, seasonal routine, referral to a qualified practitioner if acupuncture is desired); do not diagnose a TCM pattern from the horoscope.
+
+Colour remedy: treat colour primarily as a symbolic, contemplative or environmental practice (clothing, flowers, workspace details, altar or devotional objects, lighting or visual environment); do not claim that colour treats illness or physiologically corrects an astrological condition.
 `}
-BPL perspective:
-[For the astrologer only: a synthesis of how Barbara Pijan Lama characteristically reads the placements involved (her bhava/graha/drishti framing and the psychological texture she gives each graha in each rashi and bhava), paraphrased in your own words and marked as a synthesis of her published approach${promptState.bpl.length?', drawing on these passages from her site (paraphrase, do not quote):\n- '+promptState.bpl.join('\n- '):''}.]`);
+REQUIRED OUTPUT FORMAT
+
+Use exactly this structure for every period (plain text, one label per line, no tables):
+
+[1–3 WORD TITLE]
+
+Dates: [start date – end date]
+
+Duration: [duration]
+
+Polarity: [Supportive / Mixed / Danger]
+
+Intensity: [1–5]
+
+Especially significant: [Yes / No]
+
+Primary category: [approved category]
+
+Secondary categories: [zero to three approved categories]
+
+Interpretation / This period may support
+
+[client-facing paragraph]
+
+Notice
+
+* […]
+* […]
+* […]
+
+Consider
+
+* […]
+* […]
+* […]
+
+Suggestions
+
+* […]
+* […]
+* […]
+
+Consider postponing
+
+* […]
+* […]
+* […]
+${promptState.remedial===false?'':`
+Remedial work
+
+[one short cohesive paragraph containing the selected practice or practices and useful timing]
+`}
+Then proceed directly to the next predictive period.
+
+STYLE
+
+Write calmly and professionally. The client does not need to know how the astrological conclusion was derived. Do not use astrological vocabulary in the output. Do not write dramatically or fatalistically. Avoid vague statements that could apply to anyone. Make each entry concrete enough that the client can recognize what the period concerns. Use “may,” “can,” “tends to,” “may be useful for,” and similar calibrated language. Do not repeat the same advice across every period. The final result should read as a sophisticated personal calendar, not an astrology report.${promptState.bpl.length?`
+
+REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — paraphrase, never quote, and never mention her or any astrology in the client-facing text):
+- `+promptState.bpl.join('\\n- '):''}`);
     return L.join('\n')}
   function promptPanel(c){const sel=st.sel;const what=sel?(sel.type==='transit'?'this transit':sel.type==='natal'?'this natal placement':'this house'):'the current gochara';
     return `<div class="g-ai"><h4>Ask an AI about ${what}</h4>
      <div class="row" style="gap:6px"><input type="text" id="pr-q" placeholder="optional: a specific question (e.g. career move in November?)" value="${esc(promptState.q||'')}" style="flex:1;min-width:200px"><button type="button" class="btn small" id="pr-gen">Generate prompt</button></div>
-     <label class="chk small" style="margin:6px 0 0"><input type="checkbox" id="pr-rem" ${promptState.remedial?'checked':''}>Ask for remedial work too (fills the influence’s remedial note — shown only to clients with the add-on)</label>
+     <label class="chk small" style="margin:6px 0 0"><input type="checkbox" id="pr-rem" ${promptState.remedial!==false?'checked':''}>Include a Remedial work paragraph in each period (fills the influence’s remedial note — shown only to clients with the add-on)</label>
      ${promptState.text?`<div class="row" style="gap:6px;margin-top:8px"><button type="button" class="btn small" id="pr-copy">Copy prompt</button><button type="button" class="btn ghost small" id="pr-bpl" ${promptState.busy?'disabled':''}>${promptState.busy?'Fetching BPL passages…':promptState.bpl.length?'BPL passages included ('+promptState.bpl.length+')':'Add BPL passages to the prompt'}</button><span class="small muted">${promptState.text.length.toLocaleString()} characters</span></div>
      <textarea id="pr-text" readonly style="margin-top:8px;min-height:260px;font-size:.9rem;line-height:1.45">${esc(promptState.text)}</textarea>
      <p class="small muted">Paste into ChatGPT or Claude. The answer comes back in the influence format — in the influence editor, “Fill from AI answer” puts it straight into the fields.</p>`:''}
@@ -997,6 +1230,11 @@ const BASE_CATEGORY_KEYS=CATEGORIES.map(c=>c[0]);
 const CUSTOM_COLORS=['#8c6d46','#5b7b7a','#9a6b8a','#6f7f4c','#b3703f','#5d6f9a','#a3563f','#6b8c5a','#7d5f8e','#4f7f86'];
 let CUSTOM_CATEGORIES=[];
 const slugCat=label=>'c_'+String(label).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,24);
+// Create a custom category from a label (saved to settings); returns its key, or null if the name is taken/invalid.
+async function createCustomCategory(label,color){label=String(label||'').trim();if(!label)return null;const key=slugCat(label);
+  if(!key||key==='c_')throw new Error('Please use letters or numbers in the name.');
+  if(CAT[key]||BASE_CATEGORY_KEYS.includes(key)||CATEGORIES.some(([,l])=>l.toLowerCase()===label.toLowerCase()))throw new Error('A category with that name already exists.');
+  const list=[...CUSTOM_CATEGORIES,{key,label,color:color||CUSTOM_COLORS[CUSTOM_CATEGORIES.length%CUSTOM_COLORS.length]}];await api.setSetting('categories',list);applyCustomCategories(list);return key}
 function applyCustomCategories(list){list=Array.isArray(list)?list.filter(x=>x&&x.key&&x.label):[];CUSTOM_CATEGORIES=list.map(x=>({key:String(x.key),label:String(x.label),color:x.color||CUSTOM_COLORS[0]}));
   for(let i=CATEGORIES.length-1;i>=0;i--){const k=CATEGORIES[i][0];if(!BASE_CATEGORY_KEYS.includes(k)&&!CUSTOM_CATEGORIES.some(c=>c.key===k)){CATEGORIES.splice(i,1);delete CAT[k]}}
   for(const c of CUSTOM_CATEGORIES){const row=CATEGORIES.find(x=>x[0]===c.key);if(row)row[1]=c.label;else{const at=CATEGORIES.findIndex(x=>x[0]==='remedies');CATEGORIES.splice(at>=0?at:CATEGORIES.length,0,[c.key,c.label])}CAT[c.key]=c.label;try{document.documentElement.style.setProperty('--cat-'+c.key,c.color)}catch(e){}}}
@@ -1188,6 +1426,9 @@ const api={
   async logActivity(code,sid,event,detail){return chk(await sb.rpc('client_log',{p_code:code,p_session:sid,p_event:event,p_detail:detail||{}}))},
   async listActivity(clientId,limit=600){return chk(await sb.from('client_activity').select('id,session_id,event,detail,user_agent,at').eq('client_id',clientId).order('at',{ascending:false}).limit(limit))},
   async recentActivity(limit=500){return chk(await sb.from('client_activity').select('client_id,session_id,event,detail,at').order('at',{ascending:false}).limit(limit))},
+  async listNotes(clientId){return chk(await sb.from('day_notes').select('client_id,note_date,heading,body,updated_at').eq('client_id',clientId).order('note_date'))},
+  async saveNote(n){return chk(await sb.from('day_notes').upsert({client_id:n.client_id,note_date:n.note_date,heading:n.heading||'',body:n.body||'',updated_at:new Date().toISOString()}).select().single())},
+  async deleteNote(clientId,date){chk(await sb.from('day_notes').delete().eq('client_id',clientId).eq('note_date',date))},
   async getSetting(key){const r=chk(await sb.from('settings').select('value').eq('key',key).maybeSingle());return r?r.value:null},
   async setSetting(key,value){return chk(await sb.from('settings').upsert({key,value,updated_at:new Date().toISOString()}).select().single())}
 };
@@ -1217,7 +1458,8 @@ const ACT={code:null,sid:null,screen:'calendar',last:'',timer:null,bound:false,c
     if(!('IntersectionObserver' in window))return;
     ACT.io=new IntersectionObserver(ents=>{for(const e of ents){const t=e.target.querySelector('h4');if(!t)continue;const r=ACT.reads[t.textContent]=ACT.reads[t.textContent]||{ms:0,since:0};
       if(e.isIntersecting&&document.visibilityState==='visible'){if(!r.since)r.since=Date.now()}else if(r.since){r.ms+=Date.now()-r.since;r.since=0}}},{threshold:0.5});
-    container.querySelectorAll('article.inf').forEach(a=>ACT.io.observe(a))},
+    container.querySelectorAll('article.inf').forEach(a=>ACT.io.observe(a));
+    container.querySelectorAll('details.infd').forEach(d=>d.addEventListener('toggle',()=>{if(d.open&&ACT.code)ACT.action('open entry',{entry:d.dataset.entry,date})}))},
   flushReads(){if(ACT.io){ACT.io.disconnect();ACT.io=null}if(!ACT.readDate)return;const now=Date.now();
     const list=Object.entries(ACT.reads).map(([title,r])=>({title,ms:Math.round(r.ms+(r.since?now-r.since:0))})).filter(x=>x.ms>=1500).sort((a,b)=>b.ms-a.ms).slice(0,12);
     if(list.length)ACT.send('view',{screen:'entries',date:ACT.readDate,entries:list});ACT.reads={};ACT.readDate=null},
@@ -1241,7 +1483,7 @@ function go(h){CUR=h;let changed=false;try{if(location.hash!==h){skipHash=true;l
 window.addEventListener('hashchange',()=>{CUR=location.hash||'#/';if(skipHash){skipHash=false}route()});
 document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#/"]');if(a){e.preventDefault();go(a.getAttribute('href'))}});
 function setHeader({left=[],brand=true,right=[]}={}){
-  const links=arr=>arr.map(i=>i.id?`<button class="btn small ${i.cls||'quiet'}" id="${i.id}">${esc(i.label)}</button>`:`<a class="btn small ${i.cls||'ghost'}" href="${i.href}">${esc(i.label)}</a>`).join('');
+  const links=arr=>arr.map(i=>i.id?`<button class="btn small ${i.cls||'quiet'}" id="${i.id}">${esc(i.label)}</button>`:`<a class="btn small ${i.cls||'ghost'}" href="${esc(i.href)}"${/^https?:|^mailto:/i.test(i.href)?' target="_blank" rel="noopener"':''}>${esc(i.label)}</a>`).join('');
   hdr.innerHTML=`<nav class="hl" aria-label="Sign in">${links(left)}</nav><a class="hb ${brand?'':'hidden'}" href="#/">Atelier Sonnentau<small>my astrological calendar</small></a><div class="hr">${links(right)}</div>`;
   [...left,...right].filter(i=>i.id&&i.onClick).forEach(i=>$('#'+i.id).onclick=i.onClick);
 }
@@ -1311,6 +1553,21 @@ function renderClientLogin(msg){
     catch(err){$('#cerr').textContent='Could not reach the calendar service. '+(err.message||'');b.disabled=false}};
 }
 function clientSignOut(){ACT.stop('signed out');localStorage.removeItem(CODE_KEY);go('#/')}
+/* The gift opening shown on a gifted client's first visit (and previewed by the astrologer). */
+const GIFT_OCCASIONS=[['neutral','Neutral'],['birthday','Birthday'],['valentines','Valentine’s'],['christmas','Christmas'],['anniversary','Anniversary']];
+const GIFT_PARTICLES={birthday:['✦','●','▲','■'],valentines:['♥','♡','✦'],christmas:['❄','✦','❅'],anniversary:['✦','❋'],neutral:['✦','·']};
+const GIFT_COLORS={birthday:['#E8B4C8','#B58A4A','#6F9B82','#4F5D86','#C08A5A'],valentines:['#C2504F','#E8B4C8','#B58A4A'],christmas:['#FFFFFF','#6F9B82','#8F3B3B','#B58A4A'],anniversary:['#B58A4A','#D9C7A2','#FFFFFF'],neutral:['#B58A4A','#3F466B']};
+function showGift(name,gift,onDone){const occ=GIFT_OCCASIONS.some(([k])=>k===gift.occasion)?gift.occasion:'neutral';const sender=String(gift.sender||'a friend').trim()||'a friend';
+  const g=document.createElement('div');g.className='gift '+occ;g.setAttribute('role','dialog');g.setAttribute('aria-label','A gift for you');
+  const parts=GIFT_PARTICLES[occ],cols=GIFT_COLORS[occ];let pcs='';for(let i=0;i<28;i++){pcs+=`<span class="pc" style="left:${Math.round(Math.random()*100)}%;color:${cols[i%cols.length]};font-size:${10+Math.round(Math.random()*12)}px;animation-duration:${(5+Math.random()*5).toFixed(1)}s;animation-delay:${(2.8+Math.random()*4).toFixed(1)}s">${parts[i%parts.length]}</span>`}
+  g.innerHTML=`${pcs}<div class="stage"><div class="glow"></div><p class="hello">Hello,</p><h1>${esc(name)}</h1>
+    <div class="box" aria-hidden="true"><div class="body"></div><div class="lid"></div><div class="bow"><i></i><b></b><i></i></div></div>
+    <div class="card"><p>Hello, ${esc(name)}, welcome to my astrological calendar.</p><p>This was sent to you as a gift from <strong>${esc(sender)}</strong>.</p>
+     <p class="from">A note from ${esc(sender)}</p><blockquote>“${esc(String(gift.message||'').trim()||'With love.')}”</blockquote>
+     <button type="button" class="btn" id="giftgo">Let’s dive in →</button></div></div>`;
+  document.body.appendChild(g);
+  const done=()=>{if(g.classList.contains('leaving'))return;g.classList.add('leaving');setTimeout(()=>g.remove(),720);if(onDone)onDone()};
+  $('#giftgo',g).onclick=done;return {close:done}}
 
 /* ---------------- Client calendar ---------------- */
 let calState={year:new Date().getFullYear(),month:new Date().getMonth(),selected:todayStr()};
@@ -1319,25 +1576,29 @@ function stopRefresh(){if(refreshTimer)clearInterval(refreshTimer);refreshTimer=
 async function renderCalendar(){
   const code=localStorage.getItem(CODE_KEY);
   if(!code){go('#/client');return}
-  setHeader({left:[],brand:true,right:[{id:'out',label:'Sign out',cls:'ghost',onClick:clientSignOut}]});
   app.innerHTML='<p class="loading">Opening your calendar…</p>';
   let pkg;
   try{pkg=await api.openCalendar(code)}catch(err){app.innerHTML=`<div class="entry card"><h1>Not reachable</h1><p class="muted">Could not reach the calendar service. Please try again in a moment.</p><p class="small muted">${esc(err.message||'')}</p></div>`;return}
   if(!pkg.ok){localStorage.removeItem(CODE_KEY);renderClientLogin(pkg.why);return}
   applyCustomCategories(pkg.categories||[]);
-  if(sessionStorage.getItem('as.welcomed')!==code){
+  const contact=pkg.contact&&pkg.contact.url?{href:pkg.contact.url,label:pkg.contact.label||'Enquiries · Atelier Sonnentau',cls:'quiet'}:null;
+  setHeader({left:[],brand:true,right:[...(contact?[contact]:[]),{id:'out',label:'Sign out',cls:'ghost',onClick:clientSignOut}]});
+  const gift=pkg.gift&&pkg.gift.enabled&&!(pkg.prefs&&pkg.prefs.gift_seen)?pkg.gift:null;
+  if(gift){sessionStorage.setItem('as.welcomed',code);showGift(pkg.name,gift,()=>{pkg.prefs={...(pkg.prefs||{}),gift_seen:true};api.setPrefs(code,pkg.prefs).catch(()=>{});if(ACT.code)ACT.action('gift opened',{occasion:gift.occasion})})}
+  else if(sessionStorage.getItem('as.welcomed')!==code){
     sessionStorage.setItem('as.welcomed',code);
     const w=document.createElement('div');w.className='welcome';w.setAttribute('role','status');
     w.innerHTML=`<div><p class="wk">Welcome,</p><h1>${esc(pkg.name)}</h1><div class="orn" aria-hidden="true">${icon('star','var(--gold)',16)}</div></div>`;
     document.body.appendChild(w);w.addEventListener('animationend',()=>w.remove());setTimeout(()=>w.remove(),3200);
   }
-  app.innerHTML=`<h1 style="margin-bottom:14px">Hello, ${esc(pkg.name)}</h1><div id="calroot"></div>`;
+  app.innerHTML=`<h1 style="margin-bottom:14px">Hello, ${esc(pkg.name)}</h1><div id="calroot"></div>${contact?`<p class="cal-contact"><a class="btn ghost" href="${esc(contact.href)}" target="_blank" rel="noopener" id="contactbtn">${esc(contact.label)} →</a></p>`:''}`;
   ACT.start(code);
+  const cb=$('#contactbtn');if(cb)cb.addEventListener('click',()=>ACT.action('contact',{label:contact.label}));
   drawCalendar(pkg,$('#calroot'),{code});
-  let last=JSON.stringify(pkg.influences);
+  let last=JSON.stringify([pkg.influences,pkg.notes]);
   const refresh=async()=>{if(!$('#calroot')||localStorage.getItem(CODE_KEY)!==code){stopRefresh();return}
     try{const fresh=await api.openCalendar(code);if(!fresh.ok){stopRefresh();localStorage.removeItem(CODE_KEY);renderClientLogin(fresh.why);return}
-      const now=JSON.stringify(fresh.influences);if(now!==last){last=now;fresh.prefs=pkg.prefs;pkg=fresh;drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
+      const now=JSON.stringify([fresh.influences,fresh.notes]);if(now!==last){last=now;fresh.prefs=pkg.prefs;pkg=fresh;applyCustomCategories(pkg.categories||[]);drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
   stopRefresh();refreshTimer=setInterval(refresh,60000);refreshOnShow=()=>{if(document.visibilityState==='visible')refresh()};document.addEventListener('visibilitychange',refreshOnShow);
 }
 function monthHint(list,y,m,onJump){
@@ -1383,7 +1644,8 @@ function drawCalendar(pkg,root,opts={}){
     const bands=longs.map((i,ix)=>`<span class="band ${ix?'b2':''}${hasWin(i)?' notch':''}" style="background:${POLARITY[i.polarity].color};opacity:${i.start_date===ds||i.end_date===ds||hasWin(i)?.95:.55}"></span>`).join('');
     const tint=dominant?` tint-${dominant.polarity}`:'';
     const label=`${fmtDate(ds)}${here.length?', '+here.map(i=>i.accessibility_label||`${POLARITY[i.polarity].label}: ${CAT[i.category]||i.category}`).join('; '):', no entries'}`;
-    cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}${ds===calState.selected?' sel':''}${tint}" data-d="${ds}" aria-label="${esc(label)}" ${other?'tabindex="-1"':''}>${bands}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`;
+    const noted=(pkg.notes||[]).some(nn_=>nn_.date===ds);
+    cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}${ds===calState.selected?' sel':''}${tint}" data-d="${ds}" aria-label="${esc(label)}${noted?', with a note from your astrologer':''}" ${other?'tabindex="-1"':''}>${bands}${noted?'<span class="nt" aria-hidden="true"></span>':''}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`;
   }
   const allCats=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(c=>c[0]);
   const hiddenCats=allCats.filter(k=>prefs.hidden.includes(k));
@@ -1473,9 +1735,14 @@ function drawDay(pkg,visible,ds,root){
    </article>`};
   let dd=DISCLAIMERS[pkg.default_disclaimer]||'';
   if(here.some(i=>(i.disclaimer==='custom'?i.custom_disclaimer:DISCLAIMERS[i.disclaimer])===dd))dd='';
-  $('#daypanel',root).innerHTML=`<div class="card"><h2>${fmtDate(ds)}</h2><p class="muted small" style="margin-top:-6px">${esc(climate)}</p>
-   ${longs.length?`<h3 style="margin-top:14px">Longer periods</h3>${longs.map(block).join('')}`:''}
-   ${windows.length?`<h3 style="margin-top:14px">${longs.length?'Windows within this day':'Today'}</h3>${windows.map(block).join('')}`:''}
+  const note=(pkg.notes||[]).find(nn_=>nn_.date===ds&&String(nn_.body||'').trim());
+  const noteHtml=note?`<div class="daynote"><h3>${esc(String(note.heading||'').trim()||(ds===todayStr()?'A note for today':'A note for this day'))}</h3><p>${esc(note.body)}</p><div class="sig">— your astrologer</div></div>`:'';
+  // several entries on one day fold into openable tabs; a single entry stays open
+  const fold=i=>{const p=POLARITY[i.polarity];return here.length>1?`<details class="infd" data-entry="${esc(i.title)}"><summary>${icon(p.shape,p.color,12)} <strong>${esc(i.title)}</strong><span class="tag">${esc(CAT[i.category]||i.category)}</span>${i.significant?icon('star','var(--significant)',11):''}<span class="chev">▶</span></summary>${block(i)}</details>`:block(i)};
+  $('#daypanel',root).innerHTML=`<div class="card"><h2>${fmtDate(ds)}</h2><p class="muted small" style="margin-top:-6px">${esc(climate)}</p>${noteHtml}
+   ${here.length>1?`<p class="small muted" style="margin:10px 0 6px">${here.length} entries for this day — open any of them.</p>`:''}
+   ${longs.length?`<h3 style="margin-top:14px">Longer periods</h3>${longs.map(fold).join('')}`:''}
+   ${windows.length?`<h3 style="margin-top:14px">${longs.length?'Windows within this day':'Today'}</h3>${windows.map(fold).join('')}`:''}
    ${!here.length?'<p class="muted small">No published guidance for this date'+(hiddenCount?'':' yet')+'.</p>':''}
    ${hiddenCount>0?`<p class="small muted" style="margin-top:8px">${hiddenCount} ${hiddenCount===1?'entry is':'entries are'} hidden for this day by your display options. <a href="#" data-showopts>Show everything</a></p>`:''}
    ${here.length&&dd?`<p class="daydisc">${esc(dd)}</p>`:''}</div>`;
@@ -1527,7 +1794,7 @@ function openChangePassword(){
 }
 
 /* ---------------- Admin ---------------- */
-let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()};
+let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null;
 async function renderAdmin(path){
   const session=await api.adminSession();
   if(!session){go('#/astrologer');return}
@@ -1598,8 +1865,8 @@ async function runInfluenceDiagnostics(c){
 async function renderWorkspace(id){
   if(wsClient!==id){wsClient=id;wsTab='client'}
   let c;try{c=normClient(await api.getClient(id))}catch(e){go('#/admin');return}
-  const [influences,templates]=await Promise.all([api.listInfluences(id),api.listTemplates()]);
-  const ctx={c,influences,templates,reload:()=>renderWorkspace(id)};
+  const [influences,templates,notes]=await Promise.all([api.listInfluences(id),api.listTemplates(),api.listNotes(id).catch(e=>{console.warn(e);return null})]);
+  const ctx={c,influences,templates,notes:notes||[],notesUnavailable:notes===null,reload:()=>renderWorkspace(id)};
   const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['preview','Client preview'],['activity','Activity']];
   app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}</h1>
    <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${wsTab===k}" data-tab="${k}">${l}</button>`).join('')}</div><div id="tabbody"></div>`;
@@ -1614,7 +1881,7 @@ const fmtDT=d=>new Date(d).toLocaleString(undefined,{weekday:'short',month:'shor
 const fmtDur=ms=>{const m=Math.round(ms/60000);if(m<1)return 'under a minute';if(m<60)return m+' min';const h=Math.floor(m/60);return h+' h '+(m%60?(m%60)+' min':'')};
 const monthLabel=ym=>{const [y,m]=String(ym||'').split('-').map(Number);return y&&m?new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(ym||'')};
 const fmtMs=ms=>ms<1000?'':ms<60000?Math.round(ms/1000)+' s':ms<3600000?Math.round(ms/60000)+' min':fmtDur(ms);
-const ACTION_SCREENS=['export','copy','print','entries'];
+const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact'];
 const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;
   if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;
@@ -1622,6 +1889,9 @@ const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='export')return 'exported to their calendar app'+(d.polarities&&d.polarities.length&&d.polarities.length<4?' ('+d.polarities.join(', ')+')':'');
   if(sc==='copy')return `copied text${d.entry?' from “'+d.entry+'”':''}${d.chars?' ('+d.chars+' characters)':''}`;
   if(sc==='print')return 'printed the page';
+  if(sc==='open entry')return `opened “${d.entry||''}”`;
+  if(sc==='gift opened')return 'opened their gift';
+  if(sc==='contact')return 'tapped the enquiries link';
   if(sc==='entries')return 'read '+(d.entries||[]).map(e=>`“${e.title}”${fmtMs(e.ms)?' '+fmtMs(e.ms):''}`).join(', ');
   return sc};
 // A short label for "where they were" — used to add up time per place.
@@ -1681,7 +1951,7 @@ async function tabActivity({c},body){
   if(actTimer)clearInterval(actTimer);actTimer=setInterval(()=>{if(!document.body.contains(body)||wsTab!=='activity'){clearInterval(actTimer);actTimer=null;return}tabActivity({c},body)},30000);
 }
 function tabClient({c,reload},body){
-  const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};
+  const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};const gift={enabled:false,sender:'',occasion:'neutral',message:'',...((c.jyotish&&c.jyotish.gift)||{})};
   const siteUrl=location.origin+location.pathname;
   body.innerHTML=`<form id="cf" class="card"><h2>Client</h2><div class="grid2">
    ${fld('Name','name',c.name)}${fld('Preferred language','language',c.language||'en')}
@@ -1700,6 +1970,12 @@ function tabClient({c,reload},body){
    <div id="ov-rows" style="margin-top:10px"></div>
    <p class="row" style="gap:6px;margin-top:10px"><button type="button" class="btn small" id="ov-save">Use these positions for the chart</button>${c.natal_override?'<button type="button" class="btn quiet small" id="ov-clear">Back to calculated positions</button>':''}<span class="small muted">${c.natal_override?'Manual positions are in use'+(c.natal_override.source?' ('+esc(c.natal_override.source)+')':'')+'.':'Calculated positions are in use.'}</span></p>
   </div>
+  <div class="card" id="giftcard"><h2>Gift</h2>
+   <p class="small muted">If this calendar was bought for someone, their very first visit opens with a gift box that unwraps into a message from the sender. It is shown once; you can show it again from here.</p>
+   <label class="chk"><input type="checkbox" id="gift-on" ${gift.enabled?'checked':''}>This calendar is a gift</label>
+   <div id="giftfields" class="${gift.enabled?'':'hidden'}"><div class="grid2"><label class="f"><span>From (sender’s name)</span><input type="text" id="gift-sender" value="${esc(gift.sender||'')}" placeholder="e.g. Ana"></label><label class="f"><span>Occasion (changes the box and colours)</span><select id="gift-occ">${GIFT_OCCASIONS.map(([k,l])=>`<option value="${k}" ${(gift.occasion||'neutral')===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
+    <label class="f"><span>Message from the sender</span><textarea id="gift-msg" placeholder="Happy birthday — may this year be gentle with you.">${esc(gift.message||'')}</textarea></label></div>
+   <p class="row" style="gap:6px;margin-top:10px"><button type="button" class="btn small" id="gift-save">Save gift</button><button type="button" class="btn ghost small" id="gift-preview">Preview the opening</button>${gift.enabled?'<button type="button" class="btn quiet small" id="gift-again">Show it again on their next visit</button>':''}</p></div>
   <div class="card"><h2>Access</h2>
    <p class="${st.ok?'ok':'warn'}">${st.ok?'This client can open their calendar now.':'This client cannot open their calendar at the moment ('+esc(st.why)+').'}</p>
    <div class="grid3">
@@ -1735,6 +2011,11 @@ function tabClient({c,reload},body){
   $('#ov-save').onclick=guard(async()=>{const rows={...ovState.rows};const lagna=rows.lagna;delete rows.lagna;if(!Object.keys(rows).length&&!lagna){alert('Enter at least one position first.');return}
     await api.saveClient({...c,natal_override:{planets:rows,lagna:lagna||null,source:ovState.source||'manual',saved:new Date().toISOString()}});toast('Manual positions saved — the chart now uses them');reload()});
   const ovc=$('#ov-clear');if(ovc)ovc.onclick=guard(async()=>{if(confirm('Go back to the calculated positions for this client?')){await api.saveClient({...c,natal_override:null});toast('Calculated positions restored');reload()}});
+  const giftNow=()=>({enabled:$('#gift-on').checked,sender:$('#gift-sender').value.trim(),occasion:$('#gift-occ').value,message:$('#gift-msg').value.trim()});
+  $('#gift-on').onchange=()=>$('#giftfields').classList.toggle('hidden',!$('#gift-on').checked);
+  $('#gift-save').onclick=guard(async()=>{const g=giftNow();if(g.enabled&&!g.sender){alert('Please enter the sender’s name.');return}await api.saveClient({...c,jyotish:{...(c.jyotish||{}),gift:g}});toast(g.enabled?'Gift saved — it opens on their first visit':'Gift turned off');reload()});
+  $('#gift-preview').onclick=()=>{const g=giftNow();showGift(c.name||'Name',{...g,enabled:true},null)};
+  const ga=$('#gift-again');if(ga)ga.onclick=guard(async()=>{const pkg=await api.openCalendar(c.access_code,true);if(!pkg.ok)throw new Error(pkg.why);const prefs={...(pkg.prefs||{})};delete prefs.gift_seen;await api.setPrefs(c.access_code,prefs);toast('The gift will open again on their next visit')});
   $('#saveaccess').onclick=guard(async()=>{const o={...c,status:$('#status').value,access_start:$('#access_start').value,access_end:$('#access_end').value,entitlements:{}};body.querySelectorAll('[data-ent]').forEach(x=>o.entitlements[x.dataset.ent]=x.checked);await api.saveClient(o);toast('Access updated');reload()});
   $('#regen').onclick=guard(async()=>{if(confirm('Regenerate the access code? The old code will stop working everywhere.')){await api.saveClient({...c,access_code:genCode()});toast('New code generated');reload()}});
   $('#copycode').onclick=()=>copy(c.access_code,'Code copied');
@@ -1751,26 +2032,37 @@ function tabCalendar(ctx,body){
   const {c,influences}=ctx;const y=wsCal.year,m=wsCal.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
   let cells='';const total=Math.ceil((startDow+dim)/7)*7;
   for(let k=0;k<total;k++){const dnum=k-startDow+1;const dt=new Date(y,m,dnum);const ds=ymd(dt);const other=dnum<1||dnum>dim;
-    const here=influences.filter(i=>i.start_date<=ds&&ds<=i.end_date);
+    const here=influences.filter(i=>i.start_date<=ds&&ds<=i.end_date);const noted=(ctx.notes||[]).some(nn_=>nn_.note_date===ds&&String(nn_.body||'').trim());
     const marks=here.map(i=>`<span title="${esc(i.title)}" style="opacity:${i.published?1:.35}">${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)}</span>`).slice(0,5).join('')+(here.length>5?`<span class="more">+${here.length-5}</span>`:'');
-    cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}" data-d="${ds}" aria-label="${esc(fmtDate(ds))}, ${here.length} influences"><span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`}
+    cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}" data-d="${ds}" aria-label="${esc(fmtDate(ds))}, ${here.length} influences${noted?', note written':''}">${noted?'<span class="nt" aria-hidden="true"></span>':''}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`}
   const ym=`${y}-${String(m+1).padStart(2,'0')}`;
   const outside=influences.filter(i=>!(i.start_date.slice(0,7)<=ym&&i.end_date.slice(0,7)>=ym));
   const outsideNote=outside.length&&influences.length!==outside.length?`<p class="small muted" style="margin:10px 0 0">${outside.length} influence${outside.length>1?'s':''} outside this month: ${outside.slice(0,6).map(i=>`${esc(i.title)} (${fmtYear(i.start_date)})`).join(' · ')}${outside.length>6?' …':''}</p>`:'';
   body.innerHTML=`<div class="card">${monthHint(influences,y,m)}<div class="cal-head"><button type="button" class="btn ghost small" id="p" aria-label="Previous month">&larr;</button><h2>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h2><button type="button" class="btn ghost small" id="n" aria-label="Next month">&rarr;</button></div>
    <div class="cal">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
-   <p class="small muted" style="margin:10px 0 0">Faded markers are drafts (not visible to the client). Select a day to see what is on it.</p>${outsideNote}
+   <p class="small muted" style="margin:10px 0 0">Faded markers are drafts (not visible to the client). A gold dot is a note you wrote for that day. Select a day to see what is on it, or to write the client a note for it.</p>${outsideNote}
    <div id="adminday"></div>
+   ${ctx.notesUnavailable?'<p class="note small" style="margin-top:12px">Notes to the client need the latest supabase-setup.sql to be run once.</p>':(ctx.notes||[]).length?`<details class="small" style="margin-top:12px"><summary>Your notes to ${esc(c.name)} (${ctx.notes.length})</summary><ul class="list" style="margin-top:8px">${ctx.notes.map(nn_=>`<li><div><strong>${esc(fmtDate(nn_.note_date))}</strong>${nn_.heading?' · '+esc(nn_.heading):''}<div class="small muted">${esc(String(nn_.body).slice(0,120))}${String(nn_.body).length>120?'…':''}</div></div><button type="button" class="btn ghost small" data-jumpnote="${nn_.note_date}">Open</button></li>`).join('')}</ul></details>`:''}
 </div>`;
+  body.querySelectorAll('[data-jumpnote]').forEach(b=>b.onclick=()=>{const d=b.dataset.jumpnote;const [yy,mm]=d.split('-').map(Number);if(yy!==wsCal.year||mm-1!==wsCal.month){wsCal.year=yy;wsCal.month=mm-1;wsCalOpen=d;ctx.reload()}else{const cell=body.querySelector(`.day[data-d="${d}"]`);if(cell)cell.click()}});
   bindJump(body,(yy,mm)=>{wsCal.year=yy;wsCal.month=mm;ctx.reload()});
   $('#p').onclick=()=>{wsCal.month--;if(wsCal.month<0){wsCal.month=11;wsCal.year--}ctx.reload()};
   $('#n').onclick=()=>{wsCal.month++;if(wsCal.month>11){wsCal.month=0;wsCal.year++}ctx.reload()};
   body.querySelectorAll('.day').forEach(b=>b.onclick=()=>{const ds=b.dataset.d;body.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===ds));
     const here=influences.filter(i=>i.start_date<=ds&&ds<=i.end_date);
+    const note=(ctx.notes||[]).find(nn_=>nn_.note_date===ds)||{client_id:c.id,note_date:ds,heading:'',body:''};const hasNote=!!String(note.body||'').trim();
     $('#adminday',body).innerHTML=`<div class="card" style="margin-top:12px;background:var(--surface-2);box-shadow:none"><div class="row between"><h3 style="margin:0">${fmtDate(ds)}</h3><button type="button" class="btn small" id="addhere">Add influence on this day</button></div>
-      ${here.length?`<ul class="list" style="margin-top:10px">${here.map(i=>`<li><div>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} <strong>${esc(i.title)}</strong> <span class="small muted">${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''} · ${esc(CAT[i.category]||i.category)}</span> <span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></div><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></li>`).join('')}</ul>`:'<p class="small muted" style="margin:8px 0 0">Nothing on this day.</p>'}</div>`;
+      ${here.length?`<ul class="list" style="margin-top:10px">${here.map(i=>`<li><div>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} <strong>${esc(i.title)}</strong> <span class="small muted">${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''} · ${esc(CAT[i.category]||i.category)}</span> <span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></div><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></li>`).join('')}</ul>`:'<p class="small muted" style="margin:8px 0 0">Nothing on this day.</p>'}
+      ${ctx.notesUnavailable?'':`<details class="dn" ${hasNote||wsCalOpen===ds?'open':''} style="margin-top:14px"><summary><strong>${hasNote?'Your note for this day':'Write a note for this day'}</strong> <span class="small muted">— the client sees it at the top of the day${ds===todayStr()?', today':''}</span></summary>
+       <div class="grid2" style="margin-top:8px"><label class="f"><span>Heading (shown as the title of the note)</span><input type="text" id="dn-head" value="${esc(note.heading||'')}" placeholder="${ds===todayStr()?'A note for today':'A note for this day'} — or e.g. “Your focus for today”" maxlength="80"></label></div>
+       <label class="f"><span>Note</span><textarea id="dn-body" placeholder="A few lines from you for this day…">${esc(note.body||'')}</textarea></label>
+       <p class="row" style="gap:6px;margin:6px 0 0"><button type="button" class="btn small" id="dn-save">${hasNote?'Update note':'Save note'}</button>${hasNote?'<button type="button" class="btn quiet small" id="dn-del">Remove note</button>':''}<span class="small muted">${hasNote&&note.updated_at?'Last changed '+esc(ago(note.updated_at)):'Visible to the client as soon as it is saved.'}</span></p></details>`}</div>`;
+    wsCalOpen=null;
     $('#addhere',body).onclick=()=>{const i=blankInfluence(c.id);i.start_date=i.end_date=ds;openEditor(ctx,i,true)};
-    body.querySelectorAll('[data-edit]').forEach(x=>x.onclick=()=>openEditor(ctx,influences.find(i=>i.id===x.dataset.edit),false));});
+    body.querySelectorAll('[data-edit]').forEach(x=>x.onclick=()=>openEditor(ctx,influences.find(i=>i.id===x.dataset.edit),false));
+    const dnS=$('#dn-save',body);if(dnS)dnS.onclick=guard(async()=>{const bodyText=$('#dn-body',body).value.trim();if(!bodyText){alert('Write the note first.');return}await api.saveNote({client_id:c.id,note_date:ds,heading:$('#dn-head',body).value.trim(),body:bodyText});toast('Note saved — the client will see it on that day');wsCalOpen=ds;ctx.reload()});
+    const dnD=$('#dn-del',body);if(dnD)dnD.onclick=guard(async()=>{if(confirm('Remove your note for this day?')){await api.deleteNote(c.id,ds);toast('Note removed');wsCalOpen=ds;ctx.reload()}})});
+  if(wsCalOpen){const cell=body.querySelector(`.day[data-d="${wsCalOpen}"]`);if(cell)cell.click()}
 }
 const mergedInterpretation=i=>[i.client_interpretation,i.prediction].map(x=>String(x||'').trim()).filter(Boolean).join('\n\n');
 function blankInfluence(clientId){return {id:uuid(),client_id:clientId,parent_id:null,title:'',start_date:todayStr(),start_time:'',end_date:todayStr(),end_time:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -1821,7 +2113,7 @@ const AI_HEADS=[['title',['title','signpost title','signpost']],['consider postp
   ['especially significant',['especially significant','significant']],['peak dates',['peak dates','peak date','peak windows','peak','trigger windows','trigger dates']],
   ['prediction summary',['prediction summary','summary','prediction']],['why this period matters',['why this period matters','why it matters','why this matters']],
   ['supportive expression',['supportive expression']],['challenging expression',['challenging expression']],
-  ['interpretation',['interpretation','client-facing interpretation','client facing interpretation','client interpretation','meaning']],
+  ['interpretation',['interpretation / this period may support','interpretation/this period may support','this period may support','interpretation','client-facing interpretation','client facing interpretation','client interpretation','meaning']],
   ['notice',['notice','what the client may notice','what the client may observe','what you may notice','what to notice','observe']],
   ['consider',['consider','what the client may reflect on','what to reflect on','reflection','reflect on']],
   ['suggestions',['suggestions','suggestion','things they might do','things to do','recommended actions','recommendations','act']],
@@ -1853,7 +2145,7 @@ function parseAISections(text){let src=String(text||'').replace(/\r/g,'');
   return {sections,order,pre}}
 function parseAIAnswer(text){const {sections,order,pre}=parseAISections(text);const out={};const notes=[];
   const joined=h=>(sections[h]||[]).join('\n').trim();
-  const bullets=h=>(sections[h]||[]).map(x=>x.replace(/^[\*\-•·▪◦]\s*|^\d+[.)]\s*/,'').replace(/^[\[\]…]+|[\[\]…]+$/g,'').trim()).filter(x=>x&&!/^\[?…\]?$/.test(x)&&!/^(none|n\/a|—|-)\.?$/i.test(x));
+  const bullets=h=>(sections[h]||[]).map(x=>x.replace(/^[\*\-•·▪◦]\s*|^\d+[.)]\s*/,'').replace(/^[\[\]…]+|[\[\]…]+$/g,'').trim()).filter(x=>x&&!/^\[?…\]?$/.test(x)&&!/^(none|n\/a|—|-|nothing specifically indicated\.?|nothing specific(ally)?\.?)\.?$/i.test(x));
   const none=t=>!t||/^\[?(none|n\/a|not applicable|not requested|—|-)\]?\.?$/i.test(t.trim());
   // title: "Title:" line if given, otherwise the best line before the first heading
   let title=joined('title');
@@ -2000,6 +2292,7 @@ function openEditor(ctx,inf,isNew){
      <label class="f"><span>Intensity (1 subtle – 5 exceptional)</span><input type="number" name="intensity" min="1" max="5" value="${esc(inf.intensity??'')}" placeholder="1–5" required></label>
      <label class="f"><span>Primary category</span>${sel('category',[['','— choose —'],...CATEGORIES],inf.category||'')}</label>
     </div>
+    <p class="row small" style="gap:6px;margin:-2px 0 8px;align-items:center"><span class="muted">Need a topic that isn’t listed?</span><input type="text" id="newtopic" placeholder="e.g. Exams, Visa, Difficult conversations" maxlength="40" style="flex:1;min-width:160px;padding:6px 10px"><button type="button" class="btn ghost small" id="addtopic">Add as a category</button></p>
     <label class="chk"><input type="checkbox" name="significant" ${inf.significant?'checked':''}>Mark as especially significant (star marker)</label>
     <label class="f"><span>Secondary categories (optional)</span></label><div class="row chips">${CATEGORIES.map(([k,l])=>`<label class="chip"><input type="checkbox" name="sec" value="${k}" ${(inf.secondary_categories||[]).includes(k)?'checked':''}><span>${l}</span></label>`).join('')}</div>
     ${fld('Accessibility label (screen readers; blank = auto)','accessibility_label',inf.accessibility_label)}
@@ -2042,6 +2335,10 @@ function openEditor(ctx,inf,isNew){
         const pn=f.elements.private_notes;pn.value=(pn.value?pn.value.trimEnd()+'\n\n':'')+snap.text;inf.transit_snapshot=snap.json;const p=snap.json.selected;if(p&&!f.elements.technical_basis.value)f.elements.technical_basis.value=`Transit ${GOCHARA.GRAHA.find(g=>g.key===p.key).name} ${GOCHARA.RASHI[p.sign]} ${Math.floor(p.deg)}° — ${p.houseLagna}H from Lagna, ${p.houseMoon}H from Chandra`;toast('Moment copied into the influence');f.dispatchEvent(new Event('input'))}});}};
   dlg.addEventListener('close',()=>{if(gws)gws.destroy()});
   const form=$('#ef',dlg);
+  $('#addtopic',dlg).onclick=guard(async()=>{const inp=$('#newtopic',dlg);const label=inp.value.trim();if(!label)return;const key=await createCustomCategory(label);if(!key)return;
+    const selEl=form.elements.category;const opt=document.createElement('option');opt.value=key;opt.textContent=label;const rem=[...selEl.options].find(o=>o.value==='remedies');selEl.insertBefore(opt,rem||null);selEl.value=key;
+    for(const nm of ['sec','sup','dif']){const row=form.querySelector(`input[name=${nm}]`)?.closest('.chips');if(row)row.insertAdjacentHTML('beforeend',`<label class="chip"><input type="checkbox" name="${nm}" value="${key}"><span>${esc(label)}</span></label>`)}
+    inp.value='';form.dispatchEvent(new Event('input'));toast(`“${label}” added to your categories`)});
   $('#aifill',dlg).onclick=()=>{$('#aibox',dlg).classList.toggle('hidden');$('#aitext',dlg).focus()};$('#aicancel',dlg).onclick=()=>$('#aibox',dlg).classList.add('hidden');
   $('#aiapply',dlg).onclick=()=>{const t=$('#aitext',dlg).value;if(!t.trim())return;const r=fillFromAI(form,t);if(!r.filled.length){$('#ainote',dlg).textContent='Nothing recognised — the answer should use the headings from the prompt (Dates, Polarity, Prediction summary…).';return}
     const expected=['dates','polarity','intensity','primary category','interpretation','notice','consider','suggestions','consider postponing'];const missing=expected.filter(h=>!r.found.includes(h));
@@ -2084,17 +2381,22 @@ function openEditor(ctx,inf,isNew){
 
 /* ---------------- Templates ---------------- */
 async function renderTemplates(){
-  const templates=await api.listTemplates();
+  const templates=await api.listTemplates();let contact={};try{contact=(await api.getSetting('contact'))||{}}catch(e){}
   app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Templates</p><div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Templates</h1><div class="row">${templates.length?'':'<button type="button" class="btn ghost" id="starter">Add starter templates</button>'}<button type="button" class="btn" id="newt">New template</button></div></div>
    <div class="card"><ul class="list">${templates.map(t=>{const d=t.data||{};const p=POLARITY[d.polarity]||POLARITY.supportive;return `<li><div><a href="#/admin/templates" data-e="${t.id}">${esc(t.name)}</a><div class="small muted">${icon(p.shape,p.color)} ${p.label} · ${esc(CAT[d.category]||d.category||'General')} · intensity ${d.intensity||3}</div></div><div class="row"><button type="button" class="btn ghost small" data-e="${t.id}">Edit</button><button type="button" class="btn quiet small" data-d="${t.id}">Delete</button></div></li>`}).join('')||'<li class="muted">No templates yet.</li>'}</ul></div>
    <div class="card" style="margin-top:16px" id="catcard"><h2>Categories</h2>
     <p class="small muted">Built in: ${CATEGORIES.filter(([k])=>BASE_CATEGORY_KEYS.includes(k)).map(([,l])=>esc(l)).join(', ')}. Your own categories below appear everywhere a category is chosen — primary and secondary, “supportive for / difficult for” on mixed periods, the client’s areas-of-life filter — and in the approved list the AI prompt gives.</p>
     <ul class="list" id="catlist">${CUSTOM_CATEGORIES.map(c=>`<li><div><span class="tag"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.label)}</span></div><button type="button" class="btn quiet small" data-rmcat="${esc(c.key)}">Remove</button></li>`).join('')||'<li class="muted small">No custom categories yet.</li>'}</ul>
     <form id="catf" class="row" style="gap:8px;margin-top:10px;align-items:flex-end"><label class="f" style="margin:0;flex:1;min-width:180px"><span>New category</span><input name="label" placeholder="e.g. Exams, Visa, Difficult conversations" required maxlength="40"></label><label class="f" style="margin:0"><span>Colour</span><input type="color" name="color" value="${CUSTOM_COLORS[CUSTOM_CATEGORIES.length%CUSTOM_COLORS.length]}" style="width:56px;height:38px;padding:2px"></label><button class="btn small" type="submit">Add category</button></form></div>`;
+  const contactCard=`<div class="card" style="margin-top:16px" id="contactcard"><h2>Enquiries link for clients</h2>
+    <p class="small muted">A button clients see in their calendar’s header and beneath the calendar, for further questions or bookings — your website’s contact page, a booking page, or a mailto: address.</p>
+    <form id="contactf" class="grid2"><label class="f"><span>Link (https://… or mailto:…)</span><input type="url" name="url" value="${esc(contact.url||'')}" placeholder="https://your-site/contact"></label><label class="f"><span>Button label</span><input type="text" name="label" value="${esc(contact.label||'')}" placeholder="Enquiries · Atelier Sonnentau" maxlength="60"></label>
+    <p style="margin:0"><button class="btn small" type="submit">Save link</button> ${contact.url?'<span class="small muted">Clients currently see this button.</span>':'<span class="small muted">No link yet — clients see no button.</span>'}</p></form></div>`;
+  $('#catcard').insertAdjacentHTML('afterend',contactCard);
+  $('#contactf').onsubmit=guard(async e=>{e.preventDefault();const f=e.target;const url=f.elements.url.value.trim();if(url&&!/^(https?:\/\/|mailto:)/i.test(url)){alert('The link should start with https:// or mailto:');return}await api.setSetting('contact',{url,label:f.elements.label.value.trim()||'Enquiries · Atelier Sonnentau'});toast(url?'Enquiries link saved':'Enquiries link removed');renderTemplates()});
   const saveCats=guard(async list=>{await api.setSetting('categories',list);applyCustomCategories(list);toast('Categories saved');renderTemplates()});
-  $('#catf').onsubmit=e=>{e.preventDefault();const f=e.target;const label=f.elements.label.value.trim();if(!label)return;const key=slugCat(label);
-    if(!key||key==='c_'){alert('Please use letters or numbers in the name.');return}if(CAT[key]||BASE_CATEGORY_KEYS.includes(key)||CATEGORIES.some(([,l])=>l.toLowerCase()===label.toLowerCase())){alert('A category with that name already exists.');return}
-    saveCats([...CUSTOM_CATEGORIES,{key,label,color:f.elements.color.value}])};
+  $('#catf').onsubmit=e=>{e.preventDefault();const f=e.target;const label=f.elements.label.value.trim();if(!label)return;
+    guard(async()=>{await createCustomCategory(label,f.elements.color.value);toast('Categories saved');renderTemplates()})()};
   app.querySelectorAll('[data-rmcat]').forEach(b=>b.onclick=()=>{const c=CUSTOM_CATEGORIES.find(x=>x.key===b.dataset.rmcat);if(c&&confirm(`Remove the category “${c.label}”? Influences already filed under it keep it, but it will no longer be offered when choosing categories.`))saveCats(CUSTOM_CATEGORIES.filter(x=>x.key!==c.key))});
   const edit=t=>{const d=t.data||{};const dlg=document.createElement('dialog');
     dlg.innerHTML=`<div class="dh"><h2 style="margin:0">Template</h2><button type="button" class="btn quiet small" id="x" aria-label="Close">✕</button></div><div class="db"><form id="tf">${fld('Name','name',t.name,'text','required')}
