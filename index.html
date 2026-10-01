@@ -1721,7 +1721,7 @@ function tabInfluences(ctx,body){
   const badYears=all.filter(i=>!yearOk(i.start_date)||!yearOk(i.end_date));
   const fixable=badYears.filter(i=>yearOk(fixYear(i.start_date))&&yearOk(fixYear(i.end_date)));
   const yearBanner=badYears.length?`<p class="warn" style="margin:0 0 12px">${badYears.length} influence${badYears.length>1?'s have':' has'} a year that cannot be right (e.g. ${String(yearOf(badYears[0].start_date)).padStart(4,'0')} instead of ${new Date().getFullYear()}), so ${badYears.length>1?'they do':'it does'} not appear on any calendar. This happens when a date is typed with a two-digit year. ${fixable.length?`<button type="button" class="btn small" id="fixyears">Correct ${fixable.length===badYears.length?'them':fixable.length+' of them'} to 20xx</button>`:''}${fixable.length<badYears.length?' The others need editing by hand.':''}</p>`:'';
-  body.innerHTML=`<div class="card">${yearBanner}<div class="row between"><h2 style="margin:0">Influences</h2><div class="row"><select id="tpl"><option value="">Insert from template…</option>${templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select><button type="button" class="btn" id="newi">New influence</button></div></div>
+  body.innerHTML=`<div class="card">${yearBanner}<div class="row between"><h2 style="margin:0">Influences</h2><div class="row"><select id="tpl"><option value="">Insert from template…</option>${templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select><button type="button" class="btn ghost" id="impai">Import AI answers</button><button type="button" class="btn" id="newi">New influence</button></div></div>
    <label class="f"><span>Search</span><input type="text" id="q" placeholder="Title, category, note…"></label>
    <div style="overflow:auto"><table><thead><tr><th></th><th>Title</th><th>Dates</th><th>Category</th><th>Int.</th><th>Status</th><th>Client sees</th><th></th></tr></thead><tbody id="rows">${all.map(row).join('')||'<tr><td colspan="8" class="muted">No influences yet.</td></tr>'}</tbody></table></div>
    <h3 style="margin-top:18px">Drafts (${all.filter(i=>!i.published).length})</h3><p class="small muted">${all.filter(i=>!i.published).map(i=>esc(i.title)).join(' · ')||'None'}${all.some(i=>!i.published)?' — drafts are never shown to the client.':''}</p>
@@ -1729,6 +1729,7 @@ function tabInfluences(ctx,body){
   $('#idiag').onclick=()=>runInfluenceDiagnostics(c);
   const fy=$('#fixyears');if(fy)fy.onclick=guard(async()=>{fy.disabled=true;for(const i of fixable)await api.saveInfluence({...i,start_date:fixYear(i.start_date),end_date:fixYear(i.end_date)});toast('Dates corrected');ctx.reload()});
   $('#newi').onclick=()=>openEditor(ctx,blankInfluence(c.id),true);
+  $('#impai').onclick=()=>openImportDialog(ctx);
   $('#tpl').onchange=e=>{const t=templates.find(x=>x.id===e.target.value);if(!t)return;const i=Object.assign(blankInfluence(c.id),{title:t.name},t.data||{});openEditor(ctx,i,true)};
   const bind=()=>body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(ctx,influences.find(i=>i.id===b.dataset.edit),false));bind();
   $('#q').oninput=e=>{const q=e.target.value.toLowerCase();$('#rows').innerHTML=all.filter(i=>JSON.stringify(i).toLowerCase().includes(q)).map(row).join('');bind()};
@@ -1752,13 +1753,14 @@ function parseAIAnswer(text){const src=String(text||'').replace(/\r/g,'');const 
   const HEAD=['dates','duration','polarity','intensity','especially significant','primary category','secondary categories','prediction summary','why this period matters','supportive expression','challenging expression','peak dates','consider postponing','suggestions','consider','bpl perspective','what bpl may say'];
   const clean=l=>l.replace(/^[#>\s]+/,'').replace(/\*\*/g,'').replace(/^[\[\]]+|[\[\]]+$/g,'').trim();
   const lines=src.split('\n');const sections={};let cur=null;let title='';
-  for(const raw of lines){const l=clean(raw);if(!l)continue;const low=l.toLowerCase();
+  for(const raw of lines){if(/^[-=_*#~>\s]{3,}$/.test(raw.trim()))continue;const l=clean(raw);if(!l)continue;const low=l.toLowerCase();
     const h=HEAD.find(h=>low===h||low===h+':'||low.startsWith(h+':'));
     if(h){cur=h;sections[h]=sections[h]||[];const rest=l.slice(l.toLowerCase().indexOf(h)+h.length).replace(/^:\s*/,'').trim();if(rest)sections[h].push(rest);continue}
     if(!cur){if(!title&&!/^\[/.test(raw.trim()))title=l.replace(/^[\[\]]+|[\[\]]+$/g,'').trim();else if(!title)title=l;continue}
     sections[cur].push(l)}
   const joined=h=>(sections[h]||[]).join('\n').trim();
   const bullets=h=>(sections[h]||[]).map(x=>x.replace(/^[\*\-•·]\s*|^\d+[.)]\s*/,'').replace(/^[\[\]…]+|[\[\]…]+$/g,'').trim()).filter(x=>x&&!/^\[?…\]?$/.test(x));
+  title=title.replace(/^(period|window|response|answer|influence)\s*\d+\s*[:.)\-–]?\s*/i,'').replace(/^\d+\s*[.)\-–]\s*/,'').replace(/^[\[\]]+|[\[\]]+$/g,'').trim();
   if(title&&title.length<=80)out.title=title.replace(/[.:]$/,'');
   const dates=joined('dates');if(dates){const parts=dates.split(/\s[–—-]\s|\s*[–—]\s*|\sto\s|\suntil\s/).map(x=>x.trim()).filter(Boolean);const y2=(parts[1]||'').match(/\d{4}/);let d1=parseDateLoose(parts[0],y2&&y2[0]),d2=parts[1]?parseDateLoose(parts[1],(d1||'').slice(0,4)):d1;
     if(!d1&&d2&&/^\d{1,2}$/.test(parts[0]))d1=d2.slice(0,8)+parts[0].padStart(2,'0'); // "12–14 October 2026"
@@ -1777,6 +1779,7 @@ function parseAIAnswer(text){const src=String(text||'').replace(/\r/g,'');const 
   const priv=[joined('why this period matters')?'Why this period matters:\n'+joined('why this period matters'):'',joined('bpl perspective')||joined('what bpl may say')?'BPL perspective:\n'+(joined('bpl perspective')||joined('what bpl may say')):''].filter(Boolean);
   if(priv.length)out.private_notes=priv.join('\n\n');
   if(joined('why this period matters'))out.technical_basis=joined('why this period matters').split(/(?<=[.!?])\s/)[0].slice(0,160);
+  if(joined('peak dates'))out.peak_dates=joined('peak dates');
   return {fields:out,notes}}
 function fillFromAI(form,text){const {fields,notes}=parseAIAnswer(text);const filled=[];
   for(const [k,v] of Object.entries(fields)){
@@ -1785,6 +1788,88 @@ function fillFromAI(form,text){const {fields,notes}=parseAIAnswer(text);const fi
     if(k==='significant'){el.checked=!!v;filled.push('especially significant');continue}
     if(k==='private_notes'&&el.value.trim()){el.value=el.value.trimEnd()+'\n\n'+v}else el.value=v;filled.push(k.replace(/_/g,' '))}
   form.dispatchEvent(new Event('input'));return {filled,notes,fields}}
+
+/* ---------------- Import several AI answers at once ---------------- */
+const SECTION_RE=/^\W*(dates|duration|polarity|intensity|especially significant|primary category|secondary categories|prediction summary|why this period matters|supportive expression|challenging expression|peak dates|consider postponing|suggestions|consider|bpl perspective|what bpl may say)\b/i;
+// Split a pasted text containing several answers (each written in the prompt's template) into one block per answer.
+function splitAIAnswers(text){const lines=String(text||'').replace(/\r/g,'').split('\n');const starts=[];
+  const junk=l=>{const t=l.trim();return !t||/^[-=_*#~>]{3,}$/.test(t)||/^(period|window|response|answer|influence)\s*\d+\s*[:.)\-–]?\s*$/i.test(t)||/^\d+\s*[.)\-–]?\s*$/.test(t)};
+  const titleLike=l=>{const t=l.replace(/^[#>\s]+/,'').replace(/\*\*/g,'').trim();return t.length>0&&t.length<=70&&!/^[\*\-•·]/.test(t)&&!SECTION_RE.test(t)&&!/[.!?]$/.test(t)};
+  for(let i=0;i<lines.length;i++){if(!/^\W*dates\s*:/i.test(lines[i]))continue;let j=i-1;while(j>=0&&junk(lines[j]))j--;starts.push(j>=0&&titleLike(lines[j])?j:i)}
+  return starts.map((st,k)=>lines.slice(st,k+1<starts.length?starts[k+1]:lines.length).join('\n').trim()).filter(Boolean)}
+const CAT_WORDS={work:['work','career','job','vocation','profession','business','promotion','employer','colleague','project'],money:['money','income','finance','financial','salary','invest','debt','purchase','spending','budget','resources'],relationships:['relationship','partner','marriage','romance','spouse','friend','love','dating'],communication:['communication','conversation','message','email','speech','negotiat','contract','writing'],home:['home','family','house','mother','father','parent','child','domestic','move'],health:['health','vitality','energy','body','sleep','illness','doctor','fatigue','exercise'],travel:['travel','journey','trip','abroad','move','relocation','transport'],learning:['learn','study','exam','course','teacher','education','research'],creativity:['creative','art','music','design','craft','performance'],spiritual:['spiritual','meditation','prayer','practice','temple','retreat','faith'],legal:['legal','court','lawyer','administrative','paperwork','official','government'],community:['community','network','group','public','social','audience'],rest:['rest','restoration','pause','quiet','retreat','recover','solitude'],decisions:['decision','beginning','start','launch','commit','choose'],endings:['ending','closure','transition','release','let go','completion']};
+function inferCategory(text){const t=String(text||'').toLowerCase();let best=null,bs=0;for(const k in CAT_WORDS){let sc=0;for(const w of CAT_WORDS[k]){const m=t.match(new RegExp('\\b'+w,'g'));if(m)sc+=m.length}if(sc>bs){bs=sc;best=k}}return bs?best:'general'}
+// "18–20 October", "18 October – 2 November", "Oct 18-20", "2 November" → [{start,end}] (ISO), using the influence's year(s).
+function parsePeakRanges(text,y1,y2){const out=[];const t=String(text||'');const mon='(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?';
+  const mi=m=>MONTHS.indexOf(String(m).slice(0,3).toLowerCase())+1;const yA=Number(String(y1||'').slice(0,4))||new Date().getFullYear(),yB=Number(String(y2||'').slice(0,4))||yA,mA=Number(String(y1||'').slice(5,7))||1;
+  const yearFor=(m,ex)=>ex?Number(ex):(yB>yA&&m<mA?yB:yA);
+  const mk=(d1,m1,d2,m2,ex)=>{const a=`${yearFor(mi(m1),ex)}-${String(mi(m1)).padStart(2,'0')}-${String(d1).padStart(2,'0')}`;let yb=yearFor(mi(m2),ex);if(mi(m2)<mi(m1))yb=yearFor(mi(m1),ex)+1;let b=`${yb}-${String(mi(m2)).padStart(2,'0')}-${String(d2).padStart(2,'0')}`;if(b<a)b=a;out.push({start:a,end:b})};
+  const re=new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)?\\s*[–\\-—]\\s*(\\d{1,2})(?:st|nd|rd|th)?\\s+${mon}(?:,?\\s*(\\d{4}))?|\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+${mon}\\s*[–\\-—]\\s*(\\d{1,2})(?:st|nd|rd|th)?\\s+${mon}(?:,?\\s*(\\d{4}))?|\\b${mon}\\s+(\\d{1,2})(?:st|nd|rd|th)?\\s*[–\\-—]\\s*(\\d{1,2})(?:st|nd|rd|th)?(?:,?\\s*(\\d{4}))?|\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+${mon}(?:,?\\s*(\\d{4}))?|\\b${mon}\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:,?\\s*(\\d{4}))?`,'gi');
+  let m;while((m=re.exec(t))){
+    if(m[1])mk(m[1],m[3],m[2],m[3],m[4]);else if(m[5])mk(m[5],m[6],m[7],m[8],m[9]);else if(m[10])mk(m[11],m[10],m[12],m[10],m[13]);else if(m[14])mk(m[14],m[15],m[14],m[15],m[16]);else if(m[17])mk(m[18],m[17],m[18],m[17],m[19])}
+  return out}
+const DISC_BY_CAT={health:'health',legal:'legal',money:'financial',remedies:'remedy'};
+const spanDays=i=>(new Date(i.end_date)-new Date(i.start_date))/86400000;
+function buildImport(ctx,text,opts={}){const {c,influences}=ctx;const blocks=splitAIAnswers(text);const cands=[];
+  for(const block of blocks){const {fields,notes}=parseAIAnswer(block);const inf=Object.assign(blankInfluence(c.id),{timezone:c.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone});const warn=[...notes];
+    for(const k of ['title','start_date','end_date','polarity','intensity','significant','category','secondary_categories','client_interpretation','reflection_prompt','recommended_actions','avoidances','private_notes','technical_basis'])if(fields[k]!==undefined)inf[k]=fields[k];
+    if(!fields.start_date){warn.push('no dates found — set them by hand');inf.end_date=inf.start_date}
+    if(!inf.category){inf.category=inferCategory(block);warn.push('category inferred from the text: '+CAT[inf.category])}
+    if(!inf.intensity){inf.intensity=3;warn.push('intensity missing — set to 3')}
+    if(!fields.polarity)warn.push('polarity missing — set to Supportive');
+    if(!inf.title)inf.title=`${CAT[inf.category]} · ${fmtShort(inf.start_date)}${inf.end_date!==inf.start_date?' – '+fmtShort(inf.end_date):''}`;
+    inf.disclaimer=DISC_BY_CAT[inf.category]||'none';if(inf.end_date<inf.start_date)inf.end_date=inf.start_date;
+    const dup=influences.find(x=>x.title.trim().toLowerCase()===inf.title.trim().toLowerCase()&&x.start_date===inf.start_date&&x.end_date===inf.end_date);
+    cands.push({inf,warn,dup:!!dup,include:!dup,parent:null,peaksText:String(fields.peak_dates||'').trim(),isPeak:false})}
+  // nesting: a period that lies inside a longer one becomes a window within it (the smallest container wins)
+  const containers=[...cands.map((x,i)=>({key:'c'+i,start:x.inf.start_date,end:x.inf.end_date,days:spanDays(x.inf),title:x.inf.title})),...influences.filter(i=>!i.parent_id&&i.start_date!==i.end_date).map(i=>({key:i.id,start:i.start_date,end:i.end_date,days:spanDays(i),title:i.title}))];
+  if(opts.nest!==false)cands.forEach((x,i)=>{const d=spanDays(x.inf);const fits=containers.filter(k=>k.key!=='c'+i&&k.days>d&&k.start<=x.inf.start_date&&k.end>=x.inf.end_date).sort((a,b)=>a.days-b.days);if(fits.length)x.parent=fits[0].key});
+  // peak dates → short windows inside their period
+  if(opts.peaks!==false)cands.slice().forEach((x,i)=>{if(!x.peaksText||/^\[?(none|n\/a|—|-)\]?\.?$/i.test(x.peaksText))return;const ranges=parsePeakRanges(x.peaksText,x.inf.start_date,x.inf.end_date);
+    for(const r of ranges){if(r.start===x.inf.start_date&&r.end===x.inf.end_date)continue;if(r.end<x.inf.start_date||r.start>x.inf.end_date){x.warn.push('peak dates fall outside the period ('+x.peaksText+')');continue}
+      const start=r.start<x.inf.start_date?x.inf.start_date:r.start,end=r.end>x.inf.end_date?x.inf.end_date:r.end;
+      const w=Object.assign(blankInfluence(c.id),{timezone:x.inf.timezone,title:x.inf.title+' — peak',start_date:start,end_date:end,polarity:x.inf.polarity,significant:x.inf.significant,intensity:Math.min(5,Number(x.inf.intensity)+1),category:x.inf.category,secondary_categories:x.inf.secondary_categories,client_interpretation:`Peak of “${x.inf.title}”: ${x.peaksText}`,disclaimer:x.inf.disclaimer});
+      const dupW=!!influences.find(y=>y.title.trim().toLowerCase()===w.title.trim().toLowerCase()&&y.start_date===w.start_date&&y.end_date===w.end_date);
+      cands.push({inf:w,warn:[],dup:dupW,include:!dupW&&x.include,parent:'c'+i,peaksText:'',isPeak:true})}});
+  return cands}
+function openImportDialog(ctx){const {c,influences}=ctx;const dlg=document.createElement('dialog');let cands=[];
+  dlg.innerHTML=`<div class="dh"><h2 style="margin:0">Import AI answers</h2><button type="button" class="btn quiet small" id="close" aria-label="Close">✕</button></div><div class="db">
+   <p class="small muted">Paste one or more answers written in the prompt’s format (several periods and windows in one go). Each is sorted into its category, polarity, intensity, significance and secondary categories; shorter periods that fall inside a longer one become windows within it; “Peak dates” become short windows; the disclaimer follows the category. Everything lands as a draft (or published, if you choose) for you to check.</p>
+   <textarea id="imp-text" style="min-height:160px;width:100%" placeholder="[SIGNPOST TITLE]&#10;Dates: …&#10;…&#10;&#10;[NEXT TITLE]&#10;Dates: …"></textarea>
+   <p class="row" style="gap:12px;margin:8px 0"><button type="button" class="btn small" id="imp-go">Analyse</button><label class="chk" style="margin:0"><input type="checkbox" id="imp-nest" checked>Nest shorter periods inside longer ones</label><label class="chk" style="margin:0"><input type="checkbox" id="imp-peaks" checked>Make windows from peak dates</label></p>
+   <div id="imp-out"></div></div>`;
+  document.body.appendChild(dlg);dlg.showModal();dlg.classList.add('wide');
+  const existingParents=influences.filter(i=>!i.parent_id&&i.start_date!==i.end_date);
+  const draw=()=>{const out=$('#imp-out',dlg);if(!cands.length){out.innerHTML='<p class="warn">No answers recognised — each one needs a “Dates:” line.</p>';return}
+    const parentOpts=i=>[['','— none —'],...cands.map((x,k)=>['c'+k,x.inf.title]).filter(([k])=>k!=='c'+i&&!cands[Number(k.slice(1))].isPeak&&cands[Number(k.slice(1))].inf.start_date!==cands[Number(k.slice(1))].inf.end_date),...existingParents.map(p=>[p.id,p.title+' (existing)'])];
+    const rows=cands.map((x,i)=>`<tr data-i="${i}" class="${x.include?'':'muted'}"><td><input type="checkbox" data-f="include" ${x.include?'checked':''}></td>
+      <td><input type="text" data-f="title" value="${esc(x.inf.title)}" style="min-width:160px">${x.isPeak?'<div class="small muted">peak window</div>':''}${x.dup?'<div class="small" style="color:var(--sensitive)">already exists with these dates</div>':''}</td>
+      <td><input type="date" data-f="start_date" value="${x.inf.start_date}"><input type="date" data-f="end_date" value="${x.inf.end_date}" style="margin-top:4px"></td>
+      <td><select data-f="polarity">${Object.entries(POLARITY).map(([k,p])=>`<option value="${k}" ${x.inf.polarity===k?'selected':''}>${p.label}</option>`).join('')}</select></td>
+      <td><input type="number" data-f="intensity" min="1" max="5" value="${x.inf.intensity}" style="width:56px"></td>
+      <td><select data-f="category">${CATEGORIES.map(([k,l])=>`<option value="${k}" ${x.inf.category===k?'selected':''}>${l}</option>`).join('')}</select>${x.inf.secondary_categories.length?`<div class="small muted">+ ${x.inf.secondary_categories.map(k=>CAT[k]).join(', ')}</div>`:''}</td>
+      <td><input type="checkbox" data-f="significant" ${x.inf.significant?'checked':''}></td>
+      <td><select data-f="parent">${parentOpts(i).map(([k,l])=>`<option value="${k}" ${x.parent===k?'selected':''}>${esc(l)}</option>`).join('')}</select></td>
+      <td class="small" style="max-width:220px">${x.warn.length?`<span style="color:var(--sensitive)">${esc(x.warn.join(' · '))}</span>`:'<span class="muted">ok</span>'}</td></tr>`).join('');
+    const inc=cands.filter(x=>x.include).length;
+    out.innerHTML=`<p class="small muted">${cands.filter(x=>!x.isPeak).length} answer${cands.filter(x=>!x.isPeak).length===1?'':'s'} found${cands.some(x=>x.isPeak)?', '+cands.filter(x=>x.isPeak).length+' peak window'+(cands.filter(x=>x.isPeak).length===1?'':'s')+' added':''}. Adjust anything here; the rest of each entry (interpretation, Consider, Suggestions, Consider postponing, private reasoning) is filled from the answer and can be edited afterwards.</p>
+     <div style="overflow:auto"><table><thead><tr><th></th><th>Title</th><th>Dates</th><th>Polarity</th><th>Int.</th><th>Category</th><th>★</th><th>Within</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table></div>
+     <p class="row" style="gap:6px;margin-top:12px"><button type="button" class="btn" id="imp-draft">Save ${inc} as drafts</button><button type="button" class="btn ghost" id="imp-pub">Save and publish ${inc}</button><span class="small muted">Drafts are invisible to the client until you publish them.</span></p>`;
+    out.querySelectorAll('tr[data-i] [data-f]').forEach(el=>el.onchange=()=>{const x=cands[Number(el.closest('tr').dataset.i)];const f=el.dataset.f;
+      if(f==='include'){x.include=el.checked;el.closest('tr').classList.toggle('muted',!x.include);refreshCounts();return}
+      if(f==='parent'){x.parent=el.value||null;return}if(f==='significant'){x.inf.significant=el.checked;return}
+      x.inf[f]=f==='intensity'?Math.min(5,Math.max(1,Number(el.value)||1)):el.value;if(f==='category')x.inf.disclaimer=DISC_BY_CAT[x.inf.category]||'none';if(f==='start_date'||f==='end_date'){if(x.inf.end_date<x.inf.start_date){x.inf.end_date=x.inf.start_date;draw()}}});
+    const refreshCounts=()=>{const k=cands.filter(x=>x.include).length;$('#imp-draft',dlg).textContent=`Save ${k} as drafts`;$('#imp-pub',dlg).textContent=`Save and publish ${k}`};
+    $('#imp-draft',dlg).onclick=()=>save(false);$('#imp-pub',dlg).onclick=()=>save(true)};
+  const save=guard(async pub=>{const chosen=cands.filter(x=>x.include);if(!chosen.length){alert('Nothing is ticked.');return}
+    dlg.querySelectorAll('button').forEach(b=>b.disabled=true);
+    const idOf=key=>key&&key.startsWith('c')?cands[Number(key.slice(1))].inf.id:key||null;
+    const order=[...chosen.filter(x=>!x.parent),...chosen.filter(x=>x.parent)]; // parents before their windows
+    let saved=0;for(const x of order){const parentKey=x.parent;const parentIncluded=!parentKey||!parentKey.startsWith('c')||cands[Number(parentKey.slice(1))].include;
+      await api.saveInfluence({...x.inf,parent_id:parentIncluded?idOf(parentKey):null,published:pub});saved++}
+    dlg.close();dlg.remove();toast(`${saved} influence${saved===1?'':'s'} ${pub?'published':'saved as drafts'}`);ctx.reload()});
+  $('#imp-go',dlg).onclick=()=>{cands=buildImport(ctx,$('#imp-text',dlg).value,{nest:$('#imp-nest',dlg).checked,peaks:$('#imp-peaks',dlg).checked});draw()};
+  $('#close',dlg).onclick=()=>{dlg.close();dlg.remove()};dlg.addEventListener('cancel',()=>dlg.remove())}
 
 /* ---------------- Influence editor ---------------- */
 function openEditor(ctx,inf,isNew){
