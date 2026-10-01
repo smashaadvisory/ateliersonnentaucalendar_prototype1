@@ -1589,8 +1589,8 @@ async function renderCalendar(){
   try{pkg=await api.openCalendar(code)}catch(err){app.innerHTML=`<div class="entry card"><h1>Not reachable</h1><p class="muted">Could not reach the calendar service. Please try again in a moment.</p><p class="small muted">${esc(err.message||'')}</p></div>`;return}
   if(!pkg.ok){localStorage.removeItem(CODE_KEY);renderClientLogin(pkg.why);return}
   applyCustomCategories(pkg.categories||[]);
-  const contact=pkg.contact&&pkg.contact.url?{href:pkg.contact.url,label:pkg.contact.label||'Enquiries · Atelier Sonnentau',cls:'quiet'}:null;
-  setHeader({left:[],brand:true,right:[...(contact?[contact]:[]),{id:'out',label:'Sign out',cls:'ghost',onClick:clientSignOut}]});
+  const contact={href:(pkg.contact&&pkg.contact.url)||'https://ateliersonnentau.org',label:(pkg.contact&&pkg.contact.label)||'Enquiries · Atelier Sonnentau',cls:'quiet'};
+  setHeader({left:[],brand:true,right:[contact,{id:'out',label:'Sign out',cls:'ghost',onClick:clientSignOut}]});
   const gift=pkg.gift&&pkg.gift.enabled&&!(pkg.prefs&&pkg.prefs.gift_seen)?pkg.gift:null;
   if(gift){sessionStorage.setItem('as.welcomed',code);showGift(pkg.name,gift,()=>{pkg.prefs={...(pkg.prefs||{}),gift_seen:true};api.setPrefs(code,pkg.prefs).catch(()=>{});if(ACT.code)ACT.action('gift opened',{occasion:gift.occasion})})}
   else if(sessionStorage.getItem('as.welcomed')!==code){
@@ -1599,7 +1599,7 @@ async function renderCalendar(){
     w.innerHTML=`<div><p class="wk">Welcome,</p><h1>${esc(pkg.name)}</h1><div class="orn" aria-hidden="true">${icon('star','var(--gold)',16)}</div></div>`;
     document.body.appendChild(w);w.addEventListener('animationend',()=>w.remove());setTimeout(()=>w.remove(),3200);
   }
-  app.innerHTML=`<h1 style="margin-bottom:14px">Hello, ${esc(pkg.name)}</h1><div id="calroot"></div>${contact?`<p class="cal-contact"><a class="btn ghost" href="${esc(contact.href)}" target="_blank" rel="noopener" id="contactbtn">${esc(contact.label)} →</a></p>`:''}`;
+  app.innerHTML=`<h1 style="margin-bottom:14px">Hello, ${esc(pkg.name)}</h1><div id="calroot"></div><p class="cal-contact"><a class="btn ghost" href="${esc(contact.href)}" target="_blank" rel="noopener" id="contactbtn">${esc(contact.label)} →</a></p>`;
   ACT.start(code);
   const cb=$('#contactbtn');if(cb)cb.addEventListener('click',()=>ACT.action('contact',{label:contact.label}));
   drawCalendar(pkg,$('#calroot'),{code});
@@ -1826,7 +1826,7 @@ function accessState(c){
 }
 async function renderDashboard(){
   wsTab='client';
-  const clients=await api.listClients();let contact={};try{contact=(await api.getSetting('contact'))||{}}catch(e){}
+  const clients=await api.listClients();
   let presence={},actNote='';
   const loadPresence=async()=>{const out={};const recent=await api.recentActivity(600);for(const e of recent){const o=out[e.client_id]=out[e.client_id]||{last:e};const d=e.detail||{};if(!o.view&&((e.event==='view'&&!ACTION_SCREENS.includes(d.screen))||e.event==='open'))o.view=e}
     for(const id in out){const e=out[id].last;out[id].online=e.event!=='close'&&Date.now()-new Date(e.at).getTime()<ONLINE_MS;out[id].screen=out[id].view?screenText(out[id].view.detail):''}return out};
@@ -1839,12 +1839,7 @@ async function renderDashboard(){
   app.innerHTML=`<div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Clients</h1><button class="btn" id="newc">New client</button></div>${actNote}
    <div class="card"><ul class="list">${active.map(li).join('')||'<li class="muted">No clients yet. Create your first client to generate an access code.</li>'}</ul>
    ${archived.length?`<details style="margin-top:10px"><summary class="small muted">Archived (${archived.length})</summary><ul class="list" style="margin-top:8px">${archived.map(li).join('')}</ul></details>`:''}</div>
-   <div class="card" style="margin-top:16px" id="contactcard"><h2>Enquiries link for clients</h2>
-    <p class="small muted">A button clients see in their calendar’s header and beneath the calendar, for questions or bookings — your contact page, a booking page, or a mailto: address.</p>
-    <form id="contactf" class="grid2"><label class="f"><span>Link (https://… or mailto:…)</span><input type="url" name="url" value="${esc(contact.url||'')}" placeholder="https://your-site/contact"></label><label class="f"><span>Button label</span><input type="text" name="label" value="${esc(contact.label||'')}" placeholder="Enquiries · Atelier Sonnentau" maxlength="60"></label>
-    <p style="margin:0"><button class="btn small" type="submit">Save link</button> <span class="small muted">${contact.url?'Clients currently see this button.':'No link yet — clients see no button.'}</span></p></form></div>
    <p class="small muted" style="margin-top:18px"><button type="button" class="btn quiet small" id="diag">Connection check</button> <span class="muted">— if something is not saving, run this and send the result to whoever is helping you.</span></p><div id="diagout"></div>`;
-  $('#contactf').onsubmit=guard(async e=>{e.preventDefault();const f=e.target;const url=f.elements.url.value.trim();if(url&&!/^(https?:\/\/|mailto:)/i.test(url)){alert('The link should start with https:// or mailto:');return}await api.setSetting('contact',{url,label:f.elements.label.value.trim()||'Enquiries · Atelier Sonnentau'});toast(url?'Enquiries link saved':'Enquiries link removed');renderDashboard()});
   $('#diag').onclick=runDiagnostics;
   if(actTimer)clearInterval(actTimer);actTimer=setInterval(async()=>{if(!$('#newc')){clearInterval(actTimer);actTimer=null;return}try{const p=await loadPresence();document.querySelectorAll('[data-pres]').forEach(el=>{el.innerHTML=presText(p[el.dataset.pres])})}catch(e){}},45000);
   $('#newc').onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New client',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{}});go('#/admin/client/'+c.id)});
