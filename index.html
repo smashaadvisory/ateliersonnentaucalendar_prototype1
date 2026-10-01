@@ -354,6 +354,7 @@ legend{font-family:var(--serif);font-size:1.15rem;padding:0 8px;color:var(--prim
 .g-dasha{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0;padding:8px 12px;background:var(--surface-2);border-radius:10px}
 .g-rep{border:1px solid var(--line);border-left:3px solid var(--line-strong);border-radius:12px;padding:12px 14px;margin:0 0 10px;background:var(--surface)}
 .g-rep.good{border-left-color:var(--supportive)}.g-rep.bad{border-left-color:var(--caution)}
+.g-per{background:var(--surface-2)}.g-per h3{font-size:1.02rem;font-weight:600}.g-per details summary{cursor:pointer;color:var(--muted)}
 .g-rep h3{font-size:1.1rem}.g-rep h3 .lnk{font:inherit;color:var(--primary)}
 .g-detail{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .g-planets{overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:10px}
@@ -1116,6 +1117,76 @@ function mount(container,client,opts={}){
      ${ref==='moon'?banner:''}${cards}
      <p class="small muted" style="margin:10px 0 0">Readings follow Phaladeepika / Brihat Samhita gochara and standard bhava significations; weigh them against dignity, daśā and natal promise. The longer passages: ${GT_SOURCE} Nothing here is shown to clients.</p></div>`}
 
+
+  /* ---------- Example periods: the coming months cut at the slow planetary movements, each window scored from the natal Moon.
+     Gives the astrologer worked examples of calendar periods (dates, polarity, intensity, the mix of movements) to draft from. ---------- */
+  const SLOW_W={saturn:3,jupiter:3,rahu:2,ketu:2,mars:2};
+  const dOf=d=>G.utcToZoned(d,tzNow()).date;
+  function scanEvents(from,days){const limit=from.getTime()+days*86400000;const ev=[];
+    for(const g of G.GRAHA){if(g.outer||g.key==='moon')continue;let t=from.getTime();for(let i=0;i<24;i++){const ing=G.nextIngress(g.key,new Date(t),{nodeMode:S.nodeMode});if(!ing||ing.date.getTime()>limit)break;ev.push({t:ing.date,key:g.key,kind:'ingress',sign:ing.sign});t=ing.date.getTime()+3600000}}
+    for(const key of ['mercury','venus','mars','jupiter','saturn']){const sp=t=>G.norm(G.bodySidereal(key,new Date(t+43200000))-G.bodySidereal(key,new Date(t-43200000))+180)-180;let prev=sp(from.getTime());
+      for(let t=from.getTime()+86400000;t<=limit;t+=86400000){const cur=sp(t);if((prev<0)!==(cur<0)){let lo=t-86400000,hi=t;for(let i=0;i<20;i++){const mid=(lo+hi)/2;if((sp(mid)<0)===(prev<0))lo=mid;else hi=mid}ev.push({t:new Date(hi),key,kind:'station',retro:cur<0})}prev=cur}}
+    let d=G.dashaAt(natal.instant,natalMoon.lon,from);for(let i=0;i<40&&d;i++){const ends=[d.pratyantar&&d.pratyantar.end,d.antar&&d.antar.end,d.maha.end].filter(Boolean).map(x=>x.getTime());const next=Math.min(...ends);if(!isFinite(next)||next>limit)break;
+      const nd=G.dashaAt(natal.instant,natalMoon.lon,new Date(next+60000));if(!nd)break;const level=nd.maha.lord!==d.maha.lord?'maha':nd.antar&&d.antar&&nd.antar.lord!==d.antar.lord?'antar':'pratyantar';
+      ev.push({t:new Date(next),kind:'dasha',level,lord:level==='maha'?nd.maha.lord:level==='antar'?nd.antar.lord:nd.pratyantar&&nd.pratyantar.lord});d=nd}
+    return ev.sort((a,b)=>a.t-b.t)}
+  const evLabel=e=>e.kind==='ingress'?`${gname(e.key)} enters ${G.RASHI_EN[e.sign]}`:e.kind==='station'?`${gname(e.key)} stations ${e.retro?'retrograde':'direct'}`:`${gname(e.lord)} ${e.level==='maha'?'mahadasha':e.level==='antar'?'antardasha':'pratyantardasha'} begins`;
+  const isBoundary=e=>(e.kind==='ingress'&&SLOW_W[e.key])||(e.kind==='station'&&['mars','jupiter','saturn'].includes(e.key))||(e.kind==='dasha'&&e.level!=='pratyantar');
+  // bhava (from the Lagna) → calendar categories, for the suggested primary / secondary categories
+  const HOUSE_CATS={1:['health','decisions'],2:['money','home'],3:['communication','travel'],4:['home','rest'],5:['creativity','learning'],6:['work','health'],7:['relationships'],8:['endings','money'],9:['learning','travel'],10:['work'],11:['community','money'],12:['rest','spiritual']};
+  const catLabel=k=>(typeof CAT!=='undefined'&&CAT[k])||k;
+  // a hard separation is one the astrologer would always keep: Saturn or Jupiter changing sign or stationing, or a mahadasha / antardasha change
+  const isHard=e=>(e.kind==='ingress'&&(e.key==='saturn'||e.key==='jupiter'))||(e.kind==='station'&&(e.key==='saturn'||e.key==='jupiter'))||e.kind==='dasha';
+  function examplePeriods(from,months){const days=Math.round(months*30.44);const limit=from.getTime()+days*86400000;const key=dOf(from)+'|'+months+'|'+S.nodeMode+'|'+JSON.stringify(shaniOverride()||null);
+    if(st.periodsCache&&st.periodsCache.key===key)return st.periodsCache.out;
+    const ev=scanEvents(from,days);const cuts=[from.getTime(),...ev.filter(isBoundary).map(e=>e.t.getTime()),limit].sort((a,b)=>a-b);
+    let segs=[];for(let i=0;i<cuts.length-1;i++){const a=cuts[i],b=cuts[i+1];if(b-a<5*86400000&&segs.length){segs[segs.length-1].b=b;continue}segs.push({a,b})}
+    const score=sg=>{const mid=new Date((sg.a+sg.b)/2);const tr=G.chart(mid,{nodeMode:S.nodeMode,outer:false});const dasha=G.dashaAt(natal.instant,natalMoon.lon,mid);const lords=dashaLords(dasha);
+      const facts=[];let score=0;
+      for(const p of tr.planets){if(!SLOW_W[p.key])continue;const hm=G.houseFrom(p.sign,natalMoon.sign);const hl=G.houseFrom(p.sign,natalLagnaSign);const mv=G.moonTransit(p.key,hm,tr.planets,natalMoon.sign);
+        let w=SLOW_W[p.key]*(lords.includes(p.key)?1.5:1);const v=mv.good?(mv.vedhaBy?w/3:w):-w;score+=v;
+        facts.push({key:p.key,en:p.en,sign:p.sign,hm,hl,good:mv.good,vedhaBy:mv.vedhaBy,lord:lords.includes(p.key),v})}
+      facts.sort((x,y)=>Math.abs(y.v)-Math.abs(x.v));
+      const sat=tr.planets.find(p=>p.key==='saturn');const so=shaniOverride();const ss=so&&so.phase!=='none'&&so.start&&so.end&&dOf(mid)>=so.start&&dOf(mid)<=so.end?{kind:'sade sati',phase:SH_PHASES[so.phase]||so.phase,manual:true}:G.sadeSati(sat.sign,natalMoon.sign);
+      const opens=ev.filter(e=>isBoundary(e)&&Math.abs(e.t.getTime()-sg.a)<3600000);
+      const windows=ev.filter(e=>!isBoundary(e)&&e.t.getTime()>=sg.a&&e.t.getTime()<sg.b).map(e=>{let verdict='';if(e.kind==='ingress'){const hm=G.houseFrom(e.sign,natalMoon.sign);const trE=G.chart(new Date(e.t.getTime()+3600000),{nodeMode:S.nodeMode,outer:false});const mv=G.moonTransit(e.key,hm,trE.planets,natalMoon.sign);verdict=` — ${ord(hm)} from Chandra, ${mv.good?(mv.vedhaBy?'favourable but obstructed by '+gname(mv.vedhaBy):'favourable'):'unfavourable'}`}
+        return {date:dOf(e.t),text:evLabel(e)+verdict+(e.kind!=='dasha'&&lords.includes(e.key)?' · dasha lord':'')}});
+      const polarity=score>=3?'supportive':score<=-3?'caution':'mixed';const intensity=Math.max(1,Math.min(5,2+Math.round(Math.abs(score)/3)));
+      const significant=opens.some(e=>e.kind==='dasha'||(e.kind==='ingress'&&(e.key==='jupiter'||e.key==='saturn'||lords.includes(e.key))));
+      const top=facts.slice(0,2);const fx=f=>`${gname(f.key)} ${f.good?(f.vedhaBy?'obstructed':'favourable'):'unfavourable'} in the ${ord(f.hm)}`;
+      const lead=GT[top[0].key]?GT[top[0].key].h[top[0].hm-1].replace(/^(In the \d+\w\w|Over the natal Moon):\s*/,'').split(/[;.]/)[0]:'';
+      // categories from the bhavas the strongest movements occupy (from the Lagna); mixed periods split them by verdict
+      const catsOf=f=>HOUSE_CATS[f.hl]||['general'];const good=facts.filter(f=>f.good&&!f.vedhaBy),bad=facts.filter(f=>!f.good);
+      const primary=catsOf(top[0])[0];const secondary=[...new Set(facts.slice(1,3).flatMap(catsOf))].filter(k=>k!==primary).slice(0,3);
+      const supportive_for=polarity==='mixed'?[...new Set(good.flatMap(catsOf))].slice(0,4):[],difficult_for=polarity==='mixed'?[...new Set(bad.flatMap(catsOf))].filter(k=>!supportive_for.includes(k)).slice(0,4):[];
+      // a client-safe title and a first draft of the interpretation, from the house readings of the strongest movements (no graha names)
+      const phrase=f=>GT[f.key]?GT[f.key].h[f.hm-1].replace(/^(In the \d+\w\w|Over the natal Moon):\s*/,'').split(/[.]/)[0].trim():'';
+      const cap=t=>t?t[0].toUpperCase()+t.slice(1):'';const stripName=t=>t.replace(/\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)['’]s?\b/g,'').replace(/\s{2,}/g,' ');
+      const clientTitle=polarity==='supportive'?`A supportive stretch for ${catLabel(primary).toLowerCase()}`:polarity==='caution'?`A careful stretch for ${catLabel(primary).toLowerCase()}`:`${catLabel(supportive_for[0]||primary)} supported; ${catLabel(difficult_for[0]||secondary[0]||'other matters').toLowerCase()} needs care`;
+      const interp=[...facts.slice(0,3).map(f=>stripName(phrase(f))).filter(Boolean).map(t=>cap(t)+'.')].join(' ');
+      const tech=opens.length?`${evLabel(opens[0])} · ${fx(top[0])}`:top.map(fx).join(' · ');
+      const start=dOf(new Date(sg.a));const endPrev=dOf(new Date(sg.b-86400000));const end=endPrev<start?start:endPrev;return {a:sg.a,b:sg.b,start,end,days:Math.round((sg.b-sg.a)/86400000),score,polarity,intensity,significant,title:clientTitle,tech,lead,interp,facts,category:primary,secondary_categories:secondary,supportive_for,difficult_for,opens:opens.map(evLabel),openEvents:opens,windows,sadeSati:ss,dasha:`${gname(dasha.maha.lord)} / ${dasha.antar?gname(dasha.antar.lord):'—'} / ${dasha.pratyantar?gname(dasha.pratyantar.lord):'—'}`}};
+    // synthesis: a segment that opens on a lesser movement (Mars, the nodes) and keeps the same tone as the one before it is folded into it — the movement becomes a window inside the longer period
+    let out=segs.map(score);
+    for(let i=1;i<out.length;){const prev=out[i-1],cur=out[i];const soft=cur.openEvents.length&&!cur.openEvents.some(isHard);
+      const station=cur.openEvents.every(e=>e.kind==='station');if(soft&&cur.polarity===prev.polarity&&Math.abs(cur.score-prev.score)<4&&(station||cur.facts[0].key===prev.facts[0].key)){const merged=score({a:prev.a,b:cur.b});merged.opens=prev.opens;merged.openEvents=prev.openEvents;merged.tech=prev.tech;
+        merged.windows=[...prev.windows,...cur.openEvents.map(e=>({date:dOf(e.t),text:evLabel(e)+' — same tone continues',sep:true})),...cur.windows].sort((x,y)=>x.date<y.date?-1:1);merged.folded=(prev.folded||0)+1;out.splice(i-1,2,merged)}else i++}
+    st.periodsCache={key,out};return out}
+  function periodsPanel(c){const months=st.periodMonths||6;let per;try{per=examplePeriods(st.instant,months)}catch(e){return `<p class="small muted">Example periods could not be computed: ${esc(e.message||e)}</p>`}
+    const pill=p=>`<span class="pill ${p.polarity==='caution'?'caution':p.polarity}">${p.polarity==='caution'?'Caution':p.polarity==='mixed'?'Mixed':'Supportive'}</span>`;
+    const cards=per.map((p,i)=>`<article class="g-rep g-per ${p.polarity==='supportive'?'good':p.polarity==='caution'?'bad':''}">
+       <div class="row between" style="gap:8px;align-items:flex-start;flex-wrap:wrap"><h3 style="margin:0">${esc(p.tech)}</h3><div class="row" style="gap:4px">${pill(p)}<span class="pill draft">intensity ${p.intensity}</span>${p.significant?'<span class="pill significant">especially significant</span>':''}${p.folded?`<span class="pill draft" title="Lesser movements with the same tone were folded into this period">${p.folded+1} movements in one</span>`:''}</div></div>
+       <p class="small" style="margin:6px 0 2px"><strong>${p.start} – ${p.end}</strong> · ${p.days} days · daśā ${esc(p.dasha)}${p.sadeSati?' · '+esc(p.sadeSati.kind==='sade sati'?'Sade Sati, '+p.sadeSati.phase:p.sadeSati.phase)+(p.sadeSati.manual?' (manual)':''):''}</p>
+       ${p.opens.length?`<p class="small muted" style="margin:0 0 6px">Opens as ${esc(p.opens.join('; '))}.</p>`:'<p class="small muted" style="margin:0 0 6px">Continues from the selected moment.</p>'}
+       <p style="margin:0 0 4px"><em>${esc(p.title)}</em> <span class="small muted">· ${esc(catLabel(p.category))}${p.secondary_categories.length?' · '+p.secondary_categories.map(catLabel).map(esc).join(', '):''}</span></p>
+       ${p.interp?`<p class="small" style="margin:0 0 6px">${esc(p.interp)}</p>`:''}
+       <ul class="plain small" style="margin:0 0 6px">${p.facts.map(f=>`<li>${gname(f.key)} ${ord(f.hm)} from Chandra (${ord(f.hl)} from Lagna, ${G.RASHI_EN[f.sign]}) — ${f.good?(f.vedhaBy?'favourable but obstructed by '+gname(f.vedhaBy):'favourable'):'unfavourable'}${f.lord?' · dasha lord':''}</li>`).join('')}</ul>
+       ${p.windows.length?`<details class="small"><summary>Windows within this period (${p.windows.length})</summary><ul class="plain" style="margin:4px 0 0">${p.windows.map(w=>`<li><strong>${w.date}</strong> ${esc(w.text)}</li>`).join('')}</ul></details>`:''}
+       ${opts.onAddPeriod?`<p style="margin:8px 0 0"><button type="button" class="btn small" data-period="${i}">Use this period in the influence</button></p>`:''}</article>`).join('');
+    return `<div class="g-periods"><div class="row between" style="margin:4px 0 8px;gap:8px;flex-wrap:wrap"><h3 style="margin:0">Example periods from ${esc(dOf(st.instant))}</h3><span class="seg">${[3,6,12].map(m=>`<button type="button" data-pm="${m}" aria-pressed="${months===m}">${m} months</button>`).join('')}</span></div>
+     <p class="small muted" style="margin:0 0 10px">The months ahead, cut only where a separation is warranted — Saturn or Jupiter changing sign or stationing, a mahadasha or antardasha change — and at the lesser movements (Mars, Rahu, Ketu) only when they change the tone; otherwise those are folded into one longer influence as windows. Each period mixes every slow movement in force, scored from the natal Moon (Saturn and Jupiter weigh most, dasha lords more). The Sun, Mercury and Venus movements inside it are listed as windows. Starting points to draft from, not finished readings.</p>
+     ${cards}</div>`}
+
   /* ---------- Yogas & doshas of the natal chart ---------- */
   function yogaPanel(){const r=G.yogas(natalChart.planets,natalLagnaSign,natalAsc?natalAsc.sidereal:null);
     const pill=g=>g==='present'?'':` <span class="pill ${g==='cancelled'?'draft':g==='weakened'||g==='partial'?'caution':'significant'}">${g}</span>`;
@@ -1128,6 +1199,9 @@ function mount(container,client,opts={}){
   let promptState={text:'',open:false,bpl:[],remedial:true};
   /* ---------- Ēḻarai Śani (Sade Sati) and Saturn's other transits counted from the natal Moon ---------- */
   let shaniCache=null;
+  const SH_PHASES={'1':'first phase — Saturn in the 12th from the Moon (the approach)','2':'second phase — Saturn over the natal Moon (the peak)','3':'third phase — Saturn in the 2nd from the Moon (the departure)',pause:'retrograde pause — Saturn briefly out of the three signs',none:'not in Sade Sati'};
+  const shaniOverride=()=>{const o=client.jyotish&&client.jyotish.shani_override;return o&&typeof o==='object'&&o.phase?o:null};
+  let shaniEdit=false;
   function saturnTimeline(center){const Y=365.25*86400000;const from=center.getTime()-11*Y,to=center.getTime()+34*Y;const sg=t=>Math.floor(G.bodySidereal('saturn',new Date(t),{})/30);
     const iv=[];let t0=from,s0=sg(from);const step=3*86400000;
     for(let x=from+step;x<=to;x+=step){const c=sg(x);if(c!==s0){let lo=x-step,hi=x;for(let i=0;i<24;i++){const mid=(lo+hi)/2;if(sg(mid)===s0)lo=mid;else hi=mid}iv.push({a:t0,b:hi,sign:s0});t0=hi;s0=c}}
@@ -1150,8 +1224,22 @@ function mount(container,client,opts={}){
     else{out.short='Not in Sade Sati';out.lines.push(`Not in Ēḻarai Śani (Sade Sati)${prev?' — the last one ended '+dOf(prev.b):''}.`);if(next){const open_=next.b>=shaniCache.to-86400000;out.lines.push(`The next begins ${dOf(next.a)}, when Saturn enters ${G.RASHI_EN[(M+11)%12]} (12th from the natal Moon)${open_?', and runs about seven and a half years':`, and runs to ${dOf(next.b)} (${spanText(next.b-next.a)})`}.`)}}
     const h=G.houseFrom(cur.sign,M);if(h===8)out.lines.push(`Aṣṭama Śani: Saturn is in the 8th from the natal Moon (${G.RASHI_EN[cur.sign]}) until ${dOf(cur.b)}.`);if(h===4)out.lines.push(`Kaṇṭaka / Ardhāṣṭama Śani: Saturn is in the 4th from the natal Moon (${G.RASHI_EN[cur.sign]}) until ${dOf(cur.b)}.`);
     if(h!==8&&h!==4&&!active){const n8=iv.find(x=>x.a>now&&G.houseFrom(x.sign,M)===8);if(n8&&(!next||n8.a<next.a))out.lines.push(`Aṣṭama Śani (8th from the Moon) comes first: ${dOf(n8.a)} → ${dOf(n8.b)}.`)}
-    out.saturn=`Saturn now ${G.RASHI_EN[cur.sign]}, ${ord(h)} from the natal Moon, until ${dOf(cur.b)}`;return out}
-  function shaniStrip(){try{const r=shaniReport(st.instant);return `<div class="g-dasha small g-shani"><span><b>Śani</b> <span class="pill ${r.active?'caution':'draft'}" style="margin-left:4px">${esc(r.short)}</span></span><span class="muted">${esc(r.saturn)}</span><details class="small" style="flex-basis:100%"><summary>Detail</summary><ul class="plain" style="margin:6px 0 0">${r.lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></details></div>`}catch(e){return ''}}
+    out.saturn=`Saturn now ${G.RASHI_EN[cur.sign]}, ${ord(h)} from the natal Moon, until ${dOf(cur.b)}`;
+    const o=shaniOverride();if(o){out.manual=true;out.computed={short:out.short,lines:out.lines};const today=dOf(instant);const inRange=!o.start||!o.end||(today>=o.start&&today<=o.end);
+      if(o.phase==='none'||!inRange){out.active=false;out.short='Not in Sade Sati (set by hand)';out.lines=[`Not in Ēḻarai Śani (Sade Sati) — entered by the astrologer${o.start&&o.end?`; the episode is recorded as ${o.start} → ${o.end}`:''}.`]}
+      else{out.active=true;const PL={'1':'1st phase','2':'2nd phase','3':'3rd phase',pause:'retrograde pause'};out.short=`Sade Sati · ${PL[o.phase]||o.phase}${o.end?' · '+spanText(Math.max(0,new Date(o.end+'T12:00:00Z').getTime()-now))+' to go':''} (set by hand)`;
+        out.lines=[`Ēḻarai Śani (Sade Sati) is in progress — phases and dates entered by the astrologer: ${SH_PHASES[o.phase]||o.phase}${o.phase_start||o.phase_end?`, ${o.phase_start||'…'} until ${o.phase_end||'…'}`:''}.`,
+          ...(o.start||o.end?[`The episode runs ${o.start||'…'} → ${o.end||'…'}${o.start&&o.end?` (${spanText(new Date(o.end+'T12:00:00Z')-new Date(o.start+'T12:00:00Z'))} in all${today>=o.start?', '+spanText(now-new Date(o.start+'T12:00:00Z').getTime())+' elapsed':''})`:''}.`]:[])]}
+      if(o.note)out.lines.push('Note: '+o.note)}
+    return out}
+  function shaniStrip(){try{const r=shaniReport(st.instant);const o=shaniOverride()||{};const inp=(n,l,v)=>`<label class="f" style="margin:0"><span>${l}</span><input type="date" name="${n}" value="${esc(v||'')}" min="1900-01-01" max="2100-12-31"></label>`;
+      const form=opts.onShani&&shaniEdit?`<form id="g-shani-form" class="small" style="flex-basis:100%;margin-top:8px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px">
+        <p class="small muted" style="margin:0 0 8px">Enter the phases and dates as you judge them (another ayanāṃśa, true nodes, or your own reading). These replace the calculated ones everywhere — the strip, the AI prompt and the example periods — until you go back to the calculation.</p>
+        <div class="grid3" style="gap:8px"><label class="f" style="margin:0"><span>Phase now</span><select name="phase">${Object.entries(SH_PHASES).map(([k,l])=>`<option value="${k}" ${(o.phase||'none')===k?'selected':''}>${esc(l)}</option>`).join('')}</select></label>${inp('phase_start','This phase from',o.phase_start)}${inp('phase_end','This phase until',o.phase_end)}</div>
+        <div class="grid3" style="gap:8px;margin-top:8px">${inp('start','Episode begins',o.start)}${inp('end','Episode ends',o.end)}<label class="f" style="margin:0"><span>Note (optional)</span><input type="text" name="note" value="${esc(o.note||'')}" maxlength="200" placeholder="e.g. per Raman ayanāṃśa"></label></div>
+        <p class="row" style="gap:6px;margin:8px 0 0"><button type="submit" class="btn small">Save these phases</button>${r.manual?'<button type="button" class="btn ghost small" id="g-shani-calc">Use the calculated phases</button>':''}<button type="button" class="btn quiet small" id="g-shani-cancel">Cancel</button></p>
+        ${r.manual&&r.computed?`<p class="small muted" style="margin:8px 0 0">Calculated: ${esc(r.computed.short)} — ${esc(r.computed.lines[0]||'')}</p>`:''}</form>`:'';
+      return `<div class="g-dasha small g-shani"><span><b>Śani</b> <span class="pill ${r.active?'caution':'draft'}" style="margin-left:4px">${esc(r.short)}</span></span><span class="muted">${esc(r.saturn)}</span>${opts.onShani?`<button type="button" class="btn quiet small" id="g-shani-edit" style="margin-left:auto">${r.manual?'Edit the phases':'Edit phases and dates'}</button>`:''}<details class="small" style="flex-basis:100%"><summary>Detail</summary><ul class="plain" style="margin:6px 0 0">${r.lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></details>${form}</div>`}catch(e){return ''}}
   // Sign changes and stations ahead, so the AI can divide the forecast without recalculating an ephemeris.
   function forwardEphemeris(from,days){const limit=from.getTime()+days*86400000;const ingress=[],stations=[];const dOf=d=>G.utcToZoned(d,tzNow()).date;
     for(const g of G.GRAHA){if(g.outer||g.key==='moon')continue;let t=from.getTime();const path=[];for(let i=0;i<24;i++){const ing=G.nextIngress(g.key,new Date(t),{nodeMode:S.nodeMode});if(!ing||ing.date.getTime()>limit)break;path.push(`${G.RASHI_EN[ing.sign]} from ${dOf(ing.date)}`);t=ing.date.getTime()+3600000}
@@ -1436,8 +1524,8 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
       <span class="seg"><button type="button" data-style="north" aria-pressed="${S.style==='north'}">North Indian</button><button type="button" data-style="south" aria-pressed="${S.style==='south'}">South Indian</button></span>
       <span class="row small" style="gap:10px"><label class="chk" style="margin:0"><input type="checkbox" id="g-outer" ${S.outer?'checked':''}>Uranus, Neptune, Pluto</label><label class="chk" style="margin:0"><input type="checkbox" id="g-node" ${S.nodeMode==='true'?'checked':''}>True nodes <span class="muted">(off = mean, as AstroSage)</span></label><label class="chk" style="margin:0">orb <select id="g-orb" style="width:auto;padding:2px 6px">${[0.5,1,2,3].map(o=>`<option ${S.orb===o?'selected':''}>${o}</option>`).join('')}</select>°</label><label class="chk" style="margin:0"><input type="checkbox" id="g-tz" ${S.tzMode==='mine'?'checked':''}>My time zone</label></span>
      </div>
-     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button><button type="button" data-gview="report" aria-pressed="${st.view==='report'}">Gochara report</button><button type="button" data-gview="yogas" aria-pressed="${st.view==='yogas'}">Yogas &amp; doshas</button></span></div>
-     ${st.view==='planets'?planetTable(c):st.view==='yogas'?yogaPanel():st.view==='report'?gocharaReport(c):''}
+     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button><button type="button" data-gview="report" aria-pressed="${st.view==='report'}">Gochara report</button><button type="button" data-gview="yogas" aria-pressed="${st.view==='yogas'}">Yogas &amp; doshas</button>${opts.onAddPeriod?`<button type="button" data-gview="periods" aria-pressed="${st.view==='periods'}">Example periods</button>`:''}</span></div>
+     ${st.view==='planets'?planetTable(c):st.view==='yogas'?yogaPanel():st.view==='report'?gocharaReport(c):st.view==='periods'?periodsPanel(c):''}
      <div class="g-charts ${st.mobileView} ${st.view!=='charts'?'hidden':''}">
       <figure class="g-fig natal"><figcaption><span class="seg small"><button type="button" data-natalref="lagna" aria-pressed="${S.natalRef==='lagna'}" ${natalAsc?'':'disabled'}>Lagna</button><button type="button" data-natalref="moon" aria-pressed="${S.natalRef==='moon'}">Rasi (Chandra)</button></span><div class="cap">Natal · ${client.name?esc(client.name):''} <span class="muted">${natalAsc?'Lagna '+G.RASHI[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}</span></div></figcaption>${render(natalModel,{style:S.style,highlight:hi.natal,cls:'natal',centreLabel:S.natalRef==='moon'?'Rasi':'Lagna'})}</figure>
       <figure class="g-fig transit"><figcaption><span class="seg small"><button type="button" data-ref="lagna" aria-pressed="${S.ref==='lagna'}" ${natalAsc?'':'disabled'}>from Lagna</button><button type="button" data-ref="moon" aria-pressed="${S.ref==='moon'}">from Chandra</button></span><div class="cap">Gochara · ${z.date} ${z.time} <span class="muted">${refWord} — 1st bhava ${G.RASHI[c.ref]}${client.name?' for '+esc(client.name):''}</span></div></figcaption>${render(trModel,{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})}</figure>
@@ -1465,6 +1553,13 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
     el.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{st.mobileView=b.dataset.view;draw()});
     el.querySelectorAll('[data-gview]').forEach(b=>b.onclick=()=>{st.view=b.dataset.gview;draw()});
     el.querySelectorAll('[data-rref]').forEach(b=>b.onclick=()=>{st.reportRef=b.dataset.rref;draw()});
+    el.querySelectorAll('[data-pm]').forEach(b=>b.onclick=()=>{st.periodMonths=Number(b.dataset.pm);draw()});
+    const she=el.querySelector('#g-shani-edit');if(she)she.onclick=()=>{shaniEdit=!shaniEdit;draw()};const shc=el.querySelector('#g-shani-cancel');if(shc)shc.onclick=()=>{shaniEdit=false;draw()};
+    const shf=el.querySelector('#g-shani-form');if(shf){shf.onsubmit=e=>{e.preventDefault();const f=shf.elements;const o={phase:f.phase.value,phase_start:f.phase_start.value||null,phase_end:f.phase_end.value||null,start:f.start.value||null,end:f.end.value||null,note:f.note.value.trim()||null,saved:new Date().toISOString()};
+        if(o.start&&o.end&&o.end<o.start){alert('The episode cannot end before it begins.');return}if(o.phase_start&&o.phase_end&&o.phase_end<o.phase_start){alert('The phase cannot end before it begins.');return}
+        client.jyotish={...(client.jyotish||{}),shani_override:o};shaniEdit=false;st.periodsCache=null;draw();opts.onShani(o)};
+      const calc=shf.querySelector('#g-shani-calc');if(calc)calc.onclick=()=>{client.jyotish={...(client.jyotish||{}),shani_override:null};shaniEdit=false;st.periodsCache=null;draw();opts.onShani(null)}}
+    el.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{const per=examplePeriods(st.instant,st.periodMonths||6)[Number(b.dataset.period)];if(per&&opts.onAddPeriod)opts.onAddPeriod(per)});
     $('#g-outer',el).onchange=e=>{S.outer=e.target.checked;saveSettings(S);rebuildNatal();draw()};
     $('#g-node',el).onchange=e=>{S.nodeMode=e.target.checked?'true':'mean';saveSettings(S);rebuildNatal();draw()};
     $('#g-orb',el).onchange=e=>{S.orb=Number(e.target.value);saveSettings(S);draw()};
@@ -1489,7 +1584,7 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
     const rf=$('#g-rform',el);if(rf)rf.onsubmit=e=>{e.preventDefault();const q=$('#g-q',el).value.trim();if(q)runResearch(q)};
     const add=$('#g-add',el);if(add)add.onclick=()=>opts.onAdd(snapshot(c));
     const gg=$('#g-geo',el);if(gg)gg.onclick=()=>opts.onGeocode();
-    if(timer)clearInterval(timer);if(st.live)timer=setInterval(()=>{if(!document.body.contains(el)){clearInterval(timer);return}if(st.live&&(!st.sel||st.view==='planets'||st.view==='report')){st.instant=new Date();draw()}},60000);
+    if(timer)clearInterval(timer);if(st.live)timer=setInterval(()=>{if(!document.body.contains(el)){clearInterval(timer);return}if(st.live&&(!st.sel||st.view==='planets'||st.view==='report'||st.view==='periods')){st.instant=new Date();draw()}},60000);
   }
   function rebuildNatal(){natalChart.planets=buildNatal().planets}
   const onEph=()=>{if(!document.body.contains(el)){window.removeEventListener('ephemeris-ready',onEph);return}rebuildNatal();draw()};window.addEventListener('ephemeris-ready',onEph);
@@ -2337,7 +2432,7 @@ function tabNatal(ctx,body){const {c,reload}=ctx;
   body.innerHTML=`<div class="card"><div id="gochara"></div></div>`;
   GUI.mount($('#gochara',body),c,{onGeocode:()=>pickLocation(c.birth_location,guard(async p=>{await api.saveClient({...c,birth_latitude:p.lat,birth_longitude:p.lon,timezone:p.timezone||c.timezone||''});toast('Birth place saved: '+[p.name,p.country].filter(Boolean).join(', '));reload()})),onAdd:snap=>{const i=blankInfluence(c.id);i.start_date=i.end_date=snap.local.date;i.start_time=snap.local.time;i.timezone=snap.tz;i.private_notes=snap.text;i.transit_snapshot=snap.json;
     const p=snap.json.selected;if(p){i.technical_basis=`Transit ${GOCHARA.GRAHA.find(g=>g.key===p.key).name} ${GOCHARA.RASHI[p.sign]} ${Math.floor(p.deg)}° — ${p.houseLagna}H from Lagna, ${p.houseMoon}H from Chandra`}
-    openEditor(ctx,i,true)}});
+    openEditor(ctx,i,true)},onShani:guard(async o=>{await api.saveClient({...c,jyotish:{...(c.jyotish||{}),shani_override:o}});toast(o?'Sade Sati phases saved for '+(c.name||'this client'):'Back to the calculated Sade Sati')})});
 }
 function tabCalendar(ctx,body){
   const {c,influences}=ctx;const y=wsCal.year,m=wsCal.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
@@ -2386,6 +2481,15 @@ function noteThreadAdmin(nn_,c){const rs=nn_.replies||[];const last=rs[rs.length
   const awaiting=last&&last.from==='client';
   const form=rs.length>=NOTE_REPLY_CAP?'<p class="small muted" style="margin:6px 0 0">This exchange has reached its limit.</p>':(rs.length||awaiting)?`<form data-replynote="${nn_.note_date}" class="row" style="gap:6px;margin-top:6px;align-items:flex-start"><textarea rows="1" maxlength="600" placeholder="${awaiting?'Answer '+esc(name)+'…':'Add a reply…'}" style="flex:1;min-width:0;font:inherit;padding:6px 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);resize:vertical" aria-label="Reply to ${esc(name)}"></textarea><button type="submit" class="btn small">Reply</button></form>`:'';
   return rs.length?`<div class="nthread">${awaiting?'<span class="pill significant" style="justify-self:start">reply from '+esc(name)+'</span>':''}${items}</div>${form}`:''}
+// Copy a suggested example period (from the split-screen Gochara) into the editor form; existing text fields are kept and the technical lines appended.
+function applyPeriod(f,per){const set=(n,v)=>{if(f.elements[n])f.elements[n].value=v};const chips=(n,keys)=>f.querySelectorAll(`input[name=${n}]`).forEach(x=>{x.checked=keys.includes(x.value)});
+  set('title',per.title);set('start_date',per.start);set('end_date',per.end);set('polarity',per.polarity);set('intensity',String(per.intensity));if(f.elements.significant)f.elements.significant.checked=!!per.significant;
+  if([...f.elements.category.options].some(o=>o.value===per.category))set('category',per.category);chips('sec',per.secondary_categories||[]);chips('sup',per.supportive_for||[]);chips('dif',per.difficult_for||[]);
+  const ma=f.querySelector('#mixedareas');if(ma)ma.classList.toggle('hidden',per.polarity!=='mixed');
+  if(!f.elements.client_interpretation.value.trim()&&per.interp)set('client_interpretation',per.interp);
+  const tech=[`${per.start} – ${per.end} (${per.days} days) · daśā ${per.dasha}${per.sadeSati?' · '+(per.sadeSati.kind==='sade sati'?'Sade Sati, '+per.sadeSati.phase:per.sadeSati.phase):''}`,...(per.opens.length?['Opens as '+per.opens.join('; ')+'.']:[]),...per.facts.map(x=>`${GOCHARA.GRAHA.find(g=>g.key===x.key).name} ${x.hm}H from Chandra, ${x.hl}H from Lagna (${GOCHARA.RASHI_EN[x.sign]}) — ${x.good?(x.vedhaBy?'favourable but obstructed by '+x.vedhaBy:'favourable'):'unfavourable'}${x.lord?', dasha lord':''}`)].join('\n');
+  const tb=f.elements.technical_basis;tb.value=(tb.value.trim()?tb.value.trimEnd()+'\n':'')+tech;
+  if(per.windows.length){const pn=f.elements.private_notes;pn.value=(pn.value.trim()?pn.value.trimEnd()+'\n\n':'')+'Windows within this period:\n'+per.windows.map(w=>`${w.date}: ${w.text}`).join('\n')}}
 const mergedInterpretation=i=>[i.client_interpretation,i.prediction].map(x=>String(x||'').trim()).filter(Boolean).join('\n\n');
 function blankInfluence(clientId){return {id:uuid(),client_id:clientId,parent_id:null,title:'',start_date:todayStr(),start_time:'',end_date:todayStr(),end_time:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
   polarity:'supportive',significant:false,intensity:'',category:'',secondary_categories:[],client_interpretation:'',observation_prompt:'',reflection_prompt:'',recommended_actions:'',avoidances:'',prediction:'',remedial_note:'',disclaimer:'none',custom_disclaimer:'',
@@ -2667,7 +2771,7 @@ function openEditor(ctx,inf,isNew){
   let gws=null;const gt=$('#gtoggle',dlg);
   gt.onclick=()=>{const on=gt.getAttribute('aria-pressed')!=='true';gt.setAttribute('aria-pressed',on);dlg.classList.toggle('wide',on);$('.db',dlg).classList.toggle('split',on);$('#gpane',dlg).classList.toggle('hidden',!on);
     if(on&&!gws){const f=$('#ef',dlg);const tz=c.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone;const when=GOCHARA.zonedToUtc(f.elements.start_date.value||todayStr(),f.elements.start_time.value||'12:00',tz);
-      gws=GUI.mount($('#gpane',dlg),c,{compact:true,instant:when,addLabel:'Use this moment in the influence',onAdd:snap=>{f.elements.start_date.value=snap.local.date;if(f.elements.end_date.value<snap.local.date)f.elements.end_date.value=snap.local.date;f.elements.start_time.value=snap.local.time;f.elements.timezone.value=snap.tz;
+      gws=GUI.mount($('#gpane',dlg),c,{compact:true,instant:when,addLabel:'Use this moment in the influence',onAddPeriod:per=>{applyPeriod(f,per);inf.transit_snapshot=inf.transit_snapshot||null;toast('Example period copied into the influence — review every field before publishing');f.dispatchEvent(new Event('input'));$('.db',dlg).scrollTo({top:0,behavior:'smooth'})},onAdd:snap=>{f.elements.start_date.value=snap.local.date;if(f.elements.end_date.value<snap.local.date)f.elements.end_date.value=snap.local.date;f.elements.start_time.value=snap.local.time;f.elements.timezone.value=snap.tz;
         const pn=f.elements.private_notes;pn.value=(pn.value?pn.value.trimEnd()+'\n\n':'')+snap.text;inf.transit_snapshot=snap.json;const p=snap.json.selected;if(p&&!f.elements.technical_basis.value)f.elements.technical_basis.value=`Transit ${GOCHARA.GRAHA.find(g=>g.key===p.key).name} ${GOCHARA.RASHI[p.sign]} ${Math.floor(p.deg)}° — ${p.houseLagna}H from Lagna, ${p.houseMoon}H from Chandra`;toast('Moment copied into the influence');f.dispatchEvent(new Event('input'))}});}};
   dlg.addEventListener('close',()=>{if(gws)gws.destroy()});
   const form=$('#ef',dlg);
