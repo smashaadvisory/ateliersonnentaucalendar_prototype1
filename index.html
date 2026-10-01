@@ -831,62 +831,52 @@ function mount(container,client,opts={}){
 Work out the period yourself from the transit(s) in focus — sign/house entry and exit dates (the "in this sign until" dates above), stations, exact contacts and the dasha sub-period boundaries — and give real calendar dates.
 Approved categories (use these exact names): ${cats.join('; ')}.
 
-Respond in exactly this format — keep the labels, fill in the brackets, plain text:
+Respond in exactly this format — keep the labels, one label per line, fill in the brackets, plain text (no tables, no markdown headings):
 
 [1–3 WORD SIGNPOST TITLE]
-
 Dates: [start date – end date]
-
 Duration: [number of days or approximate duration]
-
 Polarity: [Supportive / Mixed / Danger]
-
 Intensity: [1–5]
-
 Especially significant: [Yes / No]
+Primary category: [exactly one approved category]
+Secondary categories: [zero to three approved categories, or None]
+Supportive for: [approved categories that benefit — only when Polarity is Mixed, otherwise None]
+Difficult for: [approved categories that need care — only when Polarity is Mixed, otherwise None]
+Peak dates: [exact dates or narrow trigger windows, or None]
+Technical basis: [one line of Jyotiṣa reasoning for the astrologer — activated houses, their lords, natal occupants, daśā lords, transit contacts, and what strengthens or softens the effect]
 
-Primary category: [choose exactly one approved category]
+Interpretation:
+[2–4 calm paragraphs written for the client in a non-deterministic voice: what this period may concretely indicate for this native, what may go well, open up or become productive, and what may become difficult, excessive, delayed or vulnerable to poor judgment. No astrological jargon here.]
 
-Secondary categories: [zero to three approved categories]
+Notice:
+[1–3 sentences on what the client may observe in daily life during this period.]
 
-Prediction summary:
-[1–3 concise sentences describing what this period may concretely indicate for this native.]
+Consider:
+[1–3 sentences or questions the client may reflect on.]
 
-Why this period matters:
-[Brief Jyotiṣa reasoning. Identify the activated houses, their lords, natal occupants, daśā lords and relevant transit contacts. Explain what strengthens or softens the effect.]
-
-Supportive expression:
-[What may go well, become easier, open up or become productive.]
-
-Challenging expression:
-[What may become difficult, excessive, delayed, unstable or vulnerable to poor judgment.]
-
-Peak dates:
-[Exact dates or narrow trigger windows where relevant.]
-
-Consider
-
+Suggestions:
 * […]
 * […]
 * […]
 
-Suggestions
-
+Consider postponing:
 * […]
 * […]
 * […]
-
-Consider postponing
-
-* […]
-* […]
-* […]
-
-After the template, add one closing section headed "BPL perspective": a synthesis of how Barbara Pijan Lama characteristically reads the placements involved (her bhava/graha/drishti framing and the psychological texture she gives each graha in each rashi and bhava), paraphrased in your own words and marked as a synthesis of her published approach${promptState.bpl.length?', drawing on these passages from her site (paraphrase, do not quote):\n- '+promptState.bpl.join('\n- '):''}.`);
+${promptState.remedial?`
+Remedial work:
+[Traditional observances or practices suited to this period and this chart — mantra, charity, fasting day, colour, gemstone caution, temple or nature practice as appropriate — stated as gentle options, never as obligations, with the planet each addresses.]
+`:`
+Do not include a remedial-work section.
+`}
+BPL perspective:
+[For the astrologer only: a synthesis of how Barbara Pijan Lama characteristically reads the placements involved (her bhava/graha/drishti framing and the psychological texture she gives each graha in each rashi and bhava), paraphrased in your own words and marked as a synthesis of her published approach${promptState.bpl.length?', drawing on these passages from her site (paraphrase, do not quote):\n- '+promptState.bpl.join('\n- '):''}.]`);
     return L.join('\n')}
   function promptPanel(c){const sel=st.sel;const what=sel?(sel.type==='transit'?'this transit':sel.type==='natal'?'this natal placement':'this house'):'the current gochara';
     return `<div class="g-ai"><h4>Ask an AI about ${what}</h4>
      <div class="row" style="gap:6px"><input type="text" id="pr-q" placeholder="optional: a specific question (e.g. career move in November?)" value="${esc(promptState.q||'')}" style="flex:1;min-width:200px"><button type="button" class="btn small" id="pr-gen">Generate prompt</button></div>
+     <label class="chk small" style="margin:6px 0 0"><input type="checkbox" id="pr-rem" ${promptState.remedial?'checked':''}>Ask for remedial work too (fills the influence’s remedial note — shown only to clients with the add-on)</label>
      ${promptState.text?`<div class="row" style="gap:6px;margin-top:8px"><button type="button" class="btn small" id="pr-copy">Copy prompt</button><button type="button" class="btn ghost small" id="pr-bpl" ${promptState.busy?'disabled':''}>${promptState.busy?'Fetching BPL passages…':promptState.bpl.length?'BPL passages included ('+promptState.bpl.length+')':'Add BPL passages to the prompt'}</button><span class="small muted">${promptState.text.length.toLocaleString()} characters</span></div>
      <textarea id="pr-text" readonly style="margin-top:8px;min-height:260px;font-size:.9rem;line-height:1.45">${esc(promptState.text)}</textarea>
      <p class="small muted">Paste into ChatGPT or Claude. The answer comes back in the influence format — in the influence editor, “Fill from AI answer” puts it straight into the fields.</p>`:''}
@@ -970,6 +960,7 @@ After the template, add one closing section headed "BPL perspective": a synthesi
     const pq=$('#pr-q',el);if(pq)pq.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();pg_.click()}};
     const pc=$('#pr-copy',el);if(pc)pc.onclick=()=>copy(promptState.text,'Prompt copied — paste it into ChatGPT or Claude');
     const pb=$('#pr-bpl',el);if(pb)pb.onclick=()=>addBplToPrompt(c);
+    const prr=$('#pr-rem',el);if(prr)prr.onchange=()=>{promptState.remedial=prr.checked;if(promptState.text){promptState.text=buildPrompt(c);draw()}};
     const pt=$('#pr-text',el);if(pt)pt.onclick=()=>pt.select();
     const rf=$('#g-rform',el);if(rf)rf.onsubmit=e=>{e.preventDefault();const q=$('#g-q',el).value.trim();if(q)runResearch(q)};
     const add=$('#g-add',el);if(add)add.onclick=()=>opts.onAdd(snapshot(c));
@@ -1001,6 +992,14 @@ const CATEGORIES=[
   ['rest','Rest and restoration'],['decisions','Decisions and beginnings'],['endings','Endings and transitions'],['remedies','Remedies and observances'],['general','General']
 ];
 const CAT=Object.fromEntries(CATEGORIES);
+/* Custom categories: the astrologer's own areas (saved in settings), merged into CATEGORIES / CAT so every picker, chip, filter and the AI prompt see them. */
+const BASE_CATEGORY_KEYS=CATEGORIES.map(c=>c[0]);
+const CUSTOM_COLORS=['#8c6d46','#5b7b7a','#9a6b8a','#6f7f4c','#b3703f','#5d6f9a','#a3563f','#6b8c5a','#7d5f8e','#4f7f86'];
+let CUSTOM_CATEGORIES=[];
+const slugCat=label=>'c_'+String(label).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,24);
+function applyCustomCategories(list){list=Array.isArray(list)?list.filter(x=>x&&x.key&&x.label):[];CUSTOM_CATEGORIES=list.map(x=>({key:String(x.key),label:String(x.label),color:x.color||CUSTOM_COLORS[0]}));
+  for(let i=CATEGORIES.length-1;i>=0;i--){const k=CATEGORIES[i][0];if(!BASE_CATEGORY_KEYS.includes(k)&&!CUSTOM_CATEGORIES.some(c=>c.key===k)){CATEGORIES.splice(i,1);delete CAT[k]}}
+  for(const c of CUSTOM_CATEGORIES){const row=CATEGORIES.find(x=>x[0]===c.key);if(row)row[1]=c.label;else{const at=CATEGORIES.findIndex(x=>x[0]==='remedies');CATEGORIES.splice(at>=0?at:CATEGORIES.length,0,[c.key,c.label])}CAT[c.key]=c.label;try{document.documentElement.style.setProperty('--cat-'+c.key,c.color)}catch(e){}}}
 const INTENTIONS={
   'find work':['work','decisions','communication'],'negotiate':['communication','money','work','legal'],'begin something':['decisions','work','creativity'],
   'travel':['travel','health'],'have a difficult conversation':['communication','relationships'],'make an important purchase':['money','decisions'],
@@ -1188,7 +1187,9 @@ const api={
   async setPrefs(code,prefs){return chk(await sb.rpc('client_set_prefs',{p_code:code,p_prefs:prefs}))},
   async logActivity(code,sid,event,detail){return chk(await sb.rpc('client_log',{p_code:code,p_session:sid,p_event:event,p_detail:detail||{}}))},
   async listActivity(clientId,limit=600){return chk(await sb.from('client_activity').select('id,session_id,event,detail,user_agent,at').eq('client_id',clientId).order('at',{ascending:false}).limit(limit))},
-  async recentActivity(limit=500){return chk(await sb.from('client_activity').select('client_id,session_id,event,detail,at').order('at',{ascending:false}).limit(limit))}
+  async recentActivity(limit=500){return chk(await sb.from('client_activity').select('client_id,session_id,event,detail,at').order('at',{ascending:false}).limit(limit))},
+  async getSetting(key){const r=chk(await sb.from('settings').select('value').eq('key',key).maybeSingle());return r?r.value:null},
+  async setSetting(key,value){return chk(await sb.from('settings').upsert({key,value,updated_at:new Date().toISOString()}).select().single())}
 };
 let MOCKED=false;
 if(window.__apiOverride){Object.assign(api,window.__apiOverride);MOCKED=true}
@@ -1196,19 +1197,39 @@ if(window.__apiOverride){Object.assign(api,window.__apiOverride);MOCKED=true}
 /* ---------------- Client activity log (visible to the astrologer only) ---------------- */
 // Records when a client opens the calendar, which screen they are on, a heartbeat each minute while the page is
 // visible, and when they leave — so the dashboard can show who is on the app now and how long they stay.
-const ACT={code:null,sid:null,screen:'calendar',last:'',timer:null,bound:false,
-  start(code){ACT.code=code;let sid=sessionStorage.getItem('as.sid');if(!sid){sid=Math.random().toString(36).slice(2,10)+Date.now().toString(36);sessionStorage.setItem('as.sid',sid)}ACT.sid=sid;ACT.last='';ACT.screen='calendar';
-    ACT.send('open',{screen:'calendar',tz:Intl.DateTimeFormat().resolvedOptions().timeZone,width:window.innerWidth});ACT.bind()},
-  stop(reason){if(!ACT.code)return;ACT.beacon('close',{screen:ACT.screen,reason:reason||'signed out'});if(ACT.timer)clearInterval(ACT.timer);ACT.timer=null;ACT.code=null},
-  view(screen,detail){const d={screen,...(detail||{})};const key=JSON.stringify(d);if(key===ACT.last)return;ACT.last=key;ACT.screen=screen;ACT.send('view',d)},
+const ACT={code:null,sid:null,screen:'calendar',last:'',timer:null,bound:false,cur:null,curStart:0,curAcc:0,reads:{},readDate:null,io:null,lastDate:null,
+  start(code){ACT.code=code;let sid=sessionStorage.getItem('as.sid');if(!sid){sid=Math.random().toString(36).slice(2,10)+Date.now().toString(36);sessionStorage.setItem('as.sid',sid)}ACT.sid=sid;ACT.last='';ACT.screen='calendar';ACT.cur=null;
+    ACT.send('open',{screen:'calendar',tz:Intl.DateTimeFormat().resolvedOptions().timeZone,width:window.innerWidth,touch:'ontouchstart' in window});ACT.bind()},
+  stop(reason){if(!ACT.code)return;ACT.flushReads();ACT.beacon('close',{screen:ACT.screen,reason:reason||'signed out',prev_ms:ACT.dwellMs()});if(ACT.timer)clearInterval(ACT.timer);ACT.timer=null;ACT.code=null;ACT.cur=null},
+  // Time the current screen has been visible, in ms (pauses while the tab is hidden).
+  dwellMs(){if(!ACT.cur)return 0;return Math.round(ACT.curAcc+(document.visibilityState==='visible'?Date.now()-ACT.curStart:0))},
+  // A screen change: the previous screen's visible time travels with the new event (prev_ms), so nothing extra is sent.
+  view(screen,detail){const d={screen,...(detail||{})};const key=JSON.stringify(d);if(key===ACT.last)return;const prev=ACT.cur?{prev_screen:ACT.cur.screen,prev_ms:ACT.dwellMs()}:{};
+    ACT.last=key;ACT.screen=screen;ACT.cur=d;ACT.curStart=Date.now();ACT.curAcc=0;ACT.send('view',{...d,...prev})},
+  // Something done on the current screen (export, copy, print): recorded without changing the screen or its timing.
+  action(what,detail){ACT.send('view',{screen:what,...(detail||{})})},
   send(event,detail){if(!ACT.code||typeof api.logActivity!=='function')return;try{Promise.resolve(api.logActivity(ACT.code,ACT.sid,event,detail||{})).catch(()=>{})}catch(e){}},
   // Used when the page is being hidden or closed: a keep-alive request survives navigation.
   beacon(event,detail){if(!ACT.code)return;if(MOCKED||!configured()){ACT.send(event,detail);return}
     try{fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/client_log',{method:'POST',keepalive:true,headers:{'content-type':'application/json',apikey:CONFIG.SUPABASE_ANON_KEY,authorization:'Bearer '+CONFIG.SUPABASE_ANON_KEY},body:JSON.stringify({p_code:ACT.code,p_session:ACT.sid,p_event:event,p_detail:detail||{}})}).catch(()=>{})}catch(e){}},
-  bind(){if(ACT.timer)clearInterval(ACT.timer);ACT.timer=setInterval(()=>{if(ACT.code&&document.visibilityState==='visible')ACT.send('heartbeat',{screen:ACT.screen})},60000);
+  // Which entries on the open day are actually on screen, and for how long (an entry counts while at least half of it is visible).
+  watchEntries(container,date){if(!ACT.code)return;ACT.flushReads();ACT.readDate=date;ACT.lastDate=date;ACT.reads={};
+    if(!('IntersectionObserver' in window))return;
+    ACT.io=new IntersectionObserver(ents=>{for(const e of ents){const t=e.target.querySelector('h4');if(!t)continue;const r=ACT.reads[t.textContent]=ACT.reads[t.textContent]||{ms:0,since:0};
+      if(e.isIntersecting&&document.visibilityState==='visible'){if(!r.since)r.since=Date.now()}else if(r.since){r.ms+=Date.now()-r.since;r.since=0}}},{threshold:0.5});
+    container.querySelectorAll('article.inf').forEach(a=>ACT.io.observe(a))},
+  flushReads(){if(ACT.io){ACT.io.disconnect();ACT.io=null}if(!ACT.readDate)return;const now=Date.now();
+    const list=Object.entries(ACT.reads).map(([title,r])=>({title,ms:Math.round(r.ms+(r.since?now-r.since:0))})).filter(x=>x.ms>=1500).sort((a,b)=>b.ms-a.ms).slice(0,12);
+    if(list.length)ACT.send('view',{screen:'entries',date:ACT.readDate,entries:list});ACT.reads={};ACT.readDate=null},
+  bind(){if(ACT.timer)clearInterval(ACT.timer);ACT.timer=setInterval(()=>{if(ACT.code&&document.visibilityState==='visible')ACT.send('heartbeat',{screen:ACT.screen,ms:ACT.dwellMs()})},60000);
     if(ACT.bound)return;ACT.bound=true;
-    document.addEventListener('visibilitychange',()=>{if(!ACT.code)return;if(document.visibilityState==='hidden')ACT.beacon('close',{screen:ACT.screen,reason:'hidden'});else ACT.send('open',{screen:ACT.screen,reason:'resumed'})});
-    window.addEventListener('pagehide',()=>{if(ACT.code)ACT.beacon('close',{screen:ACT.screen,reason:'left'})})}
+    document.addEventListener('visibilitychange',()=>{if(!ACT.code)return;
+      if(document.visibilityState==='hidden'){ACT.flushReads();ACT.beacon('close',{screen:ACT.screen,reason:'hidden',prev_ms:ACT.dwellMs()});ACT.curAcc=0;ACT.curStart=Date.now()}
+      else{ACT.curStart=Date.now();ACT.curAcc=0;ACT.send('open',{...(ACT.cur||{screen:ACT.screen}),reason:'resumed'});const dp=document.querySelector('#daypanel');if(dp&&ACT.lastDate)ACT.watchEntries(dp,ACT.lastDate)}});
+    window.addEventListener('pagehide',()=>{if(ACT.code){ACT.flushReads();ACT.beacon('close',{screen:ACT.screen,reason:'left',prev_ms:ACT.dwellMs()})}});
+    document.addEventListener('copy',()=>{if(!ACT.code)return;let sel='',entry;try{const S=window.getSelection();sel=String(S||'');const n=S&&S.anchorNode;const a=n&&(n.nodeType===1?n:n.parentElement);const art=a&&a.closest('article.inf');if(art){const h=art.querySelector('h4');entry=h?h.textContent:undefined}}catch(e){}
+      ACT.action('copy',{chars:sel.length,entry,date:ACT.lastDate})});
+    window.addEventListener('beforeprint',()=>{if(ACT.code)ACT.action('print',{date:ACT.lastDate})})}
 };
 
 /* ---------------- Router & header ---------------- */
@@ -1303,6 +1324,7 @@ async function renderCalendar(){
   let pkg;
   try{pkg=await api.openCalendar(code)}catch(err){app.innerHTML=`<div class="entry card"><h1>Not reachable</h1><p class="muted">Could not reach the calendar service. Please try again in a moment.</p><p class="small muted">${esc(err.message||'')}</p></div>`;return}
   if(!pkg.ok){localStorage.removeItem(CODE_KEY);renderClientLogin(pkg.why);return}
+  applyCustomCategories(pkg.categories||[]);
   if(sessionStorage.getItem('as.welcomed')!==code){
     sessionStorage.setItem('as.welcomed',code);
     const w=document.createElement('div');w.className='welcome';w.setAttribute('role','status');
@@ -1420,10 +1442,10 @@ function drawCalendar(pkg,root,opts={}){
   root.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calState.month+=Number(b.dataset.nav);if(calState.month<0){calState.month=11;calState.year--}if(calState.month>11){calState.month=0;calState.year++}redraw()});
   root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);log('day',{date:calState.selected,entries:visible.filter(i=>i.start_date<=calState.selected&&calState.selected<=i.end_date).map(i=>i.title).slice(0,6)});if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
   root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();log('display options',{mode:prefs.mode});redraw()});
-  const intent=$('#intent',root);if(intent)intent.onchange=e=>{prefs.intention=e.target.value;savePrefs();redraw()};
-  root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.hidden=[...root.querySelectorAll('[data-cat]:not(:checked)')].map(x=>x.dataset.cat);savePrefs();redraw()});
+  const intent=$('#intent',root);if(intent)intent.onchange=e=>{prefs.intention=e.target.value;savePrefs();log('display options',{intention:prefs.intention||'none'});redraw()};
+  root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.hidden=[...root.querySelectorAll('[data-cat]:not(:checked)')].map(x=>x.dataset.cat);savePrefs();log('display options',{hidden:prefs.hidden.map(k=>CAT[k]||k)});redraw()});
   const ics=$('#ics',root);if(ics)ics.onclick=()=>{const pol=[];if($('#ics-sup',root).checked)pol.push('supportive');if($('#ics-cau',root).checked)pol.push('caution','especially_sensitive');if($('#ics-mix',root).checked)pol.push('mixed');
-    download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');log('export',{what:'calendar file'});toast('Calendar file downloaded')};
+    download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');if(opts.code&&!opts.preview)ACT.action('export',{what:'calendar file',polarities:pol,exactTimes:$('#ics-time',root).checked});toast('Calendar file downloaded')};
   drawDay(pkg,visible,calState.selected,root);
 }
 function drawDay(pkg,visible,ds,root){
@@ -1458,6 +1480,7 @@ function drawDay(pkg,visible,ds,root){
    ${hiddenCount>0?`<p class="small muted" style="margin-top:8px">${hiddenCount} ${hiddenCount===1?'entry is':'entries are'} hidden for this day by your display options. <a href="#" data-showopts>Show everything</a></p>`:''}
    ${here.length&&dd?`<p class="daydisc">${esc(dd)}</p>`:''}</div>`;
   const so=$('[data-showopts]',root);if(so)so.onclick=e=>{e.preventDefault();if(root.__resetPrefs)root.__resetPrefs()};
+  if(ACT.code&&root.id!=='pv'&&!root.closest('dialog'))ACT.watchEntries($('#daypanel',root),ds);
 }
 /* ICS */
 function icsEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/[,;]/g,m=>'\\'+m)}
@@ -1508,7 +1531,8 @@ let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:ne
 async function renderAdmin(path){
   const session=await api.adminSession();
   if(!session){go('#/astrologer');return}
-  setHeader({left:[{href:'#/admin',label:'Dashboard',cls:'quiet'},{href:'#/admin/templates',label:'Templates',cls:'quiet'}],brand:true,right:[{id:'chpw',label:'Change password',cls:'quiet',onClick:openChangePassword},{id:'out',label:'Sign out',cls:'ghost',onClick:async()=>{await api.adminSignOut();go('#/')}}]});
+  try{applyCustomCategories(await api.getSetting('categories'))}catch(e){}
+  setHeader({left:[{href:'#/admin',label:'Dashboard',cls:'quiet'},{href:'#/admin/templates',label:'Templates & categories',cls:'quiet'}],brand:true,right:[{id:'chpw',label:'Change password',cls:'quiet',onClick:openChangePassword},{id:'out',label:'Sign out',cls:'ghost',onClick:async()=>{await api.adminSignOut();go('#/')}}]});
   app.innerHTML='<p class="loading">Loading…</p>';
   const m=path.match(/^\/admin\/client\/([^/]+)/);
   if(m)return renderWorkspace(m[1]);
@@ -1526,8 +1550,8 @@ async function renderDashboard(){
   wsTab='client';
   const clients=await api.listClients();
   let presence={},actNote='';
-  const loadPresence=async()=>{const out={};const recent=await api.recentActivity(600);for(const e of recent){if(!out[e.client_id])out[e.client_id]={last:e}}
-    for(const id in out){const e=out[id].last;out[id].online=e.event!=='close'&&Date.now()-new Date(e.at).getTime()<ONLINE_MS;out[id].screen=screenText(e.detail)}return out};
+  const loadPresence=async()=>{const out={};const recent=await api.recentActivity(600);for(const e of recent){const o=out[e.client_id]=out[e.client_id]||{last:e};const d=e.detail||{};if(!o.view&&((e.event==='view'&&!ACTION_SCREENS.includes(d.screen))||e.event==='open'))o.view=e}
+    for(const id in out){const e=out[id].last;out[id].online=e.event!=='close'&&Date.now()-new Date(e.at).getTime()<ONLINE_MS;out[id].screen=out[id].view?screenText(out[id].view.detail):''}return out};
   try{presence=await loadPresence()}
   catch(e){actNote=/schema cache|does not exist|Could not find/i.test(e.message||'')?'<p class="note small" style="margin:0 0 10px">To see when clients are on the app, run the latest supabase-setup.sql once in the Supabase SQL Editor.</p>':''}
   const active=clients.filter(c=>c.status!=='archived'), archived=clients.filter(c=>c.status==='archived');
@@ -1589,30 +1613,69 @@ const ago=d=>{const ms=Date.now()-new Date(d).getTime();if(ms<60000)return 'just
 const fmtDT=d=>new Date(d).toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 const fmtDur=ms=>{const m=Math.round(ms/60000);if(m<1)return 'under a minute';if(m<60)return m+' min';const h=Math.floor(m/60);return h+' h '+(m%60?(m%60)+' min':'')};
 const monthLabel=ym=>{const [y,m]=String(ym||'').split('-').map(Number);return y&&m?new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(ym||'')};
-const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;if(sc==='display options')return `display options → ${d.mode||''}`;if(sc==='export')return 'downloaded the calendar file';return sc};
+const fmtMs=ms=>ms<1000?'':ms<60000?Math.round(ms/1000)+' s':ms<3600000?Math.round(ms/60000)+' min':fmtDur(ms);
+const ACTION_SCREENS=['export','copy','print','entries'];
+const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
+  if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;
+  if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;
+  if(sc==='display options')return 'display options → '+(d.mode?'show '+d.mode:d.intention!==undefined?'intention '+d.intention:d.hidden?(d.hidden.length?'hid '+d.hidden.join(', '):'all areas shown'):'changed');
+  if(sc==='export')return 'exported to their calendar app'+(d.polarities&&d.polarities.length&&d.polarities.length<4?' ('+d.polarities.join(', ')+')':'');
+  if(sc==='copy')return `copied text${d.entry?' from “'+d.entry+'”':''}${d.chars?' ('+d.chars+' characters)':''}`;
+  if(sc==='print')return 'printed the page';
+  if(sc==='entries')return 'read '+(d.entries||[]).map(e=>`“${e.title}”${fmtMs(e.ms)?' '+fmtMs(e.ms):''}`).join(', ');
+  return sc};
+// A short label for "where they were" — used to add up time per place.
+const placeLabel=d=>{if(!d)return 'calendar';const sc=d.screen||'calendar';if(sc==='month')return monthLabel(d.month);if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?' ('+d.entries.slice(0,2).join(', ')+(d.entries.length>2?'…':'')+')':''}`;if(sc==='display options')return 'display options';return sc};
 // Group raw events (newest first) into visits: one per session, split where more than ten minutes pass or the page was closed and reopened.
+// Time per place comes from the client itself: each screen change carries how long the previous screen was visible (prev_ms),
+// each close carries the time on the last screen, and "entries" events carry how long each entry was actually on screen.
 function analyseActivity(rows){const ev=rows.slice().sort((a,b)=>new Date(a.at)-new Date(b.at));const visits=[];let cur=null;
-  for(const e of ev){const t=new Date(e.at).getTime();const gap=cur?t-cur.endT:Infinity;
-    if(!cur||e.session_id!==cur.sid||gap>10*60000||(cur.closed&&e.event==='open')){cur={sid:e.session_id,startT:t,endT:t,closed:false,screens:[],events:0,ua:e.user_agent};visits.push(cur)}
-    cur.endT=t;cur.events++;cur.closed=e.event==='close';if(e.event==='view'){const txt=screenText(e.detail);if(txt&&cur.screens[cur.screens.length-1]!==txt)cur.screens.push(txt)}}
-  for(const v of visits){v.ms=Math.max(v.endT-v.startT,v.events>1?60000:30000);if(!v.closed&&Date.now()-v.endT<ONLINE_MS)v.ms=Date.now()-v.startT}
+  const dwell={},reads={},actions=[];const addDwell=(label,ms)=>{if(!label||!(ms>0))return;dwell[label]=(dwell[label]||0)+Math.min(ms,30*60000)};
+  const settle=v=>{if(v&&v.curView&&!v.curSettled){const L=placeLabel(v.curView);addDwell(L,v.curHb||0);if(v.curHb>0)v.places[L]=(v.places[L]||0)+v.curHb;v.curSettled=true}};
+  for(const e of ev){const t=new Date(e.at).getTime();const gap=cur?t-cur.endT:Infinity;const d=e.detail||{};
+    if(!cur||e.session_id!==cur.sid||gap>10*60000||(cur.closed&&e.event==='open')){settle(cur);cur={sid:e.session_id,startT:t,endT:t,closed:false,screens:[],events:0,ua:e.user_agent,curView:null,curHb:0,curSettled:true,exported:false,copied:false,printed:false,reads:{},places:{}};visits.push(cur)}
+    cur.endT=t;cur.events++;cur.closed=e.event==='close';
+    if(e.event==='view'&&ACTION_SCREENS.includes(d.screen)){const txt=screenText(d);if(txt&&cur.screens[cur.screens.length-1]!==txt)cur.screens.push(txt);
+      if(d.screen==='export')cur.exported=true;if(d.screen==='copy')cur.copied=true;if(d.screen==='print')cur.printed=true;
+      if(d.screen==='entries'){for(const x of (d.entries||[])){const r=reads[x.title]=reads[x.title]||{ms:0,times:0,last:0};r.ms+=x.ms||0;r.times++;r.last=Math.max(r.last,t);cur.reads[x.title]=(cur.reads[x.title]||0)+(x.ms||0)}}
+      else actions.push({t,d});continue}
+    if(e.event==='view'){const txt=screenText(d);if(txt&&cur.screens[cur.screens.length-1]!==txt)cur.screens.push(txt);
+      if(cur.curView&&d.prev_ms>0){addDwell(placeLabel(cur.curView),d.prev_ms);cur.places[placeLabel(cur.curView)]=(cur.places[placeLabel(cur.curView)]||0)+d.prev_ms;cur.curSettled=true}
+      cur.curView=d;cur.curHb=0;cur.curSettled=false;continue}
+    if(e.event==='heartbeat'){if(d.ms>0)cur.curHb=d.ms;continue}
+    if(e.event==='close'){if(cur.curView&&d.prev_ms>0){addDwell(placeLabel(cur.curView),d.prev_ms);cur.places[placeLabel(cur.curView)]=(cur.places[placeLabel(cur.curView)]||0)+d.prev_ms;cur.curSettled=true}else settle(cur);cur.curView=null;cur.curHb=0}}
+  settle(cur);
+  for(const v of visits){v.ms=Math.max(v.endT-v.startT,v.events>1?60000:30000);if(!v.closed&&Date.now()-v.endT<ONLINE_MS)v.ms=Date.now()-v.startT;
+    const top=Object.entries(v.reads).sort((a,b)=>b[1]-a[1])[0];v.topEntry=top?{title:top[0],ms:top[1]}:null;
+    const tp=Object.entries(v.places).sort((a,b)=>b[1]-a[1])[0];v.topPlace=tp?{label:tp[0],ms:tp[1]}:null}
   const last=ev[ev.length-1];const online=!!last&&last.event!=='close'&&Date.now()-new Date(last.at).getTime()<ONLINE_MS;
-  const lastView=ev.slice().reverse().find(e=>e.event==='view'||e.event==='open');
+  const lastView=ev.slice().reverse().find(e=>e.event==='view'&&!ACTION_SCREENS.includes((e.detail||{}).screen)||e.event==='open');
   const since=d=>visits.filter(v=>v.startT>Date.now()-d*86400000);
   const sum=list=>list.reduce((a,v)=>a+v.ms,0);
-  return {visits:visits.reverse(),online,last,lastView,stats:{v7:since(7).length,v30:since(30).length,ms30:sum(since(30)),msAll:sum(visits),avg:visits.length?sum(visits)/visits.length:0,opens:ev.filter(e=>e.event==='open'&&!(e.detail&&e.detail.reason)).length}}}
+  const count=sc=>actions.filter(a=>a.d.screen===sc).length;
+  return {visits:visits.reverse(),online,last,lastView,
+    dwell:Object.entries(dwell).map(([label,ms])=>({label,ms})).sort((a,b)=>b.ms-a.ms),
+    reads:Object.entries(reads).map(([title,r])=>({title,...r})).sort((a,b)=>b.ms-a.ms),
+    actions:actions.slice().reverse(),counts:{export:count('export'),copy:count('copy'),print:count('print')},
+    stats:{v7:since(7).length,v30:since(30).length,ms30:sum(since(30)),msAll:sum(visits),avg:visits.length?sum(visits)/visits.length:0,opens:ev.filter(e=>e.event==='open'&&!(e.detail&&e.detail.reason)).length}}}
 let actTimer=null;
 async function tabActivity({c},body){
   let rows;try{rows=await api.listActivity(c.id,800)}catch(e){body.innerHTML=`<div class="card"><h2>Activity</h2><p class="warn">${esc(e.message||e)}</p><p class="note small">${esc(explain(e.message)||'The activity log needs the latest supabase-setup.sql to be run once in the Supabase SQL Editor.')}</p></div>`;return}
   const a=analyseActivity(rows);const tzMine=Intl.DateTimeFormat().resolvedOptions().timeZone;
   const status=a.online?`<span class="pill supportive">● On the app now</span> <span class="small muted">looking at ${esc(screenText(a.lastView&&a.lastView.detail)||'the calendar')}</span>`:a.last?`<span class="pill draft">Not on the app</span> <span class="small muted">last seen ${esc(ago(a.last.at))} (${esc(fmtDT(a.last.at))})${a.lastView?' · last looked at '+esc(screenText(a.lastView.detail)||'the calendar'):''}</span>`:'<span class="pill draft">Never opened</span> <span class="small muted">this client has not opened the calendar yet.</span>';
   const stat=(v,l)=>`<div style="min-width:120px"><div style="font-size:1.4rem;line-height:1.1">${v}</div><div class="small muted">${l}</div></div>`;
-  const vis=a.visits.slice(0,60).map(v=>`<tr><td style="white-space:nowrap">${esc(fmtDT(v.startT))}</td><td style="white-space:nowrap">${v.ms?esc(fmtDur(v.ms)):'—'}${!v.closed&&Date.now()-v.endT<ONLINE_MS?' <span class="pill supportive" style="font-size:.7rem">now</span>':''}</td><td class="small">${v.screens.length?esc(v.screens.join(' → ')):'<span class="muted">opened the calendar</span>'}</td></tr>`).join('');
-  const raw=rows.slice(0,200).map(e=>`<tr><td class="small" style="white-space:nowrap">${esc(fmtDT(e.at))}</td><td class="small">${esc(e.event)}</td><td class="small muted">${esc(screenText(e.detail)||(e.detail&&e.detail.reason?e.detail.reason:''))}</td></tr>`).join('');
+  const flags=v=>[v.exported?'<span class="pill supportive" style="font-size:.7rem">exported</span>':'',v.copied?'<span class="pill caution" style="font-size:.7rem">copied text</span>':'',v.printed?'<span class="pill caution" style="font-size:.7rem">printed</span>':''].filter(Boolean).join(' ');
+  const vis=a.visits.slice(0,60).map(v=>`<tr><td style="white-space:nowrap">${esc(fmtDT(v.startT))}</td><td style="white-space:nowrap">${v.ms?esc(fmtDur(v.ms)):'—'}${!v.closed&&Date.now()-v.endT<ONLINE_MS?' <span class="pill supportive" style="font-size:.7rem">now</span>':''}</td><td class="small">${v.topEntry?`“${esc(v.topEntry.title)}”${fmtMs(v.topEntry.ms)?' · '+esc(fmtMs(v.topEntry.ms)):''}`:v.topPlace?`${esc(v.topPlace.label)}${fmtMs(v.topPlace.ms)?' · '+esc(fmtMs(v.topPlace.ms)):''}`:'<span class="muted">—</span>'}</td><td class="small">${v.screens.length?esc(v.screens.join(' → ')):'<span class="muted">opened the calendar</span>'}${flags(v)?'<div style="margin-top:4px">'+flags(v)+'</div>':''}</td></tr>`).join('');
+  const raw=rows.slice(0,200).map(e=>`<tr><td class="small" style="white-space:nowrap">${esc(fmtDT(e.at))}</td><td class="small">${esc(e.event)}</td><td class="small muted">${esc(screenText(e.detail)||(e.detail&&e.detail.reason?e.detail.reason:''))}${e.detail&&e.detail.prev_ms>0?' <span class="muted">(previous screen '+esc(fmtMs(e.detail.prev_ms)||'under a second')+')</span>':''}</td></tr>`).join('');
+  const maxD=a.dwell.length?a.dwell[0].ms:1;
+  const longest=a.dwell.slice(0,8).map(x=>`<li style="margin:4px 0"><div class="row between small" style="gap:10px"><span>${esc(x.label)}</span><span class="muted">${esc(fmtMs(x.ms)||'under a second')}</span></div><div style="height:4px;border-radius:2px;background:var(--surface-2)"><div style="height:4px;border-radius:2px;width:${Math.max(3,Math.round(100*x.ms/maxD))}%;background:var(--supportive)"></div></div></li>`).join('');
+  const readRows=a.reads.slice(0,20).map(r=>`<tr><td>${esc(r.title)}</td><td>${r.times}</td><td>${esc(fmtMs(r.ms)||'under a second')}</td><td class="small muted">${esc(ago(r.last))}</td></tr>`).join('');
   body.innerHTML=`<div class="card"><h2>Activity</h2><p style="margin:4px 0 14px">${status}</p>
-   <div class="row" style="gap:22px;flex-wrap:wrap;margin-bottom:6px">${stat(a.stats.v7,'visits, last 7 days')}${stat(a.stats.v30,'visits, last 30 days')}${stat(esc(fmtDur(a.stats.ms30)),'time on the app, 30 days')}${stat(a.visits.length,'visits in total')}${stat(esc(fmtDur(a.stats.avg)),'average visit')}</div>
-   <p class="small muted" style="margin:0 0 14px">Times are shown in your time zone (${esc(tzMine)}). A visit ends when the client closes or leaves the page, or after ten minutes without activity; the page checks in once a minute while it is open. This view refreshes every half-minute.</p>
-   <h3>Visits</h3>${a.visits.length?`<div style="overflow:auto"><table class="visits"><thead><tr><th>When</th><th>Stayed</th><th>What they looked at</th></tr></thead><tbody>${vis}</tbody></table></div>`:'<p class="muted small">No visits recorded yet.</p>'}
+   <div class="row" style="gap:22px;flex-wrap:wrap;margin-bottom:6px">${stat(a.stats.v7,'visits, last 7 days')}${stat(a.stats.v30,'visits, last 30 days')}${stat(esc(fmtDur(a.stats.ms30)),'time on the app, 30 days')}${stat(a.visits.length,'visits in total')}${stat(esc(fmtDur(a.stats.avg)),'average visit')}${stat(a.counts.export,'calendar exports')}${a.counts.copy?stat(a.counts.copy,'text copied'):''}${a.counts.print?stat(a.counts.print,'printed'):''}</div>
+   <p class="small muted" style="margin:0 0 14px">Times are shown in your time zone (${esc(tzMine)}). A visit ends when the client closes or leaves the page, or after ten minutes without activity; the page checks in once a minute while it is open. Time per place only counts while the page is actually visible; an entry counts as read while at least half of it is on screen. This view refreshes every half-minute.</p>
+   <div class="grid2" style="gap:18px;margin-bottom:14px"><div><h3 style="margin:0 0 6px">Looked at longest</h3>${a.dwell.length?`<ul class="plain" style="margin:0">${longest}</ul>`:'<p class="muted small">Nothing timed yet.</p>'}</div>
+    <div><h3 style="margin:0 0 6px">Entries engaged with</h3>${a.reads.length?`<div style="overflow:auto"><table class="reads"><thead><tr><th>Entry</th><th>Times</th><th>Reading time</th><th>Last</th></tr></thead><tbody>${readRows}</tbody></table></div>`:'<p class="muted small">No entry has been on screen long enough to count yet.</p>'}</div></div>
+   <h3>Visits</h3>${a.visits.length?`<div style="overflow:auto"><table class="visits"><thead><tr><th>When</th><th>Stayed</th><th>Longest on</th><th>What they looked at</th></tr></thead><tbody>${vis}</tbody></table></div>`:'<p class="muted small">No visits recorded yet.</p>'}
    ${rows.length?`<details class="small" style="margin-top:14px"><summary>Full log (${rows.length} most recent entries)</summary><div style="overflow:auto;max-height:360px"><table><tbody>${raw}</tbody></table></div></details>`:''}
    <p class="small muted" style="margin-top:14px">Nothing about this log is shown to clients. If your terms or privacy notice describe what you collect, usage of the calendar belongs there.</p></div>`;
   if(actTimer)clearInterval(actTimer);actTimer=setInterval(()=>{if(!document.body.contains(body)||wsTab!=='activity'){clearInterval(actTimer);actTimer=null;return}tabActivity({c},body)},30000);
@@ -1749,45 +1812,92 @@ function parseDateLoose(str,fallbackYear){const t=String(str||'').trim();let m;
   if((m=t.match(/(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,})\.?,?\s*(\d{4})?/))&&mon(m[2]))return `${m[3]||fallbackYear||new Date().getFullYear()}-${String(mon(m[2])).padStart(2,'0')}-${m[1].padStart(2,'0')}`;
   if((m=t.match(/([A-Za-z]{3,})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})?/))&&mon(m[1]))return `${m[3]||fallbackYear||new Date().getFullYear()}-${String(mon(m[1])).padStart(2,'0')}-${m[2].padStart(2,'0')}`;
   return null}
-function parseAIAnswer(text){const src=String(text||'').replace(/\r/g,'');const out={};const notes=[];
-  const HEAD=['dates','duration','polarity','intensity','especially significant','primary category','secondary categories','prediction summary','why this period matters','supportive expression','challenging expression','peak dates','consider postponing','suggestions','consider','bpl perspective','what bpl may say'];
-  const clean=l=>l.replace(/^[#>\s]+/,'').replace(/\*\*/g,'').replace(/^[\[\]]+|[\[\]]+$/g,'').trim();
-  const lines=src.split('\n');const sections={};let cur=null;let title='';
-  for(const raw of lines){if(/^[-=_*#~>\s]{3,}$/.test(raw.trim()))continue;const l=clean(raw);if(!l)continue;const low=l.toLowerCase();
-    const h=HEAD.find(h=>low===h||low===h+':'||low.startsWith(h+':'));
-    if(h){cur=h;sections[h]=sections[h]||[];const rest=l.slice(l.toLowerCase().indexOf(h)+h.length).replace(/^:\s*/,'').trim();if(rest)sections[h].push(rest);continue}
-    if(!cur){if(!title&&!/^\[/.test(raw.trim()))title=l.replace(/^[\[\]]+|[\[\]]+$/g,'').trim();else if(!title)title=l;continue}
-    sections[cur].push(l)}
+// Section headings the answer may use (canonical name first, then accepted spellings). Longer names are matched before shorter ones.
+const AI_HEADS=[['title',['title','signpost title','signpost']],['consider postponing',['consider postponing','postpone','postponing','consider delaying','avoid for now']],
+  ['remedial work',['remedial work','remedial note','remedial','remedies','remedy','optional practice','optional practices']],
+  ['technical basis',['technical basis','astrological basis','jyotisha basis','jyotish basis','jyotiṣa basis']],
+  ['supportive for',['supportive for','supports','good for']],['difficult for',['difficult for','challenging for','hard for','care for']],
+  ['secondary categories',['secondary categories','secondary category','secondary']],['primary category',['primary category','category','main category']],
+  ['especially significant',['especially significant','significant']],['peak dates',['peak dates','peak date','peak windows','peak','trigger windows','trigger dates']],
+  ['prediction summary',['prediction summary','summary','prediction']],['why this period matters',['why this period matters','why it matters','why this matters']],
+  ['supportive expression',['supportive expression']],['challenging expression',['challenging expression']],
+  ['interpretation',['interpretation','client-facing interpretation','client facing interpretation','client interpretation','meaning']],
+  ['notice',['notice','what the client may notice','what the client may observe','what you may notice','what to notice','observe']],
+  ['consider',['consider','what the client may reflect on','what to reflect on','reflection','reflect on']],
+  ['suggestions',['suggestions','suggestion','things they might do','things to do','recommended actions','recommendations','act']],
+  ['dates',['dates','date','period','window']],['duration',['duration','length']],['polarity',['polarity','tone']],['intensity',['intensity','strength']],
+  ['bpl perspective',['bpl perspective','what bpl may say','bpl','barbara pijan lama']]];
+const AI_META=['dates','duration','polarity','intensity','especially significant','primary category','secondary categories','supportive for','difficult for','peak dates','technical basis','title'];
+const AI_ALIAS=AI_HEADS.flatMap(([c,al])=>al.map(a=>[a,c])).sort((a,b)=>b[0].length-a[0].length);
+const AI_HEAD_RE=new RegExp('^('+AI_ALIAS.map(([a])=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\s*(?:\\([^)]*\\))?\\s*(?:([:：\\-–—]+)\\s*(.*)|$)','i');
+// Split text written in the prompt's format into labelled sections, whatever the markdown around the labels looks like.
+function parseAISections(text){let src=String(text||'').replace(/\r/g,'');
+  // metadata labels run together on one line ("Dates: … | Duration: … **Polarity:** …") → one per line
+  src=src.replace(/(?<=\S)[ \t]*(?:[|;•·][ \t]*|(?=\*\*|__))(?=(?:\*\*|__)?(?:dates|duration|polarity|intensity|especially significant|primary category|secondary categories|supportive for|difficult for|peak dates|technical basis)(?:\*\*|__)?\s*[:：])/gi,'\n');
+  const sections={};const order=[];let cur=null;const pre=[];
+  let lastTableHeader=false;
+  for(let raw of src.split('\n')){
+    if(/^[\s\-=_*#~>|:]{3,}$/.test(raw)){if(lastTableHeader&&/\|/.test(raw)&&pre.length)pre.pop();lastTableHeader=false;continue} // separators and table rules (a rule right after a table row marks that row as a header)
+    lastTableHeader=false;
+    if(/^\s*\|/.test(raw)){const cells=raw.split('|').map(x=>x.trim()).filter(Boolean);if(cells.length>=2)raw=cells[0]+': '+cells.slice(1).join(' ');else raw=cells[0]||'';lastTableHeader=!cur}
+    const bullet=/^\s*(?:[-*•·▪◦]|\d+[.)])\s+/.test(raw);
+    let l=raw.replace(/\*\*|__|`/g,'').replace(/^[\s#>]+/,'').replace(/^(?:[-*•·▪◦]|\d+[.)])\s+/,'').replace(/^[^\p{L}\p{N}\[]+/u,'').trim(); // strip markdown, bullets, emoji
+    if(!l)continue;
+    const m=l.match(AI_HEAD_RE);
+    if(m&&(m[2]||!bullet)){const canon=AI_ALIAS.find(([a])=>a.toLowerCase()===m[1].toLowerCase())[1];
+      // a bare generic word inside a bullet list is content, not a heading
+      if(!m[2]&&!AI_META.includes(canon)&&cur&&['suggestions','consider postponing','notice','consider','interpretation','remedial work'].includes(cur)&&/^(act|observe|reflect on|reflection|prediction|summary|meaning|peak|period|window|date|tone|strength|length|secondary|significant|category|supports|good for|hard for|care for)$/i.test(m[1])){sections[cur].push(l);continue}
+      cur=canon;if(!sections[cur]){sections[cur]=[];order.push(cur)}const rest=(m[3]||'').replace(/^[\[\]]+|[\[\]]+$/g,'').trim();if(rest)sections[cur].push(rest);continue}
+    if(!cur){pre.push({l,raw});continue}
+    sections[cur].push(l.replace(/^[\[\]]+|[\[\]]+$/g,'').trim())}
+  return {sections,order,pre}}
+function parseAIAnswer(text){const {sections,order,pre}=parseAISections(text);const out={};const notes=[];
   const joined=h=>(sections[h]||[]).join('\n').trim();
-  const bullets=h=>(sections[h]||[]).map(x=>x.replace(/^[\*\-•·]\s*|^\d+[.)]\s*/,'').replace(/^[\[\]…]+|[\[\]…]+$/g,'').trim()).filter(x=>x&&!/^\[?…\]?$/.test(x));
-  title=title.replace(/^(period|window|response|answer|influence)\s*\d+\s*[:.)\-–]?\s*/i,'').replace(/^\d+\s*[.)\-–]\s*/,'').replace(/^[\[\]]+|[\[\]]+$/g,'').trim();
+  const bullets=h=>(sections[h]||[]).map(x=>x.replace(/^[\*\-•·▪◦]\s*|^\d+[.)]\s*/,'').replace(/^[\[\]…]+|[\[\]…]+$/g,'').trim()).filter(x=>x&&!/^\[?…\]?$/.test(x)&&!/^(none|n\/a|—|-)\.?$/i.test(x));
+  const none=t=>!t||/^\[?(none|n\/a|not applicable|not requested|—|-)\]?\.?$/i.test(t.trim());
+  // title: "Title:" line if given, otherwise the best line before the first heading
+  let title=joined('title');
+  if(!title){const cands=pre.map(x=>x.l).filter(l=>!/^(here (is|are)|below|the following|sure|certainly|of course)/i.test(l));const like=cands.filter(l=>l.length<=80&&!/[.!?]$/.test(l));title=(like[like.length-1]||cands[0]||'')}
+  title=title.replace(/^(period|window|response|answer|influence)\s*\d+\s*[:.)\-–]?\s*/i,'').replace(/^\d+\s*[.)\-–]\s*/,'').replace(/^[\[\]"“”]+|[\[\]"“”]+$/g,'').trim();
   if(title&&title.length<=80)out.title=title.replace(/[.:]$/,'');
-  const dates=joined('dates');if(dates){const parts=dates.split(/\s[–—-]\s|\s*[–—]\s*|\sto\s|\suntil\s/).map(x=>x.trim()).filter(Boolean);const y2=(parts[1]||'').match(/\d{4}/);let d1=parseDateLoose(parts[0],y2&&y2[0]),d2=parts[1]?parseDateLoose(parts[1],(d1||'').slice(0,4)):d1;
+  const dates=joined('dates');if(dates&&!none(dates)){const parts=dates.split(/\s[–—-]\s|\s*[–—]\s*|\sto\s|\suntil\s|\sthrough\s/).map(x=>x.trim()).filter(Boolean);const y2=(parts[1]||'').match(/\d{4}/);let d1=parseDateLoose(parts[0],y2&&y2[0]),d2=parts[1]?parseDateLoose(parts[1],(d1||'').slice(0,4)):d1;
     if(!d1&&d2&&/^\d{1,2}$/.test(parts[0]))d1=d2.slice(0,8)+parts[0].padStart(2,'0'); // "12–14 October 2026"
-    if(d1)out.start_date=d1;if(d2)out.end_date=d2;if(!d1)notes.push('dates not understood: “'+dates+'”')}
+    if(d1)out.start_date=d1;if(d2)out.end_date=d2;if(d1&&d2&&d2<d1)out.end_date=d1;if(!d1)notes.push('dates not understood: “'+dates+'”')}
   const pol=joined('polarity').toLowerCase();const inten=parseInt((joined('intensity').match(/\d/)||[''])[0],10);if(inten>=1&&inten<=5)out.intensity=inten;
-  if(/supportive/.test(pol))out.polarity='supportive';else if(/mixed/.test(pol))out.polarity='mixed';else if(/danger|caution|challeng|difficult/.test(pol))out.polarity=(out.intensity>=4?'especially_sensitive':'caution');
-  const sig=joined('especially significant').toLowerCase();if(sig)out.significant=/^y|true/.test(sig);
-  const catKey=label=>{const t=label.toLowerCase().replace(/[^a-z ]/g,'').trim();if(!t)return null;const hit=CATEGORIES.find(([k,l])=>l.toLowerCase()===t||k===t)||CATEGORIES.find(([k,l])=>l.toLowerCase().startsWith(t)||t.startsWith(l.toLowerCase().split(' ')[0]));return hit?hit[0]:null};
-  const pc=joined('primary category');if(pc){const k=catKey(pc);if(k)out.category=k;else notes.push('category “'+pc+'” is not one of the approved categories')}
-  const sc=joined('secondary categories');if(sc){out.secondary_categories=sc.split(/[,;\n\/]/).map(catKey).filter(Boolean).filter(k=>k!==out.category).slice(0,3)}
-  const para=[joined('prediction summary'),joined('supportive expression')?'What may go well: '+joined('supportive expression'):'',joined('challenging expression')?'What may need care: '+joined('challenging expression'):'',joined('peak dates')?'Peak dates: '+joined('peak dates'):''].filter(Boolean);
-  if(para.length)out.client_interpretation=para.join('\n\n');
+  if(/supportive|favou?rable/.test(pol))out.polarity='supportive';else if(/mixed/.test(pol))out.polarity='mixed';else if(/danger|caution|challeng|difficult|sensitive/.test(pol))out.polarity=(out.intensity>=4?'especially_sensitive':'caution');
+  const sig=joined('especially significant').toLowerCase();if(sig)out.significant=/^\[?\s*(y|true)/.test(sig);
+  const catKey=label=>{const t=label.toLowerCase().replace(/[^a-z0-9& ]/g,'').trim();if(!t||/^(none|na|n\/a)$/.test(t))return null;const hit=CATEGORIES.find(([k,l])=>l.toLowerCase()===t||k===t)||CATEGORIES.find(([k,l])=>l.toLowerCase().startsWith(t)||t.startsWith(l.toLowerCase().split(' ')[0]));return hit?hit[0]:null};
+  const catList=t=>none(t)?[]:t.split(/[,;\n\/]|\band\b/).map(catKey).filter((k,i,a)=>k&&a.indexOf(k)===i);
+  const pc=joined('primary category');if(pc&&!none(pc)){const k=catKey(pc);if(k)out.category=k;else notes.push('category “'+pc+'” is not one of the approved categories')}
+  const sc=joined('secondary categories');if(sc)out.secondary_categories=catList(sc).filter(k=>k!==out.category).slice(0,3);
+  const sf=joined('supportive for');if(sf)out.supportive_for=catList(sf);const df=joined('difficult for');if(df)out.difficult_for=catList(df);
+  // interpretation: the new single section, or assembled from the older prediction/expression sections
+  const interp=joined('interpretation');
+  if(interp)out.client_interpretation=(sections.interpretation||[]).join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  else{const para=[joined('prediction summary'),joined('supportive expression')?'What may go well: '+joined('supportive expression'):'',joined('challenging expression')?'What may need care: '+joined('challenging expression'):'',!none(joined('peak dates'))?'Peak dates: '+joined('peak dates'):''].filter(Boolean);if(para.length)out.client_interpretation=para.join('\n\n')}
+  if(bullets('notice').length)out.observation_prompt=bullets('notice').join('\n');
   if(bullets('consider').length)out.reflection_prompt=bullets('consider').join('\n');
   if(bullets('suggestions').length)out.recommended_actions=bullets('suggestions').join('\n');
   if(bullets('consider postponing').length)out.avoidances=bullets('consider postponing').join('\n');
-  const priv=[joined('why this period matters')?'Why this period matters:\n'+joined('why this period matters'):'',joined('bpl perspective')||joined('what bpl may say')?'BPL perspective:\n'+(joined('bpl perspective')||joined('what bpl may say')):''].filter(Boolean);
+  if(bullets('remedial work').length&&!none(joined('remedial work')))out.remedial_note=bullets('remedial work').join('\n');
+  const tb=joined('technical basis'),why=joined('why this period matters'),bpl=joined('bpl perspective');
+  if(tb&&!none(tb))out.technical_basis=tb.split(/(?<=[.!?])\s/)[0].slice(0,160);else if(why)out.technical_basis=why.split(/(?<=[.!?])\s/)[0].slice(0,160);
+  const priv=[tb&&!none(tb)?'Technical basis:\n'+tb:'',why?'Why this period matters:\n'+why:'',bpl?'BPL perspective:\n'+bpl:''].filter(Boolean);
   if(priv.length)out.private_notes=priv.join('\n\n');
-  if(joined('why this period matters'))out.technical_basis=joined('why this period matters').split(/(?<=[.!?])\s/)[0].slice(0,160);
-  if(joined('peak dates'))out.peak_dates=joined('peak dates');
-  return {fields:out,notes}}
-function fillFromAI(form,text){const {fields,notes}=parseAIAnswer(text);const filled=[];
+  if(!none(joined('peak dates')))out.peak_dates=joined('peak dates');
+  const found=order.filter(h=>h!=='title');
+  return {fields:out,notes,found}}
+function fillFromAI(form,text){const {fields,notes,found}=parseAIAnswer(text);const filled=[];
   for(const [k,v] of Object.entries(fields)){
     if(k==='secondary_categories'){form.querySelectorAll('input[name=sec]').forEach(cb=>cb.checked=v.includes(cb.value));filled.push('secondary categories');continue}
+    if(k==='supportive_for'){form.querySelectorAll('input[name=sup]').forEach(cb=>cb.checked=v.includes(cb.value));if(v.length)filled.push('supportive for');continue}
+    if(k==='difficult_for'){form.querySelectorAll('input[name=dif]').forEach(cb=>cb.checked=v.includes(cb.value));if(v.length)filled.push('difficult for');continue}
+    if(k==='peak_dates')continue;
     const el=form.elements[k];if(!el)continue;
     if(k==='significant'){el.checked=!!v;filled.push('especially significant');continue}
     if(k==='private_notes'&&el.value.trim()){el.value=el.value.trimEnd()+'\n\n'+v}else el.value=v;filled.push(k.replace(/_/g,' '))}
-  form.dispatchEvent(new Event('input'));return {filled,notes,fields}}
+  if(fields.remedial_note&&form.elements.disclaimer&&form.elements.disclaimer.value==='none')form.elements.disclaimer.value='remedy';
+  form.dispatchEvent(new Event('input'));return {filled,notes,fields,found}}
 
 /* ---------------- Import several AI answers at once ---------------- */
 const SECTION_RE=/^\W*(dates|duration|polarity|intensity|especially significant|primary category|secondary categories|prediction summary|why this period matters|supportive expression|challenging expression|peak dates|consider postponing|suggestions|consider|bpl perspective|what bpl may say)\b/i;
@@ -1795,7 +1905,7 @@ const SECTION_RE=/^\W*(dates|duration|polarity|intensity|especially significant|
 function splitAIAnswers(text){const lines=String(text||'').replace(/\r/g,'').split('\n');const starts=[];
   const junk=l=>{const t=l.trim();return !t||/^[-=_*#~>]{3,}$/.test(t)||/^(period|window|response|answer|influence)\s*\d+\s*[:.)\-–]?\s*$/i.test(t)||/^\d+\s*[.)\-–]?\s*$/.test(t)};
   const titleLike=l=>{const t=l.replace(/^[#>\s]+/,'').replace(/\*\*/g,'').trim();return t.length>0&&t.length<=70&&!/^[\*\-•·]/.test(t)&&!SECTION_RE.test(t)&&!/[.!?]$/.test(t)};
-  for(let i=0;i<lines.length;i++){if(!/^\W*dates\s*:/i.test(lines[i]))continue;let j=i-1;while(j>=0&&junk(lines[j]))j--;starts.push(j>=0&&titleLike(lines[j])?j:i)}
+  for(let i=0;i<lines.length;i++){if(!/^\W*(?:dates|date|period)\b\W*\s*[:：\-–—|]/i.test(lines[i].replace(/\*\*|__/g,'')))continue;let j=i-1;while(j>=0&&junk(lines[j]))j--;starts.push(j>=0&&titleLike(lines[j])?j:i)}
   return starts.map((st,k)=>lines.slice(st,k+1<starts.length?starts[k+1]:lines.length).join('\n').trim()).filter(Boolean)}
 const CAT_WORDS={work:['work','career','job','vocation','profession','business','promotion','employer','colleague','project'],money:['money','income','finance','financial','salary','invest','debt','purchase','spending','budget','resources'],relationships:['relationship','partner','marriage','romance','spouse','friend','love','dating'],communication:['communication','conversation','message','email','speech','negotiat','contract','writing'],home:['home','family','house','mother','father','parent','child','domestic','move'],health:['health','vitality','energy','body','sleep','illness','doctor','fatigue','exercise'],travel:['travel','journey','trip','abroad','move','relocation','transport'],learning:['learn','study','exam','course','teacher','education','research'],creativity:['creative','art','music','design','craft','performance'],spiritual:['spiritual','meditation','prayer','practice','temple','retreat','faith'],legal:['legal','court','lawyer','administrative','paperwork','official','government'],community:['community','network','group','public','social','audience'],rest:['rest','restoration','pause','quiet','retreat','recover','solitude'],decisions:['decision','beginning','start','launch','commit','choose'],endings:['ending','closure','transition','release','let go','completion']};
 function inferCategory(text){const t=String(text||'').toLowerCase();let best=null,bs=0;for(const k in CAT_WORDS){let sc=0;for(const w of CAT_WORDS[k]){const m=t.match(new RegExp('\\b'+w,'g'));if(m)sc+=m.length}if(sc>bs){bs=sc;best=k}}return bs?best:'general'}
@@ -1812,13 +1922,14 @@ const DISC_BY_CAT={health:'health',legal:'legal',money:'financial',remedies:'rem
 const spanDays=i=>(new Date(i.end_date)-new Date(i.start_date))/86400000;
 function buildImport(ctx,text,opts={}){const {c,influences}=ctx;const blocks=splitAIAnswers(text);const cands=[];
   for(const block of blocks){const {fields,notes}=parseAIAnswer(block);const inf=Object.assign(blankInfluence(c.id),{timezone:c.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone});const warn=[...notes];
-    for(const k of ['title','start_date','end_date','polarity','intensity','significant','category','secondary_categories','client_interpretation','reflection_prompt','recommended_actions','avoidances','private_notes','technical_basis'])if(fields[k]!==undefined)inf[k]=fields[k];
+    for(const k of ['title','start_date','end_date','polarity','intensity','significant','category','secondary_categories','supportive_for','difficult_for','client_interpretation','observation_prompt','reflection_prompt','recommended_actions','avoidances','remedial_note','private_notes','technical_basis'])if(fields[k]!==undefined)inf[k]=fields[k];
+    if(inf.polarity!=='mixed'){inf.supportive_for=[];inf.difficult_for=[]}
     if(!fields.start_date){warn.push('no dates found — set them by hand');inf.end_date=inf.start_date}
     if(!inf.category){inf.category=inferCategory(block);warn.push('category inferred from the text: '+CAT[inf.category])}
     if(!inf.intensity){inf.intensity=3;warn.push('intensity missing — set to 3')}
     if(!fields.polarity)warn.push('polarity missing — set to Supportive');
     if(!inf.title)inf.title=`${CAT[inf.category]} · ${fmtShort(inf.start_date)}${inf.end_date!==inf.start_date?' – '+fmtShort(inf.end_date):''}`;
-    inf.disclaimer=DISC_BY_CAT[inf.category]||'none';if(inf.end_date<inf.start_date)inf.end_date=inf.start_date;
+    inf.disclaimer=DISC_BY_CAT[inf.category]||(inf.remedial_note?'remedy':'none');if(inf.end_date<inf.start_date)inf.end_date=inf.start_date;
     const dup=influences.find(x=>x.title.trim().toLowerCase()===inf.title.trim().toLowerCase()&&x.start_date===inf.start_date&&x.end_date===inf.end_date);
     cands.push({inf,warn,dup:!!dup,include:!dup,parent:null,peaksText:String(fields.peak_dates||'').trim(),isPeak:false})}
   // nesting: a period that lies inside a longer one becomes a window within it (the smallest container wins)
@@ -1933,7 +2044,8 @@ function openEditor(ctx,inf,isNew){
   const form=$('#ef',dlg);
   $('#aifill',dlg).onclick=()=>{$('#aibox',dlg).classList.toggle('hidden');$('#aitext',dlg).focus()};$('#aicancel',dlg).onclick=()=>$('#aibox',dlg).classList.add('hidden');
   $('#aiapply',dlg).onclick=()=>{const t=$('#aitext',dlg).value;if(!t.trim())return;const r=fillFromAI(form,t);if(!r.filled.length){$('#ainote',dlg).textContent='Nothing recognised — the answer should use the headings from the prompt (Dates, Polarity, Prediction summary…).';return}
-    $('#ainote',dlg).innerHTML=`Filled: ${esc(r.filled.join(', '))}.${r.notes.length?' <span style="color:var(--sensitive)">'+esc(r.notes.join(' · '))+'</span>':''}${r.fields.polarity&&/caution|especially/.test(r.fields.polarity)?' “Danger” was mapped to '+esc(POLARITY[r.fields.polarity].label)+' — adjust if needed.':''}`;toast('Form filled from the AI answer — please review it')};
+    const expected=['dates','polarity','intensity','primary category','interpretation','notice','consider','suggestions','consider postponing'];const missing=expected.filter(h=>!r.found.includes(h));
+    $('#ainote',dlg).innerHTML=`Filled: ${esc(r.filled.join(', '))}.${missing.length?' <span class="muted">Not found in the answer: '+esc(missing.join(', '))+'.</span>':''}${r.notes.length?' <span style="color:var(--sensitive)">'+esc(r.notes.join(' · '))+'</span>':''}${r.fields.polarity&&/caution|especially/.test(r.fields.polarity)?' “Danger” was mapped to '+esc(POLARITY[r.fields.polarity].label)+' — adjust if needed.':''}`;toast('Form filled from the AI answer — please review it')};
   const collect=()=>{const f=new FormData(form);const o={};const j=inf.jyotish||{},s=inf.source_reference||{};const secs=[],sup=[],dif=[];
     for(const [k,v] of f){if(k==='sec')secs.push(v);else if(k==='sup')sup.push(v);else if(k==='dif')dif.push(v);else if(k.startsWith('j:'))j[k.slice(2)]=v;else if(k.startsWith('s:'))s[k.slice(2)]=v;else o[k]=v}
     o.supportive_for=o.polarity==='mixed'?sup:[];o.difficult_for=o.polarity==='mixed'?dif:[];
@@ -1974,7 +2086,16 @@ function openEditor(ctx,inf,isNew){
 async function renderTemplates(){
   const templates=await api.listTemplates();
   app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Templates</p><div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Templates</h1><div class="row">${templates.length?'':'<button type="button" class="btn ghost" id="starter">Add starter templates</button>'}<button type="button" class="btn" id="newt">New template</button></div></div>
-   <div class="card"><ul class="list">${templates.map(t=>{const d=t.data||{};const p=POLARITY[d.polarity]||POLARITY.supportive;return `<li><div><a href="#/admin/templates" data-e="${t.id}">${esc(t.name)}</a><div class="small muted">${icon(p.shape,p.color)} ${p.label} · ${esc(CAT[d.category]||d.category||'General')} · intensity ${d.intensity||3}</div></div><div class="row"><button type="button" class="btn ghost small" data-e="${t.id}">Edit</button><button type="button" class="btn quiet small" data-d="${t.id}">Delete</button></div></li>`}).join('')||'<li class="muted">No templates yet.</li>'}</ul></div>`;
+   <div class="card"><ul class="list">${templates.map(t=>{const d=t.data||{};const p=POLARITY[d.polarity]||POLARITY.supportive;return `<li><div><a href="#/admin/templates" data-e="${t.id}">${esc(t.name)}</a><div class="small muted">${icon(p.shape,p.color)} ${p.label} · ${esc(CAT[d.category]||d.category||'General')} · intensity ${d.intensity||3}</div></div><div class="row"><button type="button" class="btn ghost small" data-e="${t.id}">Edit</button><button type="button" class="btn quiet small" data-d="${t.id}">Delete</button></div></li>`}).join('')||'<li class="muted">No templates yet.</li>'}</ul></div>
+   <div class="card" style="margin-top:16px" id="catcard"><h2>Categories</h2>
+    <p class="small muted">Built in: ${CATEGORIES.filter(([k])=>BASE_CATEGORY_KEYS.includes(k)).map(([,l])=>esc(l)).join(', ')}. Your own categories below appear everywhere a category is chosen — primary and secondary, “supportive for / difficult for” on mixed periods, the client’s areas-of-life filter — and in the approved list the AI prompt gives.</p>
+    <ul class="list" id="catlist">${CUSTOM_CATEGORIES.map(c=>`<li><div><span class="tag"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.label)}</span></div><button type="button" class="btn quiet small" data-rmcat="${esc(c.key)}">Remove</button></li>`).join('')||'<li class="muted small">No custom categories yet.</li>'}</ul>
+    <form id="catf" class="row" style="gap:8px;margin-top:10px;align-items:flex-end"><label class="f" style="margin:0;flex:1;min-width:180px"><span>New category</span><input name="label" placeholder="e.g. Exams, Visa, Difficult conversations" required maxlength="40"></label><label class="f" style="margin:0"><span>Colour</span><input type="color" name="color" value="${CUSTOM_COLORS[CUSTOM_CATEGORIES.length%CUSTOM_COLORS.length]}" style="width:56px;height:38px;padding:2px"></label><button class="btn small" type="submit">Add category</button></form></div>`;
+  const saveCats=guard(async list=>{await api.setSetting('categories',list);applyCustomCategories(list);toast('Categories saved');renderTemplates()});
+  $('#catf').onsubmit=e=>{e.preventDefault();const f=e.target;const label=f.elements.label.value.trim();if(!label)return;const key=slugCat(label);
+    if(!key||key==='c_'){alert('Please use letters or numbers in the name.');return}if(CAT[key]||BASE_CATEGORY_KEYS.includes(key)||CATEGORIES.some(([,l])=>l.toLowerCase()===label.toLowerCase())){alert('A category with that name already exists.');return}
+    saveCats([...CUSTOM_CATEGORIES,{key,label,color:f.elements.color.value}])};
+  app.querySelectorAll('[data-rmcat]').forEach(b=>b.onclick=()=>{const c=CUSTOM_CATEGORIES.find(x=>x.key===b.dataset.rmcat);if(c&&confirm(`Remove the category “${c.label}”? Influences already filed under it keep it, but it will no longer be offered when choosing categories.`))saveCats(CUSTOM_CATEGORIES.filter(x=>x.key!==c.key))});
   const edit=t=>{const d=t.data||{};const dlg=document.createElement('dialog');
     dlg.innerHTML=`<div class="dh"><h2 style="margin:0">Template</h2><button type="button" class="btn quiet small" id="x" aria-label="Close">✕</button></div><div class="db"><form id="tf">${fld('Name','name',t.name,'text','required')}
      <div class="grid3"><label class="f"><span>Default polarity</span>${sel('polarity',Object.entries(POLARITY).map(([k,p])=>[k,p.label]),d.polarity||'supportive')}</label><label class="f"><span>Default category</span>${sel('category',CATEGORIES,d.category||'general')}</label><label class="f"><span>Default intensity</span><input type="number" name="intensity" min="1" max="5" value="${d.intensity||3}"></label></div>
