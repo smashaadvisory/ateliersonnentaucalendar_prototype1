@@ -214,7 +214,7 @@ textarea{min-height:78px;resize:vertical}
 @keyframes settle{to{transform:translateY(0)}}
 .gift .hello{font-family:var(--brand);font-style:italic;font-weight:500;letter-spacing:.01em;font-size:clamp(2.4rem,8vw,3.4rem);color:var(--primary);margin:0;line-height:1.15;opacity:0;animation:gin 1.1s .3s ease forwards;word-break:break-word}
 @keyframes gin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.gift .scene{position:relative;display:grid;justify-items:center;align-items:center;margin-top:28px}
+.gift .scene{position:relative;display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;align-items:center;margin-top:28px}
 .gift .glow,.gift .box,.gift .paper{grid-area:1/1}
 .gift .box{position:relative;align-self:start;width:180px;height:170px;opacity:0;animation:gin .9s 1.4s ease forwards;z-index:2}
 .gift .body{position:absolute;left:20px;right:20px;bottom:0;height:110px;background:var(--g1);border-radius:6px;box-shadow:inset 0 -18px 0 rgba(0,0,0,.08)}
@@ -228,7 +228,7 @@ textarea{min-height:78px;resize:vertical}
 @keyframes lid{0%{transform:none}60%{transform:translateY(-40px) rotate(-14deg)}100%{transform:translate(-120px,-130px) rotate(-38deg);opacity:0}}
 @keyframes bow{to{transform:translate(-120px,-150px) rotate(-30deg);opacity:0}}
 /* the rolled letter starts inside the box (painted behind it), rises to the centre, then unrolls downwards */
-.gift .paper{position:relative;align-self:start;width:min(440px,calc(100vw - 40px));z-index:2;opacity:0;transform:translateY(120px);animation:rise 1.2s 3.4s cubic-bezier(.2,.7,.3,1) forwards}
+.gift .paper{position:relative;align-self:start;width:min(440px,100%);z-index:2;opacity:0;transform:translateY(120px);animation:rise 1.2s 3.4s cubic-bezier(.2,.7,.3,1) forwards}
 @keyframes rise{0%{opacity:0;transform:translateY(120px);z-index:2}30%{opacity:1}99%{z-index:2}100%{opacity:1;transform:translateY(0);z-index:7}}
 .gift .sheet{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:28px 28px 26px;box-shadow:0 14px 34px rgba(60,45,20,.12);clip-path:inset(0 0 100% 0);animation:unroll 1.5s 4.4s cubic-bezier(.3,.6,.3,1) forwards}
 @keyframes unroll{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
@@ -243,7 +243,7 @@ textarea{min-height:78px;resize:vertical}
 .gift .sheet .lbl{font-family:var(--sans);font-size:.76rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
 .gift .sheet blockquote{margin:0 0 16px;font-family:var(--brand);font-style:italic;font-size:1.25rem;line-height:1.4;color:var(--primary);white-space:pre-line}
 .gift .sheet .btn{margin-top:4px}
-.gift .glow{align-self:start;margin-top:-120px;width:min(420px,100vw);height:420px;border-radius:50%;background:radial-gradient(circle,var(--g3) 0%,rgba(255,255,255,0) 65%);opacity:0;animation:glow 1.6s 2.7s ease forwards;pointer-events:none;z-index:1}
+.gift .glow{align-self:start;margin-top:-120px;width:100%;max-width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,var(--g3) 0%,rgba(255,255,255,0) 65%);opacity:0;animation:glow 1.6s 2.7s ease forwards;pointer-events:none;z-index:1}
 @keyframes glow{to{opacity:.9}}
 /* confetti drifts down from the top of the screen once the box is open */
 .gift .pc{position:fixed;top:-24px;font-size:14px;opacity:0;animation:fall linear forwards;pointer-events:none;z-index:6}
@@ -1276,17 +1276,7 @@ const ENTITLEMENTS=[
 const ENT_DEFAULT={remedial:false,predictions:true,export:true,intentions:true};
 const ALARM_WORDS=[/\bwill definitely\b/i,/\bmust\b/i,/\bdanger(ous)?\b/i,/\bdisaster\b/i,/\bno choice\b/i,/\bguarantee[ds]?\b/i,/\bfailure to\b/i,/\bbad day\b/i,/\bhave to\b/i,/\bnever\b/i,/\bcatastroph/i,/\bwill (happen|cause|bring)\b/i,/\burgent(ly)?\b/i,/\bimmediately\b/i,/\bdo not leave\b/i];
 const JYOTISH_FIELDS=['graha','bhava','bhava lord','rashi','nakshatra','pada','dasha','antardasha','pratyantardasha','gochara','drishti','yoga','dignity','combustion','retrogression','avastha','varga','strength assessment','timing rationale','remedial consideration'];
-const STARTER_TEMPLATES=[
-  {name:'Mercury-sensitive communication period',data:{category:'communication',polarity:'caution',intensity:3,client_interpretation:'Conversations may require more time and clarification.',observation_prompt:'You may notice increased sensitivity around communication.',reflection_prompt:'Review the practical details before committing.',recommended_actions:'Confirm important details in writing',avoidances:'Sending important messages in haste',disclaimer:'none',private_notes:'Budha afflicted / combust / gochara over 3H or natal Budha.'}},
-  {name:'Professional visibility period',data:{category:'work',polarity:'supportive',intensity:4,client_interpretation:'This period may support applications, presentations, and conversations with authority figures.',observation_prompt:'You may notice more attention to your work.',reflection_prompt:'Which opening would you choose if several arrived at once?',recommended_actions:'Use the window for applications or presentations',avoidances:'',disclaimer:'general',private_notes:'10H / 10L activation.'}},
-  {name:'Relationship tension period',data:{category:'relationships',polarity:'mixed',intensity:3,client_interpretation:'Expectations in close relationships may surface more readily. Small misunderstandings can be repaired with patience.',observation_prompt:'You may notice sensitivity around being heard or understood.',reflection_prompt:'Leave room for another person’s perspective.',recommended_actions:'Choose calm moments for important conversations',avoidances:'Settling a long-term question in the middle of a disagreement',disclaimer:'general',private_notes:'7H / Shukra affliction; Chandra–Mangala contact.'}},
-  {name:'Travel preparation period',data:{category:'travel',polarity:'caution',intensity:3,client_interpretation:'Logistics may need more confirmation than usual. Build in slack for connections and documents.',observation_prompt:'You may notice small changes to timings or plans.',reflection_prompt:'What would make the journey easier if something shifts?',recommended_actions:'Reconfirm bookings two days ahead',avoidances:'',disclaimer:'none',private_notes:'3H / 9H / 12H gochara; Budha.'}},
-  {name:'Health and vitality observation period',data:{category:'health',polarity:'mixed',intensity:2,client_interpretation:'Energy may fluctuate. A steady routine and adequate rest are reasonable priorities.',observation_prompt:'You may notice motivation coming and going in waves.',reflection_prompt:'What could be postponed without cost?',recommended_actions:'Protect one quiet evening',avoidances:'',disclaimer:'health',private_notes:'6H / Lagna lord; Chandra sensitivity.'}},
-  {name:'Rest and restoration period',data:{category:'rest',polarity:'supportive',intensity:2,client_interpretation:'A useful stretch for lighter commitments, sleep, and reducing stimulation.',observation_prompt:'You may notice a wish for solitude or quiet.',reflection_prompt:'Give yourself permission to pause.',recommended_actions:'Keep the evenings light',avoidances:'',disclaimer:'none',private_notes:'12H emphasis; Shani / Chandra.'}},
-  {name:'Decision and beginning period',data:{category:'decisions',polarity:'supportive',intensity:3,client_interpretation:'This period may support beginnings that have been prepared thoughtfully.',observation_prompt:'You may notice clarity arriving in stages rather than all at once.',reflection_prompt:'Is this a choice or a reaction?',recommended_actions:'Set the intention in writing before acting',avoidances:'Launching on impulse',disclaimer:'general',private_notes:'Lagna lord / Guru gochara; muhurta consideration.'}},
-  {name:'Ending and transition period',data:{category:'endings',polarity:'mixed',intensity:3,client_interpretation:'Something may be completing. Closure can be gradual and does not need to be forced.',observation_prompt:'You may notice a wish to tidy, finish, or release.',reflection_prompt:'What deserves a dignified ending?',recommended_actions:'Complete what is nearly finished',avoidances:'Beginning something new in the same breath',disclaimer:'general',private_notes:'8H / 12H; Shani; dasha change.'}},
-  {name:'Remedial practice note',data:{category:'remedies',polarity:'supportive',intensity:1,client_interpretation:'An optional traditional observance for this period.',observation_prompt:'',reflection_prompt:'',recommended_actions:'',avoidances:'',disclaimer:'remedy',remedial_note:'If it feels meaningful, a simple practice at the start or end of the day is a traditional way to mark this period.',private_notes:''}}
-];
+// (starter templates removed)
 
 /* ---------------- Utilities ---------------- */
 const $=(s,r=document)=>r.querySelector(s);
@@ -1571,10 +1561,13 @@ function clientSignOut(){ACT.stop('signed out');localStorage.removeItem(CODE_KEY
 const GIFT_OCCASIONS=[['neutral','Neutral'],['birthday','Birthday'],['valentines','Valentine’s'],['christmas','Christmas'],['anniversary','Anniversary']];
 const GIFT_PARTICLES={birthday:['✦','●','▲','■'],valentines:['♥','♡','✦'],christmas:['❄','✦','❅'],anniversary:['✦','❋','●'],neutral:['✦','●','·']};
 const GIFT_COLORS={birthday:['#5B74B5','#C9443F','#B58A4A','#3F466B','#E6A23C'],valentines:['#C2504F','#E8B4C8','#B58A4A'],christmas:['#FFFFFF','#6F9B82','#8F3B3B','#B58A4A'],anniversary:['#B58A4A','#D9C7A2','#FFFFFF'],neutral:['#B58A4A','#3F466B']};
+const GIFT_THEME={birthday:{box:'#5B74B5',ribbon:'#C9443F'},valentines:{box:'#C2504F',ribbon:'#F2D6D1'},christmas:{box:'#8F3B3B',ribbon:'#6F9B82'},anniversary:{box:'#D9C7A2',ribbon:'#B58A4A'},neutral:{box:'#DED3BE',ribbon:'#3F466B'}};
+const hexOk=v=>/^#[0-9a-f]{6}$/i.test(String(v||''));
 function showGift(name,gift,onDone){const occ=GIFT_OCCASIONS.some(([k])=>k===gift.occasion)?gift.occasion:'neutral';const sender=String(gift.sender||'a friend').trim()||'a friend';const msg=String(gift.message||'').trim();
   const g=document.createElement('div');g.className='gift '+occ;g.setAttribute('role','dialog');g.setAttribute('aria-label','A gift for you');
+  if(hexOk(gift.box_color))g.style.setProperty('--g1',gift.box_color);if(hexOk(gift.ribbon_color))g.style.setProperty('--g2',gift.ribbon_color);if(hexOk(gift.box_color))g.style.setProperty('--g3',gift.box_color+'55');
   const parts=GIFT_PARTICLES[occ],cols=GIFT_COLORS[occ];let pcs='';
-  for(let i=0;i<30;i++){pcs+=`<span class="pc" style="left:${Math.round(Math.random()*100)}%;color:${cols[i%cols.length]};font-size:${10+Math.round(Math.random()*12)}px;animation-duration:${(5+Math.random()*5).toFixed(1)}s;animation-delay:${(2.8+Math.random()*4).toFixed(1)}s">${parts[i%parts.length]}</span>`}
+  for(let i=0;i<30;i++){pcs+=`<span class="pc" style="left:${2+Math.round(Math.random()*90)}%;color:${cols[i%cols.length]};font-size:${10+Math.round(Math.random()*12)}px;animation-duration:${(5+Math.random()*5).toFixed(1)}s;animation-delay:${(2.8+Math.random()*4).toFixed(1)}s">${parts[i%parts.length]}</span>`}
   g.innerHTML=`<div class="stage"><h1 class="hello">Hello, ${esc(name)}</h1>
     <div class="scene"><div class="glow"></div>
      <div class="paper"><div class="roll" aria-hidden="true"></div><div class="sheet"><h2>Welcome to my astrological calendar!</h2><p>This gift was sent to you by <strong>${esc(sender)}</strong>.</p>
@@ -1706,6 +1699,10 @@ function drawCalendar(pkg,root,opts={}){
       <p><button type="button" class="btn ghost" id="ics">Download calendar file</button></p>
      </details>
     </div>`:''}
+    ${(pkg.notes||[]).length?`<div class="card" style="margin-top:16px" id="notesbox">
+     <details><summary>Astrologer’s notes <span class="muted" style="font-weight:400">(${pkg.notes.length})</span></summary>
+      <ul class="list" style="margin-top:8px">${pkg.notes.slice().sort((a,b)=>a.date<b.date?1:-1).map(nn_=>`<li><div><strong>${esc(fmtDate(nn_.date))}</strong>${nn_.date===todayStr()?' <span class="pill supportive">today</span>':''}${nn_.heading?' · '+esc(nn_.heading):''}<div class="small muted">${esc(String(nn_.body).slice(0,120))}${String(nn_.body).length>120?'…':''}</div></div><button type="button" class="btn ghost small" data-goto="${nn_.date}">Open that day</button></li>`).join('')}</ul>
+     </details></div>`:''}
    </section>
    <aside id="daypanel" aria-label="Day detail"></aside>
   </div>`;
@@ -1809,16 +1806,15 @@ function openChangePassword(){
 }
 
 /* ---------------- Admin ---------------- */
-let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null;
+let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null;
 async function renderAdmin(path){
   const session=await api.adminSession();
   if(!session){go('#/astrologer');return}
   try{applyCustomCategories(await api.getSetting('categories'))}catch(e){}
-  setHeader({left:[{href:'#/admin',label:'Dashboard',cls:'quiet'},{href:'#/admin/templates',label:'Templates & categories',cls:'quiet'}],brand:true,right:[{id:'chpw',label:'Change password',cls:'quiet',onClick:openChangePassword},{id:'out',label:'Sign out',cls:'ghost',onClick:async()=>{await api.adminSignOut();go('#/')}}]});
+  setHeader({left:[{href:'#/admin',label:'Dashboard',cls:'quiet'}],brand:true,right:[{id:'chpw',label:'Change password',cls:'quiet',onClick:openChangePassword},{id:'out',label:'Sign out',cls:'ghost',onClick:async()=>{await api.adminSignOut();go('#/')}}]});
   app.innerHTML='<p class="loading">Loading…</p>';
   const m=path.match(/^\/admin\/client\/([^/]+)/);
   if(m)return renderWorkspace(m[1]);
-  if(path==='/admin/templates')return renderTemplates();
   return renderDashboard();
 }
 function accessState(c){
@@ -1830,7 +1826,7 @@ function accessState(c){
 }
 async function renderDashboard(){
   wsTab='client';
-  const clients=await api.listClients();
+  const clients=await api.listClients();let contact={};try{contact=(await api.getSetting('contact'))||{}}catch(e){}
   let presence={},actNote='';
   const loadPresence=async()=>{const out={};const recent=await api.recentActivity(600);for(const e of recent){const o=out[e.client_id]=out[e.client_id]||{last:e};const d=e.detail||{};if(!o.view&&((e.event==='view'&&!ACTION_SCREENS.includes(d.screen))||e.event==='open'))o.view=e}
     for(const id in out){const e=out[id].last;out[id].online=e.event!=='close'&&Date.now()-new Date(e.at).getTime()<ONLINE_MS;out[id].screen=out[id].view?screenText(out[id].view.detail):''}return out};
@@ -1843,7 +1839,12 @@ async function renderDashboard(){
   app.innerHTML=`<div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Clients</h1><button class="btn" id="newc">New client</button></div>${actNote}
    <div class="card"><ul class="list">${active.map(li).join('')||'<li class="muted">No clients yet. Create your first client to generate an access code.</li>'}</ul>
    ${archived.length?`<details style="margin-top:10px"><summary class="small muted">Archived (${archived.length})</summary><ul class="list" style="margin-top:8px">${archived.map(li).join('')}</ul></details>`:''}</div>
+   <div class="card" style="margin-top:16px" id="contactcard"><h2>Enquiries link for clients</h2>
+    <p class="small muted">A button clients see in their calendar’s header and beneath the calendar, for questions or bookings — your contact page, a booking page, or a mailto: address.</p>
+    <form id="contactf" class="grid2"><label class="f"><span>Link (https://… or mailto:…)</span><input type="url" name="url" value="${esc(contact.url||'')}" placeholder="https://your-site/contact"></label><label class="f"><span>Button label</span><input type="text" name="label" value="${esc(contact.label||'')}" placeholder="Enquiries · Atelier Sonnentau" maxlength="60"></label>
+    <p style="margin:0"><button class="btn small" type="submit">Save link</button> <span class="small muted">${contact.url?'Clients currently see this button.':'No link yet — clients see no button.'}</span></p></form></div>
    <p class="small muted" style="margin-top:18px"><button type="button" class="btn quiet small" id="diag">Connection check</button> <span class="muted">— if something is not saving, run this and send the result to whoever is helping you.</span></p><div id="diagout"></div>`;
+  $('#contactf').onsubmit=guard(async e=>{e.preventDefault();const f=e.target;const url=f.elements.url.value.trim();if(url&&!/^(https?:\/\/|mailto:)/i.test(url)){alert('The link should start with https:// or mailto:');return}await api.setSetting('contact',{url,label:f.elements.label.value.trim()||'Enquiries · Atelier Sonnentau'});toast(url?'Enquiries link saved':'Enquiries link removed');renderDashboard()});
   $('#diag').onclick=runDiagnostics;
   if(actTimer)clearInterval(actTimer);actTimer=setInterval(async()=>{if(!$('#newc')){clearInterval(actTimer);actTimer=null;return}try{const p=await loadPresence();document.querySelectorAll('[data-pres]').forEach(el=>{el.innerHTML=presText(p[el.dataset.pres])})}catch(e){}},45000);
   $('#newc').onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New client',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{}});go('#/admin/client/'+c.id)});
@@ -1854,7 +1855,6 @@ async function runDiagnostics(){
   await t('Supabase URL',async()=>CONFIG.SUPABASE_URL);
   await t('Signed in as astrologer (is_admin)',async()=>{const v=await api.isAdmin();if(!v)throw new Error('false — the session token is not being recognised');return 'true'});
   await t('Read clients',async()=>(await api.listClients()).length+' rows');
-  await t('Read templates',async()=>(await api.listTemplates()).length+' rows');
   await t('Read influences',async()=>(await api.listInfluences('00000000-0000-0000-0000-000000000000')).length+' rows (test id)');
   const tid=uuid();
   await t('Create a test client',async()=>{const c=await api.saveClient({id:tid,name:'Connection test',access_code:genCode(),status:'inactive',entitlements:{...ENT_DEFAULT},jyotish:{}});return 'created '+c.id.slice(0,8)});
@@ -1880,8 +1880,8 @@ async function runInfluenceDiagnostics(c){
 async function renderWorkspace(id){
   if(wsClient!==id){wsClient=id;wsTab='client'}
   let c;try{c=normClient(await api.getClient(id))}catch(e){go('#/admin');return}
-  const [influences,templates,notes]=await Promise.all([api.listInfluences(id),api.listTemplates(),api.listNotes(id).catch(e=>{console.warn(e);return null})]);
-  const ctx={c,influences,templates,notes:notes||[],notesUnavailable:notes===null,reload:()=>renderWorkspace(id)};
+  const [influences,notes]=await Promise.all([api.listInfluences(id),api.listNotes(id).catch(e=>{console.warn(e);return null})]);
+  const ctx={c,influences,notes:notes||[],notesUnavailable:notes===null,reload:()=>renderWorkspace(id)};
   const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['preview','Client preview'],['activity','Activity']];
   app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}</h1>
    <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${wsTab===k}" data-tab="${k}">${l}</button>`).join('')}</div><div id="tabbody"></div>`;
@@ -1989,7 +1989,8 @@ function tabClient({c,reload},body){
    <p class="small muted">If this calendar was bought for someone, their very first visit opens with a gift box that unwraps into a message from the sender. It is shown once; you can show it again from here.</p>
    <label class="chk"><input type="checkbox" id="gift-on" ${gift.enabled?'checked':''}>This calendar is a gift</label>
    <div id="giftfields" class="${gift.enabled?'':'hidden'}"><div class="grid2"><label class="f"><span>From (sender’s name)</span><input type="text" id="gift-sender" value="${esc(gift.sender||'')}" placeholder="e.g. Ana"></label><label class="f"><span>Occasion (changes the box and colours)</span><select id="gift-occ">${GIFT_OCCASIONS.map(([k,l])=>`<option value="${k}" ${(gift.occasion||'neutral')===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
-    <label class="f"><span>Message from the sender</span><textarea id="gift-msg" placeholder="Happy birthday — may this year be gentle with you.">${esc(gift.message||'')}</textarea></label></div>
+    <label class="f"><span>Message from the sender</span><textarea id="gift-msg" placeholder="Happy birthday — may this year be gentle with you.">${esc(gift.message||'')}</textarea></label>
+    <div class="row" style="gap:14px;align-items:flex-end;flex-wrap:wrap"><label class="f" style="margin:0"><span>Box colour</span><input type="color" id="gift-box" value="${esc(hexOk(gift.box_color)?gift.box_color:GIFT_THEME[gift.occasion||'neutral'].box)}" style="width:64px;height:38px;padding:2px"></label><label class="f" style="margin:0"><span>Ribbon colour</span><input type="color" id="gift-ribbon" value="${esc(hexOk(gift.ribbon_color)?gift.ribbon_color:GIFT_THEME[gift.occasion||'neutral'].ribbon)}" style="width:64px;height:38px;padding:2px"></label><button type="button" class="btn quiet small" id="gift-theme">Use the occasion’s colours</button><span class="small muted">The pickers open your device’s colour wheel.</span></div></div>
    <p class="row" style="gap:6px;margin-top:10px"><button type="button" class="btn small" id="gift-save">Save gift</button><button type="button" class="btn ghost small" id="gift-preview">Preview the opening</button>${gift.enabled?'<button type="button" class="btn quiet small" id="gift-again">Show it again on their next visit</button>':''}</p></div>
   <div class="card"><h2>Access</h2>
    <p class="${st.ok?'ok':'warn'}">${st.ok?'This client can open their calendar now.':'This client cannot open their calendar at the moment ('+esc(st.why)+').'}</p>
@@ -2026,8 +2027,10 @@ function tabClient({c,reload},body){
   $('#ov-save').onclick=guard(async()=>{const rows={...ovState.rows};const lagna=rows.lagna;delete rows.lagna;if(!Object.keys(rows).length&&!lagna){alert('Enter at least one position first.');return}
     await api.saveClient({...c,natal_override:{planets:rows,lagna:lagna||null,source:ovState.source||'manual',saved:new Date().toISOString()}});toast('Manual positions saved — the chart now uses them');reload()});
   const ovc=$('#ov-clear');if(ovc)ovc.onclick=guard(async()=>{if(confirm('Go back to the calculated positions for this client?')){await api.saveClient({...c,natal_override:null});toast('Calculated positions restored');reload()}});
-  const giftNow=()=>({enabled:$('#gift-on').checked,sender:$('#gift-sender').value.trim(),occasion:$('#gift-occ').value,message:$('#gift-msg').value.trim()});
+  const giftNow=()=>({enabled:$('#gift-on').checked,sender:$('#gift-sender').value.trim(),occasion:$('#gift-occ').value,message:$('#gift-msg').value.trim(),box_color:$('#gift-box').value,ribbon_color:$('#gift-ribbon').value});
   $('#gift-on').onchange=()=>$('#giftfields').classList.toggle('hidden',!$('#gift-on').checked);
+  const themeColours=()=>{const t=GIFT_THEME[$('#gift-occ').value]||GIFT_THEME.neutral;$('#gift-box').value=t.box;$('#gift-ribbon').value=t.ribbon};
+  $('#gift-occ').onchange=themeColours;$('#gift-theme').onclick=themeColours;
   $('#gift-save').onclick=guard(async()=>{const g=giftNow();if(g.enabled&&!g.sender){alert('Please enter the sender’s name.');return}await api.saveClient({...c,jyotish:{...(c.jyotish||{}),gift:g}});toast(g.enabled?'Gift saved — it opens on their first visit':'Gift turned off');reload()});
   $('#gift-preview').onclick=()=>{const g=giftNow();showGift(c.name||'Name',{...g,enabled:true},null)};
   const ga=$('#gift-again');if(ga)ga.onclick=guard(async()=>{const pkg=await api.openCalendar(c.access_code,true);if(!pkg.ok)throw new Error(pkg.why);const prefs={...(pkg.prefs||{})};delete prefs.gift_seen;await api.setPrefs(c.access_code,prefs);toast('The gift will open again on their next visit')});
@@ -2057,9 +2060,20 @@ function tabCalendar(ctx,body){
    <div class="cal">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
    <p class="small muted" style="margin:10px 0 0">Faded markers are drafts (not visible to the client). A gold dot is a note you wrote for that day. Select a day to see what is on it, or to write the client a note for it.</p>${outsideNote}
    <div id="adminday"></div>
-   ${ctx.notesUnavailable?'<p class="note small" style="margin-top:12px">Notes to the client need the latest supabase-setup.sql to be run once.</p>':(ctx.notes||[]).length?`<details class="small" style="margin-top:12px"><summary>Your notes to ${esc(c.name)} (${ctx.notes.length})</summary><ul class="list" style="margin-top:8px">${ctx.notes.map(nn_=>`<li><div><strong>${esc(fmtDate(nn_.note_date))}</strong>${nn_.heading?' · '+esc(nn_.heading):''}<div class="small muted">${esc(String(nn_.body).slice(0,120))}${String(nn_.body).length>120?'…':''}</div></div><button type="button" class="btn ghost small" data-jumpnote="${nn_.note_date}">Open</button></li>`).join('')}</ul></details>`:''}
+</div>
+<div class="card" style="margin-top:16px" id="notescard"><h2>Notes to ${esc(c.name||'the client')}</h2>
+ <p class="small muted">A note for a day appears at the top of that day in the client’s calendar, signed “your astrologer”, and in their “Astrologer’s notes” list. Write one for today, for a day ahead, or edit one you wrote earlier.</p>
+ ${ctx.notesUnavailable?'<p class="note small">Notes need the latest supabase-setup.sql to be run once in the Supabase SQL Editor.</p>':`
+ <form id="nf" class="grid3" style="align-items:end"><label class="f"><span>Day</span><input type="date" name="note_date" value="${esc(wsNoteDate||todayStr())}" required></label><label class="f" style="grid-column:span 2"><span>Heading <em class="muted">— shown as the title, e.g. “Your focus for today”</em></span><input type="text" name="heading" placeholder="A note for today" maxlength="80"></label></form>
+ <label class="f"><span>Note</span><textarea id="nf-body" placeholder="A few lines from you for that day…"></textarea></label>
+ <p class="row" style="gap:6px"><button type="button" class="btn small" id="nf-save">Save note</button><span class="small muted" id="nf-status">Visible to the client as soon as it is saved.</span></p>
+ ${(ctx.notes||[]).length?`<h3 style="margin-top:14px">Your notes (${ctx.notes.length})</h3><ul class="list">${ctx.notes.slice().sort((a,b)=>a.note_date<b.note_date?1:-1).map(nn_=>`<li><div><strong>${esc(fmtDate(nn_.note_date))}</strong>${nn_.note_date===todayStr()?' <span class="pill supportive">today</span>':nn_.note_date>todayStr()?' <span class="pill draft">upcoming</span>':''}${nn_.heading?' · '+esc(nn_.heading):''}<div class="small muted">${esc(String(nn_.body).slice(0,140))}${String(nn_.body).length>140?'…':''}</div></div><div class="row"><button type="button" class="btn ghost small" data-editnote="${nn_.note_date}">Edit</button><button type="button" class="btn quiet small" data-delnote="${nn_.note_date}">Remove</button></div></li>`).join('')}</ul>`:'<p class="small muted">No notes yet.</p>'}`}
 </div>`;
-  body.querySelectorAll('[data-jumpnote]').forEach(b=>b.onclick=()=>{const d=b.dataset.jumpnote;const [yy,mm]=d.split('-').map(Number);if(yy!==wsCal.year||mm-1!==wsCal.month){wsCal.year=yy;wsCal.month=mm-1;wsCalOpen=d;ctx.reload()}else{const cell=body.querySelector(`.day[data-d="${d}"]`);if(cell)cell.click()}});
+  const nf=$('#nf',body);if(nf){const loadNote=d=>{const x=(ctx.notes||[]).find(y=>y.note_date===d);nf.elements.note_date.value=d;nf.elements.heading.value=x?x.heading||'':'';$('#nf-body',body).value=x?x.body||'':'';$('#nf-save',body).textContent=x?'Update note':'Save note';$('#nf-status',body).textContent=x?'Editing the note for '+fmtDate(d)+'.':'Visible to the client as soon as it is saved.'};
+    nf.elements.note_date.onchange=()=>loadNote(nf.elements.note_date.value);if(wsNoteDate)loadNote(wsNoteDate);
+    $('#nf-save',body).onclick=guard(async()=>{const d=nf.elements.note_date.value;const bodyText=$('#nf-body',body).value.trim();if(!d){alert('Choose a day.');return}if(!bodyText){alert('Write the note first.');return}await api.saveNote({client_id:c.id,note_date:d,heading:nf.elements.heading.value.trim(),body:bodyText});toast('Note saved — the client sees it on '+fmtShort(d));wsNoteDate=d;wsCalOpen=d;const [yy,mm]=d.split('-').map(Number);wsCal.year=yy;wsCal.month=mm-1;ctx.reload()});
+    body.querySelectorAll('[data-editnote]').forEach(b=>b.onclick=()=>{wsNoteDate=b.dataset.editnote;loadNote(wsNoteDate);$('#notescard',body).scrollIntoView({behavior:'smooth',block:'start'})});
+    body.querySelectorAll('[data-delnote]').forEach(b=>b.onclick=guard(async()=>{if(confirm('Remove the note for '+fmtDate(b.dataset.delnote)+'?')){await api.deleteNote(c.id,b.dataset.delnote);toast('Note removed');wsNoteDate=null;ctx.reload()}}))}
   bindJump(body,(yy,mm)=>{wsCal.year=yy;wsCal.month=mm;ctx.reload()});
   $('#p').onclick=()=>{wsCal.month--;if(wsCal.month<0){wsCal.month=11;wsCal.year--}ctx.reload()};
   $('#n').onclick=()=>{wsCal.month++;if(wsCal.month>11){wsCal.month=0;wsCal.year++}ctx.reload()};
@@ -2068,11 +2082,11 @@ function tabCalendar(ctx,body){
     const note=(ctx.notes||[]).find(nn_=>nn_.note_date===ds)||{client_id:c.id,note_date:ds,heading:'',body:''};const hasNote=!!String(note.body||'').trim();
     $('#adminday',body).innerHTML=`<div class="card" style="margin-top:12px;background:var(--surface-2);box-shadow:none"><div class="row between"><h3 style="margin:0">${fmtDate(ds)}</h3><button type="button" class="btn small" id="addhere">Add influence on this day</button></div>
       ${here.length?`<ul class="list" style="margin-top:10px">${here.map(i=>`<li><div>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} <strong>${esc(i.title)}</strong> <span class="small muted">${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''} · ${esc(CAT[i.category]||i.category)}</span> <span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></div><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></li>`).join('')}</ul>`:'<p class="small muted" style="margin:8px 0 0">Nothing on this day.</p>'}
-      ${ctx.notesUnavailable?'':`<details class="dn" ${hasNote||wsCalOpen===ds?'open':''} style="margin-top:14px"><summary><strong>${hasNote?'Your note for this day':'Write a note for this day'}</strong> <span class="small muted">— the client sees it at the top of the day${ds===todayStr()?', today':''}</span></summary>
+      ${ctx.notesUnavailable?'':`<details class="dn" open style="margin-top:14px"><summary><strong>${hasNote?'Your note for this day':'Write a note for this day'}</strong> <span class="small muted">— the client sees it at the top of the day${ds===todayStr()?', today':''}</span></summary>
        <div class="grid2" style="margin-top:8px"><label class="f"><span>Heading (shown as the title of the note)</span><input type="text" id="dn-head" value="${esc(note.heading||'')}" placeholder="${ds===todayStr()?'A note for today':'A note for this day'} — or e.g. “Your focus for today”" maxlength="80"></label></div>
        <label class="f"><span>Note</span><textarea id="dn-body" placeholder="A few lines from you for this day…">${esc(note.body||'')}</textarea></label>
        <p class="row" style="gap:6px;margin:6px 0 0"><button type="button" class="btn small" id="dn-save">${hasNote?'Update note':'Save note'}</button>${hasNote?'<button type="button" class="btn quiet small" id="dn-del">Remove note</button>':''}<span class="small muted">${hasNote&&note.updated_at?'Last changed '+esc(ago(note.updated_at)):'Visible to the client as soon as it is saved.'}</span></p></details>`}</div>`;
-    wsCalOpen=null;
+    wsCalOpen=null;const nfd=$('#nf',body);if(nfd&&!nfd.elements.note_date.value)nfd.elements.note_date.value=ds;
     $('#addhere',body).onclick=()=>{const i=blankInfluence(c.id);i.start_date=i.end_date=ds;openEditor(ctx,i,true)};
     body.querySelectorAll('[data-edit]').forEach(x=>x.onclick=()=>openEditor(ctx,influences.find(i=>i.id===x.dataset.edit),false));
     const dnS=$('#dn-save',body);if(dnS)dnS.onclick=guard(async()=>{const bodyText=$('#dn-body',body).value.trim();if(!bodyText){alert('Write the note first.');return}await api.saveNote({client_id:c.id,note_date:ds,heading:$('#dn-head',body).value.trim(),body:bodyText});toast('Note saved — the client will see it on that day');wsCalOpen=ds;ctx.reload()});
@@ -2084,24 +2098,29 @@ function blankInfluence(clientId){return {id:uuid(),client_id:clientId,parent_id
   polarity:'supportive',significant:false,intensity:'',category:'',secondary_categories:[],client_interpretation:'',observation_prompt:'',reflection_prompt:'',recommended_actions:'',avoidances:'',prediction:'',remedial_note:'',disclaimer:'none',custom_disclaimer:'',
   private_notes:'',technical_basis:'',jyotish:{},source_reference:{},supportive_for:[],difficult_for:[],transit_snapshot:null,published:false,show_exact_time:false,show_prediction:true,show_technical_basis:false,calendar_sync_enabled:true,accessibility_label:''}}
 function tabInfluences(ctx,body){
-  const {c,influences,templates}=ctx;const all=[...influences].sort((a,b)=>a.start_date<b.start_date?-1:1);
+  const {c,influences}=ctx;const all=[...influences].sort((a,b)=>a.start_date<b.start_date?-1:1);
   const ent={...ENT_DEFAULT,...(c.entitlements||{})};
   const sees=i=>!i.published?['No','draft — open and choose Review and publish']:(i.category==='remedies'&&!ent.remedial)?['No','remedial add-on is off for this client']:['Yes',''];
   const row=i=>{const [v,why]=sees(i);return `<tr data-row="${i.id}"><td><input type="checkbox" data-sel="${i.id}" aria-label="Select ${esc(i.title||'influence')}"></td><td>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} ${i.significant?icon('star','var(--significant)'):''}</td><td><strong>${esc(i.title||'Untitled')}</strong>${i.parent_id?`<div class="small muted">within “${esc(all.find(x=>x.id===i.parent_id)?.title||'')}”</div>`:''}</td><td>${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''}${yearOk(i.start_date)&&yearOk(i.end_date)?'':'<div><span class="pill especially_sensitive">year looks wrong — not on the calendar</span></div>'}</td><td>${esc(CAT[i.category]||i.category)}</td><td>${i.intensity}</td><td><span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></td><td><span class="pill ${v==='Yes'?'supportive':'caution'}">${v}</span>${why?`<div class="small muted">${esc(why)}</div>`:''}</td><td><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></td></tr>`};
   const badYears=all.filter(i=>!yearOk(i.start_date)||!yearOk(i.end_date));
   const fixable=badYears.filter(i=>yearOk(fixYear(i.start_date))&&yearOk(fixYear(i.end_date)));
   const yearBanner=badYears.length?`<p class="warn" style="margin:0 0 12px">${badYears.length} influence${badYears.length>1?'s have':' has'} a year that cannot be right (e.g. ${String(yearOf(badYears[0].start_date)).padStart(4,'0')} instead of ${new Date().getFullYear()}), so ${badYears.length>1?'they do':'it does'} not appear on any calendar. This happens when a date is typed with a two-digit year. ${fixable.length?`<button type="button" class="btn small" id="fixyears">Correct ${fixable.length===badYears.length?'them':fixable.length+' of them'} to 20xx</button>`:''}${fixable.length<badYears.length?' The others need editing by hand.':''}</p>`:'';
-  body.innerHTML=`<div class="card">${yearBanner}<div class="row between"><h2 style="margin:0">Influences</h2><div class="row"><select id="tpl"><option value="">Insert from template…</option>${templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select><button type="button" class="btn ghost" id="impai">Import AI answers</button><button type="button" class="btn" id="newi">New influence</button></div></div>
+  body.innerHTML=`<div class="card">${yearBanner}<div class="row between"><h2 style="margin:0">Influences</h2><div class="row"><button type="button" class="btn ghost" id="impai">Import AI answers</button><button type="button" class="btn" id="newi">New influence</button></div></div>
    <label class="f"><span>Search</span><input type="text" id="q" placeholder="Title, category, note…"></label>
    <div style="overflow:auto"><table><thead><tr><th><input type="checkbox" id="selall" aria-label="Select all shown"></th><th></th><th>Title</th><th>Dates</th><th>Category</th><th>Int.</th><th>Status</th><th>Client sees</th><th></th></tr></thead><tbody id="rows">${all.map(row).join('')||'<tr><td colspan="9" class="muted">No influences yet.</td></tr>'}</tbody></table></div>
    <p class="row" id="bulkbar" style="gap:6px;margin:10px 0 0;align-items:center;display:none"><span class="small" id="bulkcount">0 selected</span><button type="button" class="btn ghost small" id="bulkpub">Publish selected</button><button type="button" class="btn ghost small" id="bulkunpub">Unpublish selected</button><button type="button" class="btn quiet small" id="bulkdel">Delete selected</button><button type="button" class="btn quiet small" id="bulkclear">Clear selection</button></p>
+   <details style="margin-top:18px" id="topics"><summary><strong>Topics</strong> <span class="small muted">— your own categories, beside the built-in areas of life</span></summary>
+    <p class="small muted" style="margin:8px 0">Built in: ${CATEGORIES.filter(([k])=>BASE_CATEGORY_KEYS.includes(k)).map(([,l])=>esc(l)).join(', ')}. Your topics appear everywhere a category is chosen (primary, secondary, supportive for / difficult for), in the client’s areas-of-life filter and in the AI prompt’s approved list.</p>
+    <ul class="list" id="catlist">${CUSTOM_CATEGORIES.map(x=>`<li><div><span class="tag"><span class="dot" style="background:${esc(x.color)}"></span>${esc(x.label)}</span></div><button type="button" class="btn quiet small" data-rmcat="${esc(x.key)}">Remove</button></li>`).join('')||'<li class="muted small">No topics of your own yet.</li>'}</ul>
+    <form id="catf" class="row" style="gap:8px;margin-top:10px;align-items:flex-end"><label class="f" style="margin:0;flex:1;min-width:180px"><span>New topic</span><input name="label" placeholder="e.g. Exams, Visa, Difficult conversations" required maxlength="40"></label><label class="f" style="margin:0"><span>Colour</span><input type="color" name="color" value="${CUSTOM_COLORS[CUSTOM_CATEGORIES.length%CUSTOM_COLORS.length]}" style="width:56px;height:38px;padding:2px"></label><button class="btn small" type="submit">Add topic</button></form></details>
    <h3 style="margin-top:18px">Drafts (${all.filter(i=>!i.published).length})</h3><p class="small muted">${all.filter(i=>!i.published).map(i=>esc(i.title)).join(' · ')||'None'}${all.some(i=>!i.published)?' — drafts are never shown to the client.':''}</p>
    <p class="small muted" style="margin-top:14px"><button type="button" class="btn quiet small" id="idiag">Check this client’s calendar</button> <span>— creates a test influence, confirms it can be read back by you and by the client, then removes it.</span></p><div id="idiagout"></div></div>`;
   $('#idiag').onclick=()=>runInfluenceDiagnostics(c);
+  $('#catf',body).onsubmit=e=>{e.preventDefault();const f=e.target;const label=f.elements.label.value.trim();if(!label)return;guard(async()=>{await createCustomCategory(label,f.elements.color.value);toast(`“${label}” added`);ctx.reload()})()};
+  body.querySelectorAll('[data-rmcat]').forEach(b=>b.onclick=()=>{const x=CUSTOM_CATEGORIES.find(y=>y.key===b.dataset.rmcat);if(x&&confirm(`Remove the topic “${x.label}”? Influences already filed under it keep it, but it will no longer be offered.`))guard(async()=>{const list=CUSTOM_CATEGORIES.filter(y=>y.key!==x.key);await api.setSetting('categories',list);applyCustomCategories(list);toast('Topic removed');ctx.reload()})()});
   const fy=$('#fixyears');if(fy)fy.onclick=guard(async()=>{fy.disabled=true;for(const i of fixable)await api.saveInfluence({...i,start_date:fixYear(i.start_date),end_date:fixYear(i.end_date)});toast('Dates corrected');ctx.reload()});
   $('#newi').onclick=()=>openEditor(ctx,blankInfluence(c.id),true);
   $('#impai').onclick=()=>openImportDialog(ctx);
-  $('#tpl').onchange=e=>{const t=templates.find(x=>x.id===e.target.value);if(!t)return;const i=Object.assign(blankInfluence(c.id),{title:t.name},t.data||{});openEditor(ctx,i,true)};
   const selected=()=>[...body.querySelectorAll('[data-sel]:checked')].map(x=>x.dataset.sel);
   const refreshBulk=()=>{const k=selected().length;$('#bulkbar',body).style.display=k?'flex':'none';$('#bulkcount',body).textContent=`${k} selected`;const boxes=[...body.querySelectorAll('[data-sel]')];$('#selall',body).checked=boxes.length>0&&boxes.every(b=>b.checked);$('#selall',body).indeterminate=k>0&&k<boxes.length};
   const bind=()=>{body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(ctx,influences.find(i=>i.id===b.dataset.edit),false));body.querySelectorAll('[data-sel]').forEach(cb=>cb.onchange=refreshBulk);refreshBulk()};bind();
@@ -2347,7 +2366,7 @@ function openEditor(ctx,inf,isNew){
    </fieldset>
    <div id="review"></div>
    <div class="row between" style="margin-top:14px">
-    <div class="row"><button class="btn ghost" type="button" id="savedraft">Save as draft</button><button class="btn" type="button" id="publish">${inf.published?'Save and keep published':'Review and publish'}</button>${inf.published?'<button class="btn ghost" type="button" id="unpub">Unpublish</button>':''}<button class="btn quiet" type="button" id="astemplate">Save as template</button></div>
+    <div class="row"><button class="btn ghost" type="button" id="savedraft">Save as draft</button><button class="btn" type="button" id="publish">${inf.published?'Save and keep published':'Review and publish'}</button>${inf.published?'<button class="btn ghost" type="button" id="unpub">Unpublish</button>':''}</div>
     ${isNew?'':'<button class="btn quiet" type="button" id="del">Delete</button>'}
    </div></form><aside class="gpane hidden" id="gpane" aria-label="Gochara"></aside></div>`;
   document.body.appendChild(dlg);dlg.showModal();
@@ -2397,45 +2416,12 @@ function openEditor(ctx,inf,isNew){
   $('#savedraft',dlg).onclick=()=>{if(!form.reportValidity()||!datesOk())return;persist(false,'Draft saved — not visible to the client until published')};
   $('#publish',dlg).onclick=()=>{if(!form.reportValidity()||!datesOk())return;review()};
   const un=$('#unpub',dlg);if(un)un.onclick=()=>persist(false,'Unpublished');
-  $('#astemplate',dlg).onclick=guard(async()=>{const o=collect();const name=prompt('Template name:',o.title);if(!name)return;const data={};for(const k of ['category','polarity','intensity','client_interpretation','observation_prompt','reflection_prompt','recommended_actions','avoidances','disclaimer','remedial_note','private_notes'])data[k]=o[k];await api.saveTemplate({id:uuid(),name,data});toast('Template saved');ctx.templates=await api.listTemplates()});
   const del=$('#del',dlg);if(del)del.onclick=guard(async()=>{if(confirm('Delete this influence? Windows within it will be kept but unlinked.')){busy(true);try{await api.deleteInfluence(inf.id)}catch(e){busy(false);throw e}dlg.close();dlg.remove();ctx.reload()}});
   $('#close',dlg).onclick=()=>{dlg.close();dlg.remove()};
   dlg.addEventListener('cancel',()=>dlg.remove());
 }
 
 /* ---------------- Templates ---------------- */
-async function renderTemplates(){
-  const templates=await api.listTemplates();let contact={};try{contact=(await api.getSetting('contact'))||{}}catch(e){}
-  app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Templates</p><div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Templates</h1><div class="row">${templates.length?'':'<button type="button" class="btn ghost" id="starter">Add starter templates</button>'}<button type="button" class="btn" id="newt">New template</button></div></div>
-   <div class="card"><ul class="list">${templates.map(t=>{const d=t.data||{};const p=POLARITY[d.polarity]||POLARITY.supportive;return `<li><div><a href="#/admin/templates" data-e="${t.id}">${esc(t.name)}</a><div class="small muted">${icon(p.shape,p.color)} ${p.label} · ${esc(CAT[d.category]||d.category||'General')} · intensity ${d.intensity||3}</div></div><div class="row"><button type="button" class="btn ghost small" data-e="${t.id}">Edit</button><button type="button" class="btn quiet small" data-d="${t.id}">Delete</button></div></li>`}).join('')||'<li class="muted">No templates yet.</li>'}</ul></div>
-   <div class="card" style="margin-top:16px" id="catcard"><h2>Categories</h2>
-    <p class="small muted">Built in: ${CATEGORIES.filter(([k])=>BASE_CATEGORY_KEYS.includes(k)).map(([,l])=>esc(l)).join(', ')}. Your own categories below appear everywhere a category is chosen — primary and secondary, “supportive for / difficult for” on mixed periods, the client’s areas-of-life filter — and in the approved list the AI prompt gives.</p>
-    <ul class="list" id="catlist">${CUSTOM_CATEGORIES.map(c=>`<li><div><span class="tag"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.label)}</span></div><button type="button" class="btn quiet small" data-rmcat="${esc(c.key)}">Remove</button></li>`).join('')||'<li class="muted small">No custom categories yet.</li>'}</ul>
-    <form id="catf" class="row" style="gap:8px;margin-top:10px;align-items:flex-end"><label class="f" style="margin:0;flex:1;min-width:180px"><span>New category</span><input name="label" placeholder="e.g. Exams, Visa, Difficult conversations" required maxlength="40"></label><label class="f" style="margin:0"><span>Colour</span><input type="color" name="color" value="${CUSTOM_COLORS[CUSTOM_CATEGORIES.length%CUSTOM_COLORS.length]}" style="width:56px;height:38px;padding:2px"></label><button class="btn small" type="submit">Add category</button></form></div>`;
-  const contactCard=`<div class="card" style="margin-top:16px" id="contactcard"><h2>Enquiries link for clients</h2>
-    <p class="small muted">A button clients see in their calendar’s header and beneath the calendar, for further questions or bookings — your website’s contact page, a booking page, or a mailto: address.</p>
-    <form id="contactf" class="grid2"><label class="f"><span>Link (https://… or mailto:…)</span><input type="url" name="url" value="${esc(contact.url||'')}" placeholder="https://your-site/contact"></label><label class="f"><span>Button label</span><input type="text" name="label" value="${esc(contact.label||'')}" placeholder="Enquiries · Atelier Sonnentau" maxlength="60"></label>
-    <p style="margin:0"><button class="btn small" type="submit">Save link</button> ${contact.url?'<span class="small muted">Clients currently see this button.</span>':'<span class="small muted">No link yet — clients see no button.</span>'}</p></form></div>`;
-  $('#catcard').insertAdjacentHTML('afterend',contactCard);
-  $('#contactf').onsubmit=guard(async e=>{e.preventDefault();const f=e.target;const url=f.elements.url.value.trim();if(url&&!/^(https?:\/\/|mailto:)/i.test(url)){alert('The link should start with https:// or mailto:');return}await api.setSetting('contact',{url,label:f.elements.label.value.trim()||'Enquiries · Atelier Sonnentau'});toast(url?'Enquiries link saved':'Enquiries link removed');renderTemplates()});
-  const saveCats=guard(async list=>{await api.setSetting('categories',list);applyCustomCategories(list);toast('Categories saved');renderTemplates()});
-  $('#catf').onsubmit=e=>{e.preventDefault();const f=e.target;const label=f.elements.label.value.trim();if(!label)return;
-    guard(async()=>{await createCustomCategory(label,f.elements.color.value);toast('Categories saved');renderTemplates()})()};
-  app.querySelectorAll('[data-rmcat]').forEach(b=>b.onclick=()=>{const c=CUSTOM_CATEGORIES.find(x=>x.key===b.dataset.rmcat);if(c&&confirm(`Remove the category “${c.label}”? Influences already filed under it keep it, but it will no longer be offered when choosing categories.`))saveCats(CUSTOM_CATEGORIES.filter(x=>x.key!==c.key))});
-  const edit=t=>{const d=t.data||{};const dlg=document.createElement('dialog');
-    dlg.innerHTML=`<div class="dh"><h2 style="margin:0">Template</h2><button type="button" class="btn quiet small" id="x" aria-label="Close">✕</button></div><div class="db"><form id="tf">${fld('Name','name',t.name,'text','required')}
-     <div class="grid3"><label class="f"><span>Default polarity</span>${sel('polarity',Object.entries(POLARITY).map(([k,p])=>[k,p.label]),d.polarity||'supportive')}</label><label class="f"><span>Default category</span>${sel('category',CATEGORIES,d.category||'general')}</label><label class="f"><span>Default intensity</span><input type="number" name="intensity" min="1" max="5" value="${d.intensity||3}"></label></div>
-     ${txt('Interpretation','client_interpretation',d.client_interpretation)}${txt('Notice prompt','observation_prompt',d.observation_prompt)}${txt('Consider prompt','reflection_prompt',d.reflection_prompt)}${txt('Act prompt','recommended_actions',d.recommended_actions)}${txt('Caution / postpone language','avoidances',d.avoidances)}${txt('Remedial note','remedial_note',d.remedial_note)}
-     <label class="f"><span>Default disclaimer</span>${sel('disclaimer',Object.keys(DISCLAIMERS).map(k=>[k,k]),d.disclaimer||'none')}</label>${txt('Private Jyotish rationale','private_notes',d.private_notes)}
-     <p><button class="btn" type="submit">Save template</button></p></form></div>`;
-    document.body.appendChild(dlg);dlg.showModal();$('#x',dlg).onclick=()=>{dlg.close();dlg.remove()};dlg.addEventListener('cancel',()=>dlg.remove());
-    $('#tf',dlg).onsubmit=guard(async e=>{e.preventDefault();const data={};let name='';for(const [k,v] of new FormData(e.target)){if(k==='name')name=v;else data[k]=k==='intensity'?Number(v):v}await api.saveTemplate({id:t.id||uuid(),name,data});dlg.close();dlg.remove();toast('Template saved');renderTemplates()})};
-  app.querySelectorAll('[data-e]').forEach(b=>b.onclick=e=>{e.preventDefault();edit(templates.find(t=>t.id===b.dataset.e))});
-  app.querySelectorAll('[data-d]').forEach(b=>b.onclick=guard(async()=>{if(confirm('Delete this template?')){await api.deleteTemplate(b.dataset.d);renderTemplates()}}));
-  $('#newt').onclick=()=>edit({name:'',data:{}});
-  const st=$('#starter');if(st)st.onclick=guard(async()=>{st.disabled=true;try{for(const t of STARTER_TEMPLATES)await api.saveTemplate({id:uuid(),name:t.name,data:t.data})}catch(e){st.disabled=false;throw e}toast('Starter templates added');renderTemplates()});
-}
-
 /* ---------------- Boot ---------------- */
 route();
 </script>
