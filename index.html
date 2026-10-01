@@ -205,6 +205,30 @@ textarea{min-height:78px;resize:vertical}
 .day .nt{position:absolute;top:4px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--surface)}
 .day{position:relative}
 .cal-contact{text-align:center;margin-top:18px}
+/* a note from the astrologer, unrolled like a letter inside the "Astrologer's notes" card */
+.np{position:relative;margin:12px 0 4px}
+.np .sheet{position:relative;background:linear-gradient(180deg,#FDF9EE,#F8F2E2);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:22px 44px 20px 22px;box-shadow:0 12px 28px rgba(60,45,20,.12);clip-path:inset(0 0 100% 0);animation:npunroll 1.1s cubic-bezier(.3,.6,.3,1) forwards}
+@keyframes npunroll{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+.np .roll{position:absolute;left:-4px;right:-4px;top:-9px;height:18px;border-radius:9px;background:linear-gradient(180deg,#FFFDF6,#EEE6D2 60%,#DDD3B9);box-shadow:0 5px 12px rgba(60,45,20,.16);z-index:3;animation:nproll 1.1s cubic-bezier(.3,.6,.3,1) forwards;pointer-events:none}
+@keyframes nproll{from{top:-9px;opacity:1}85%{opacity:1}to{top:calc(100% - 9px);opacity:0}}
+.np.rolling .sheet{animation:npreroll .8s cubic-bezier(.4,.2,.6,1) forwards}
+@keyframes npreroll{from{clip-path:inset(0 0 0 0)}to{clip-path:inset(0 0 100% 0)}}
+.np.rolling .roll{animation:nprollback .8s cubic-bezier(.4,.2,.6,1) forwards}
+@keyframes nprollback{from{top:calc(100% - 9px);opacity:1}to{top:-9px;opacity:1}}
+.np .date{font-family:var(--sans);font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.np h3{margin:0 0 8px;font-family:var(--brand);font-style:italic;font-weight:500;font-size:1.45rem;color:var(--primary)}
+.np p{margin:0;font-size:1.05rem;line-height:1.55;white-space:pre-line}
+.np .sig{margin-top:10px;font-size:.82rem;color:var(--muted);font-style:italic}
+.np .x{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);font-size:1rem;line-height:1;cursor:pointer;z-index:4}
+.np .x:hover{background:var(--surface-2);color:var(--text)}
+.nbadge{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-family:var(--sans);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:#7a5a1e;background:var(--caution-soft);border-radius:999px;padding:2px 9px;vertical-align:middle}
+.nbadge i{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(181,138,74,.6);animation:npulse 2s ease-out infinite}
+@keyframes npulse{0%{box-shadow:0 0 0 0 rgba(181,138,74,.55)}70%{box-shadow:0 0 0 7px rgba(181,138,74,0)}100%{box-shadow:0 0 0 0 rgba(181,138,74,0)}}
+.day .nt.new{animation:npulse 2s ease-out infinite}
+.nlist li.unread strong{color:var(--primary)}
+.nlist li{cursor:pointer}
+.nlist li:hover{background:var(--surface-2)}
+@media(prefers-reduced-motion:reduce){.nbadge i,.day .nt.new{animation:none}.np .sheet,.np .roll{animation-duration:.01s!important}}
 /* gift opening — the whole scene is centred in the viewport on any screen; the letter rises out of the box and unrolls over it */
 .gift{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:var(--bg);overflow-y:auto;overflow-x:hidden;animation:gfade .9s ease}
 @keyframes gfade{from{opacity:0}to{opacity:1}}
@@ -287,6 +311,10 @@ legend{font-family:var(--serif);font-size:1.15rem;padding:0 8px;color:var(--prim
 /* gochara */
 .kundli{width:100%;max-width:440px;height:auto;display:block;margin:0 auto;shape-rendering:geometricPrecision}
 .kundli .house{fill:#FDFAF1;stroke:none;cursor:pointer;transition:fill .12s}
+.kundli .house.h-one{fill:#F3EEDD}
+.kundli .hb circle{fill:var(--surface);stroke:var(--line-strong);stroke-width:.35}
+.kundli .hb text{font-size:2.6px;fill:var(--muted);pointer-events:none}
+.kundli .hb.one circle{fill:var(--primary);stroke:var(--primary)}.kundli .hb.one text{fill:#fff;font-weight:600}
 .kundli .house:hover{fill:var(--surface-2)}
 .kundli .house.h-sel{fill:#E9E4F3}
 .kundli .house.h-occ{fill:var(--significant-soft)}
@@ -322,6 +350,9 @@ legend{font-family:var(--serif);font-size:1.15rem;padding:0 8px;color:var(--prim
 @media(max-width:760px){.g-charts{grid-template-columns:1fr}.g-charts.natal .transit,.g-charts.transit .natal{display:none}.g-mobile{display:inline-flex}}
 .goch.compact .g-charts{grid-template-columns:1fr}.goch.compact .g-charts.natal .transit,.goch.compact .g-charts.transit .natal{display:none}.goch.compact .g-mobile{display:inline-flex}
 .g-dasha{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0;padding:8px 12px;background:var(--surface-2);border-radius:10px}
+.g-rep{border:1px solid var(--line);border-left:3px solid var(--line-strong);border-radius:12px;padding:12px 14px;margin:0 0 10px;background:var(--surface)}
+.g-rep.good{border-left-color:var(--supportive)}.g-rep.bad{border-left-color:var(--caution)}
+.g-rep h3{font-size:1.1rem}.g-rep h3 .lnk{font:inherit;color:var(--primary)}
 .g-detail{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .g-planets{overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:10px}
 .g-planets table{font-size:.9rem}.g-planets td,.g-planets th{padding:6px 8px;white-space:nowrap}
@@ -650,6 +681,31 @@ function yogas(planets,lagnaSign,lagnaLon){
   const info=[`Moon ${elong<180?'waxing (Shukla paksha)':'waning (Krishna paksha)'}, tithi ${((tithi-1)%15)+1}${bright?'':' — a dark Moon counts as a mild malefic here'}`];
   return {yogas:out.filter(o=>o.kind==='yoga'),doshas:out.filter(o=>o.kind==='dosha'),info}}
 
+/* ---------- Classical gochara from the Moon (Phaladeepika / Brihat Samhita): favourable houses and their vedha points ---------- */
+const GOCHARA_MOON={
+  sun:    {good:[3,6,10,11],            vedha:{3:9,6:12,10:4,11:5}},
+  moon:   {good:[1,3,6,7,10,11],        vedha:{1:5,3:9,6:12,7:2,10:4,11:8}},
+  mars:   {good:[3,6,11],               vedha:{3:12,6:9,11:5}},
+  mercury:{good:[2,4,6,8,10,11],        vedha:{2:5,4:3,6:9,8:1,10:8,11:12}},
+  jupiter:{good:[2,5,7,9,11],           vedha:{2:12,5:4,7:3,9:10,11:8}},
+  venus:  {good:[1,2,3,4,5,8,9,11,12],  vedha:{1:8,2:7,3:1,4:10,5:9,8:5,9:11,11:6,12:3}},
+  saturn: {good:[3,6,11],               vedha:{3:12,6:9,11:5}},
+  rahu:   {good:[3,6,11],               vedha:{3:12,6:9,11:5}},
+  ketu:   {good:[3,6,11],               vedha:{3:12,6:9,11:5}}};
+// The Sun and Saturn do not obstruct each other, nor do the Moon and Mercury.
+const NO_VEDHA=[['sun','saturn'],['moon','mercury']];
+// Verdict for one transiting graha counted from the natal Moon: {good, vedhaBy} — good is true/false, or null when the texts give no rule.
+function moonTransit(key,houseFromMoon,transitPlanets,moonSign){const r=GOCHARA_MOON[key];if(!r)return {good:null,vedhaBy:null,house:houseFromMoon};
+  const good=r.good.includes(houseFromMoon);let vedhaBy=null;
+  if(good){const vh=r.vedha[houseFromMoon];if(vh){for(const p of transitPlanets){if(p.key===key||!GOCHARA_MOON[p.key]||p.key==='rahu'||p.key==='ketu')continue;
+    if(NO_VEDHA.some(([a,b])=>(a===key&&b===p.key)||(b===key&&a===p.key)))continue;
+    if(houseFrom(p.sign,moonSign)===vh){vedhaBy=p.key;break}}}}
+  return {good,vedhaBy,house:houseFromMoon}}
+// Sade Sati and the two Dhaiyas, from Saturn's house counted from the natal Moon.
+function sadeSati(saturnSign,moonSign){const h=houseFrom(saturnSign,moonSign);
+  if(h===12)return {kind:'sade sati',phase:'first phase (rising)',house:h};if(h===1)return {kind:'sade sati',phase:'second phase (peak)',house:h};if(h===2)return {kind:'sade sati',phase:'third phase (setting)',house:h};
+  if(h===4)return {kind:'dhaiya',phase:'Kantaka Shani (4th from the Moon)',house:h};if(h===8)return {kind:'dhaiya',phase:'Ashtama Shani (8th from the Moon)',house:h};return null}
+
 /* ---------- timezone helpers ---------- */
 function tzOffsetMinutes(tz,date){try{const f=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const parts=Object.fromEntries(f.formatToParts(date).filter(p=>p.type!=='literal').map(p=>[p.type,Number(p.value)]));
@@ -660,7 +716,7 @@ function utcToZoned(date,tz){const off=tzOffsetMinutes(tz,date);const z=new Date
   return {date:`${z.getUTCFullYear()}-${String(z.getUTCMonth()+1).padStart(2,'0')}-${String(z.getUTCDate()).padStart(2,'0')}`,time:`${String(z.getUTCHours()).padStart(2,'0')}:${String(z.getUTCMinutes()).padStart(2,'0')}`,offset:off}}
 function fmtOffset(min){const s=min<0?'-':'+';const a=Math.abs(min);return `UTC${s}${String(Math.floor(a/60)).padStart(2,'0')}:${String(a%60).padStart(2,'0')}`}
 
-return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,chartFromOverride,yogas,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
+return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,chartFromOverride,yogas,moonTransit,sadeSati,GOCHARA_MOON,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
   _internals:{sunLongitude,moonLongitude,meanNode,trueNode,planetLongitude,centuries,gmst}};
 })();
 if(typeof module!=='undefined')module.exports=GOCHARA;
@@ -689,7 +745,7 @@ function stack(list,cx,cy,dir,hi){const n=list.length;if(!n)return '';const comp
   const y0=dir==='down'?cy+fs*0.6:dir==='up'?cy-gap*(n-1)-fs*0.2:cy-gap*(n-1)/2;
   return list.map((p,i)=>`<text x="${cx}" y="${(y0+i*gap).toFixed(2)}" font-size="${fs}" class="${planetClass(p,hi)}" data-planet="${p.key}" text-anchor="middle" dominant-baseline="middle">${planetLabel(p,compact)}</text>`).join('')}
 function renderNorthIndianChart(chart,o){const {refSign,planets}=chart;const hi=o.highlight||{};const houses=houseModel(planets,refSign);let s=svgOpen(o.cls);
-  for(let h=1;h<=12;h++){const g=H_NORTH[h];s+=`<polygon points="${g.pts}" class="house ${hl(houses[h].sign,hi)}" data-house="${h}" data-sign="${houses[h].sign}"/>`}
+  for(let h=1;h<=12;h++){const g=H_NORTH[h];s+=`<polygon points="${g.pts}" class="house ${h===1?'h-one ':''}${hl(houses[h].sign,hi)}" data-house="${h}" data-sign="${houses[h].sign}"/>`}
   s+=drishtiLines(hi,sign=>H_NORTH[G.houseFrom(sign,refSign)].c);
   s+=`<rect x="0" y="0" width="100" height="100" class="frame"/><line x1="0" y1="0" x2="100" y2="100" class="frame"/><line x1="100" y1="0" x2="0" y2="100" class="frame"/><polygon points="50,0 100,50 50,100 0,50" class="frame" fill="none"/>`;
   for(let h=1;h<=12;h++){const g=H_NORTH[h];const hs=houses[h];
@@ -698,13 +754,13 @@ function renderNorthIndianChart(chart,o){const {refSign,planets}=chart;const hi=
   return s+'</svg>'}
 function renderSouthIndianChart(chart,o){const {refSign,planets}=chart;const hi=o.highlight||{};const houses=houseModel(planets,refSign);let s=svgOpen(o.cls);
   const cell=sign=>{const [r,c]=S_CELL[sign];return {x:c*25,y:r*25}};
-  for(let h=1;h<=12;h++){const sign=houses[h].sign;const {x,y}=cell(sign);s+=`<rect x="${x}" y="${y}" width="25" height="25" class="house ${hl(sign,hi)}" data-house="${h}" data-sign="${sign}"/>`}
+  for(let h=1;h<=12;h++){const sign=houses[h].sign;const {x,y}=cell(sign);s+=`<rect x="${x}" y="${y}" width="25" height="25" class="house ${h===1?'h-one ':''}${hl(sign,hi)}" data-house="${h}" data-sign="${sign}"/>`}
   s+=drishtiLines(hi,sign=>{const {x,y}=cell(sign);return [x+12.5,y+13.5]});
   s+=`<rect x="0" y="0" width="100" height="100" class="frame"/><line x1="25" y1="0" x2="25" y2="100" class="frame"/><line x1="50" y1="0" x2="50" y2="25" class="frame"/><line x1="50" y1="75" x2="50" y2="100" class="frame"/><line x1="75" y1="0" x2="75" y2="100" class="frame"/><line x1="0" y1="25" x2="100" y2="25" class="frame"/><line x1="0" y1="50" x2="25" y2="50" class="frame"/><line x1="75" y1="50" x2="100" y2="50" class="frame"/><line x1="0" y1="75" x2="100" y2="75" class="frame"/>`;
   s+=`<text x="50" y="50" class="centre" text-anchor="middle" dominant-baseline="middle">${esc(o.centreLabel||'')}</text>`;
   for(let h=1;h<=12;h++){const sign=houses[h].sign;const {x,y}=cell(sign);const hs=houses[h];
     if(h===1)s+=`<line x1="${x}" y1="${y+5}" x2="${x+5}" y2="${y}" class="lagna"/>`;
-    s+=`<text x="${x+(h===1?4.5:2)}" y="${y+3.6}" class="sign" dominant-baseline="middle">${G.RASHI_AB[sign]}</text><text x="${x+23}" y="${y+3.6}" class="hnum" text-anchor="end" dominant-baseline="middle">${h}</text>`;
+    s+=`<text x="${x+(h===1?4.5:2)}" y="${y+3.6}" class="sign" dominant-baseline="middle">${G.RASHI_AB[sign]}</text><g class="hb ${h===1?'one':''}"><circle cx="${x+21.4}" cy="${y+3.6}" r="2.5"/><text x="${x+21.4}" y="${y+3.75}" text-anchor="middle" dominant-baseline="middle">${h}</text></g>`;
     s+=stack(hs.planets,x+12.5,y+14.5,'mid',hi)}
   return s+'</svg>'}
 function drishtiLines(hi,centre){if(hi.noLines||!hi.occupied||!hi.drishti||!hi.drishti.length)return '';const from=centre(hi.occupied[0]);let s='<g class="drishti">';
@@ -747,7 +803,7 @@ function mount(container,client,opts={}){
   if(OV)natal.warn=natal.warn.filter(w=>!/Lagna cannot be calculated|Coordinates for/.test(w));
   const natalMoon=natalChart.planets.find(p=>p.key==='moon');
   const natalLagnaSign=natalAsc?Math.floor(natalAsc.sidereal/30):natalMoon.sign;
-  if(S.ref==='sky')S.ref='lagna';if(!natalAsc){if(S.ref==='lagna')S.ref='moon';S.natalRef='moon'}
+  if(S.ref==='sky')S.ref='lagna';if(!natalAsc){if(S.ref==='lagna')S.ref='moon';S.natalRef='moon'}st.reportRef=natalAsc?'lagna':'moon';
   st.view=st.view||'charts';
   let timer=null;const el=container;
   const tzNow=()=>S.tzMode==='client'?natal.tz:BROWSER_TZ;
@@ -871,6 +927,53 @@ function mount(container,client,opts={}){
     return `<details class="g-natal" open><summary>Natal planets</summary><div class="g-planets" style="margin-top:8px"><table><thead><tr><th>Planet</th><th></th><th>Sign</th><th>Degree</th><th>Nakshatra (pada)</th><th>House</th><th>Navamsa · state</th></tr></thead><tbody>${rows.join('')}</tbody></table>
      <p class="small muted" style="margin:8px 0 0">${OV?`<strong>Manual positions in use</strong> (${esc(OV.source||'entered on Client &amp; access')}${OV.saved?', '+esc(String(OV.saved).slice(0,10)):''}) — grahas not entered are calculated. `:''}Birth ${z.date} ${z.time} ${esc(natal.tz)} = ${natal.instant.toISOString().replace('T',' ').slice(0,16)} UTC · ${natal.lat!==null?`${natal.lat}°, ${natal.lon}°`:'no coordinates'} · Lahiri ${G.fmtDeg(natalChart.ayan)} · ${S.nodeMode} nodes · C combust · (R) retrograde</p></div></details>`}
 
+  /* ---------- Gochara report: each transiting graha mapped onto this native's bhavas, with classical readings ---------- */
+  // Readings for a graha transiting bhava N counted from the natal Lagna (circumstances, manifestation).
+  const TX={
+    sun:['Self, health and visibility come forward; vitality and pride both run high — good for initiative, watch irritability.','Finances, family and speech in focus; expenses and sharp words possible; firm dealings with resources.','Courage, siblings, short journeys and communication energised; effort is rewarded.','Home, property and the mother come forward; some restlessness at home; authority in domestic matters.','Creativity, children, romance and speculation lit up; confidence in self-expression; care with gambles.','Favourable — competition, work routines and health regimes gain strength; rivals and debts yield.','Partnerships and public dealings tested; ego friction with spouse or partners; negotiate with humility.','A lower-vitality month — avoid needless risk; hidden matters, inheritance and research; keep health in view.','Fortune, father, teachers and long journeys; clarity of purpose; good for study and pilgrimage.','Favourable — career visibility, recognition from authority, professional initiative rewarded.','Favourable — gains, friends, elder siblings and the fulfilment of aims; income improves.','Expenses, foreign matters and withdrawal; energy lower; good for rest, charity and inner work.'],
+    moon:['Mind and body prominent; emotional, responsive, sociable; a good day to begin.','Family, food and money occupy the mind; speech warm; pleasant for gatherings.','Favourable — restless curiosity, siblings, messages, short trips.','Home comforts and the mother; emotional ease or domestic preoccupation.','Playful, creative, romantic mood; children; a fortunate day for pleasure.','Favourable — health and work routines; competition handled with ease.','Favourable — partners, the public, travel; sociable and receptive.','Emotional undertow; secrets, worry, fatigue; rest and discretion.','Buoyant mood; learning, journeys, dharma; the mind looks outward.','Favourable — public standing, work recognised, productive mood.','Favourable — gains, friends, wishes met; a light, hopeful day.','Withdrawal, expenses, sleep; dreams and the inner life; be gentle with the body.'],
+    mars:['Energy and impulsiveness; accidents and anger possible — channel into exercise and decisive work.','Sharp speech, expenses and family friction; bold financial moves need care.','Favourable — courage, enterprise, siblings, communications and short journeys gain force.','Domestic friction, property work, the mother’s health; restlessness at home.','Passionate creativity, children’s energy, impulsive speculation.','Favourable — victory over opposition, illness and debt; competitive edge.','Friction in partnerships, assertive partners, litigation risk; cooperate deliberately.','Caution with accidents, surgery and hidden matters; transformative pressure.','Travel, debates of belief, the father; energetic pursuit of convictions.','Drive in career; conflict with authority if unchecked; productive if disciplined.','Favourable — gains through effort, friends and ambitions realised.','Expenses, hidden adversaries, disturbed sleep; good for retreat and foreign effort.'],
+    mercury:['Communicative and mentally active; nervous energy; many small matters.','Favourable — speech, finances, learning and trade prosper.','Writing, siblings and short travel keep you busy; attention scattered.','Favourable — property paperwork, learning at home, vehicles.','Creative intelligence, children, analysis of speculation.','Favourable — work, service, health detail, winning arguments.','Negotiation and partnership talk; pleasant trade; agreements.','Favourable — research, insurance, inheritance paperwork; secrets surface.','Learning, philosophy, long-distance correspondence; publishing.','Favourable — career communication, documents, commerce.','Favourable — gains through network and correspondence.','Expenses, foreign writing, introspection; mental fog possible — double-check details.'],
+    jupiter:['Expansion of the self, optimism and dignity; weight and over-confidence to watch; a year of personal growth.','Favourable — wealth, family, speech and learning; auspicious family events.','Effort required; siblings and travel; pride; gains come slowly.','Home, property, the mother, education and comfort; favourable for domestic matters.','Favourable — children, creativity, wisdom, romance; speculation blessed.','Enemies and debts resolve slowly; health care and service; modest gains.','Favourable — marriage, partnerships, public dealings and travel.','Hidden gains, inheritance; health caution; spiritual depth; otherwise slow.','Favourable — fortune, father, guru, pilgrimage and higher learning.','Career expansion with effort and honours; some tension with superiors.','Favourable — gains, fulfilment, friends and growing income.','Expenses toward good causes, foreign matters, retreat and spiritual practice.'],
+    venus:['Favourable — charm, comforts, relationships and appearance.','Favourable — wealth, family, good food, pleasant speech.','Favourable — siblings, the arts, pleasant short travel.','Favourable — home comforts, vehicles, the mother.','Favourable — romance, children, creativity, enjoyment.','Unfavourable — relationship friction, expenses on health, disputes.','Partnerships active and pleasant; indulgence; the classical texts count it mixed.','Favourable — unexpected gains and intimacy; some secret pleasures.','Favourable — fortune, travel, the father, luck.','Career through charm and taste; status; the texts count it mixed.','Favourable — gains, friends, desires fulfilled.','Favourable — bed pleasures, foreign matters, expenses on comforts.'],
+    saturn:['Heavy — responsibility, health and a slowed ego; discipline rewarded later.','Finances and family strained; speech restrained; careful budgeting.','Favourable — courage, effort, siblings; perseverance rewarded.','Home, property, the mother and peace of mind disturbed; relocation possible.','Children, creativity and speculation restrained; relationships tested.','Favourable — victory over opponents, discipline at work, debts cleared.','Partnerships burdened; marriage delayed or tested; public dealings slow.','Health, losses and obstacles; endurance; a deep transformation.','Fortune and the father tested; dharma reconsidered; long journeys delayed.','Career responsibility; hard work; rise or fall by discipline.','Favourable — gains through sustained effort, elders, long-term income.','Expenses, isolation, foreign residence, disturbed sleep.'],
+    rahu:['Ambition and confusion about identity; foreign influences; odd health.','Erratic speech and finances; unusual family matters.','Favourable — bold efforts, unconventional communication, courage.','Home unsettled; property by unusual routes; the mother’s health.','Unconventional romance and children’s matters; speculation risk.','Favourable — rivals defeated, an unusual job; health obsessions.','Partnerships with outsiders; deception risk in alliances.','Hidden matters, sudden events, research; caution.','Unconventional beliefs; foreign travel; the father.','Career ambition, foreign or technical fields, sudden rise; integrity needed.','Favourable — unexpected gains, large networks.','Foreign lands, expenses, isolation, spiritual confusion.'],
+    ketu:['Detachment from self-image; vague health; spiritual pull.','Terse speech, family distance; finances feel hollow.','Favourable — courage without attachment; distance from siblings.','Home unsettled, inner restlessness; property doubts.','Children and creativity feel detached; insight; speculation unclear.','Favourable — enemies dissolve; mysterious health matters.','Detachment in partnership; separation themes.','Occult insight, sudden events, healing crises.','Spiritual searching; dissatisfaction with doctrine; distance from the father.','Career dissatisfaction, detachment, sudden shifts.','Favourable — gains arrive unexpectedly; friends distant.','Liberation themes; foreign matters; expenses; strong moksha pull.'],
+    uranus:['Sudden change in self-presentation and direction.','Financial surprises; unconventional values.','Restless communication, new ideas.','Upheaval at home; moves.','Creative breakthroughs; unusual romance.','Changes in work routine and health approach.','Sudden shifts in partnership.','Abrupt transformations; shared finances.','New beliefs; sudden journeys.','Career disruption and reinvention.','New networks; sudden gains.','Inner awakening; disrupted sleep.'],
+    neptune:['Blurred identity; sensitivity; idealism.','Financial vagueness; imaginative resources.','Dreamy communication; misunderstandings.','Home ideals; dissolving boundaries.','Romantic illusion; artistic inspiration.','Vague health; compassionate service.','Idealised partners; confusion in agreements.','Mystical depth; hidden losses.','Spiritual longing; distant journeys.','Career drift or vocation of service.','Idealistic friends; vague goals.','Retreat, dreams, compassion; escapism to watch.'],
+    pluto:['Deep self-transformation.','Power through resources; financial overhaul.','Intense communication; persuasive power.','Family and property transformation.','Obsessive creativity or romance.','Work and health overhaul.','Power dynamics in partnership.','Profound regeneration; shared resources.','Transformation of beliefs.','Career power and reinvention.','Networks reshaped; ambitions intensified.','Deep inner purging.']};
+  // Short readings counted from the natal Moon (the subjective side), by graha and bhava.
+  const MX={
+    sun:['pressure on health and standing; fatigue','losses, eye strain, friction at home','gains, standing, victory over foes','illness, obstacles, domestic unease','mental agitation, quarrels','freedom from illness and enemies','weariness, friction with partners','fear, illness, pressure from superiors','humiliation or loss; low energy','success in undertakings, honours','gains, standing, wishes met','losses, fever, expense'],
+    moon:['comfort, good food, ease','loss of respect, obstacles','gains, cheerful, clothes and company','fear and low spirits','illness, sorrow','wealth, friends, good news','comforts, conveyance, happiness','fear, worry, trouble','sickness, obstacles','success, honour, achievement','prosperity, friends, joy','loss and expenditure'],
+    mars:['agitation, injury, fever','quarrels, loss of wealth','gains, victory, strength','stomach trouble, enemies','illness, fear, trouble from children','freedom from enemies, gains','quarrels with partners, eye trouble','illness, loss of blood or wealth','humiliation, weakness','losses, fatigue','gains, prosperity','expenses, quarrels, worry'],
+    mercury:['loss of wealth, harsh speech','gains and respect','fear from enemies, obstacles','prosperity','quarrels with family','success, gains','friction, illness','gains, good fortune','obstacles in undertakings','prosperity, honour','gains, pleasant company','disgrace, loss'],
+    jupiter:['loss of position, journeys','wealth, family happiness','loss of position, obstacles','trouble from relatives, grief','children, honour, prosperity','sorrow, sickness','happiness in marriage, travel','trouble, imprisonment-like confinement, loss','fortune, success','loss of property, danger','gains, honour, prosperity','sorrow, expenses'],
+    venus:['pleasures, comforts','wealth, family joy','prosperity, good company','happiness, friends','children, friends, happiness','fear, enemies, expense','danger from women, quarrels','acquisition of property','happiness, prosperity','quarrels, disgrace','gains, prosperity','wealth, pleasures'],
+    saturn:['sade sati peak — sorrow, illness, journeys, loss','sade sati setting — loss of wealth and happiness','happiness, wealth, success','kantaka — separation from family, trouble','sorrow, loss of children or wealth','freedom from enemies, happiness','long journeys, trouble with partner','ashtama shani — loss, illness, sorrow','misfortune, losses','loss of position, sickness','gains, prosperity','sade sati rising — loss, sorrow, expense'],
+    rahu:['fear, confusion','loss of wealth','gains, courage','trouble at home','trouble from children','success over enemies','partner trouble','danger, fear','loss of fortune','obstacles at work','gains','expenses, loss'],
+    ketu:['illness, confusion','loss, harsh speech','gains','trouble at home','trouble from children','freedom from enemies','partner trouble','danger','loss of fortune','obstacles at work','gains','expenses']};
+  function gocharaReport(c){const ref=st.reportRef==='moon'?'moon':'lagna';const base=ref==='moon'?natalMoon.sign:natalLagnaSign;const lords=dashaLords(c.dasha);
+    const ss=G.sadeSati(c.tr.planets.find(p=>p.key==='saturn').sign,natalMoon.sign);
+    const banner=ss?`<p class="note small" style="margin:0 0 12px"><strong>${ss.kind==='sade sati'?'Sade Sati':'Shani Dhaiya'}</strong> — Saturn is ${ord(ss.house)} from the natal Moon: ${esc(ss.phase)}.</p>`:'';
+    const natalIn=h=>natalChart.planets.filter(n=>G.houseFrom(n.sign,base)===h);
+    const cards=c.tr.planets.map(p=>{const h=G.houseFrom(p.sign,base);const sign=p.sign;const occ=natalIn(h);const lord=G.SIGN_LORD[sign];const lordN=natalChart.planets.find(n=>n.key===lord);
+      const dr=G.drishtiTargets(p.key,h).map(d=>({...d,sign:(base+d.house-1)%12,there:natalIn(d.house)}));
+      const mv=ref==='moon'?G.moonTransit(p.key,h,c.tr.planets,natalMoon.sign):null;
+      const text=ref==='moon'?(MX[p.key]?MX[p.key][h-1]:''):(TX[p.key]?TX[p.key][h-1]:'');
+      const verdict=mv&&mv.good!==null?(mv.good?(mv.vedhaBy?`<span class="pill caution">favourable, but obstructed (vedha) by transit ${gname(mv.vedhaBy)}</span>`:'<span class="pill supportive">favourable from the Moon</span>'):'<span class="pill caution">unfavourable from the Moon</span>'):'';
+      const state=[p.retro&&!NODE(p.key)?'retrograde':'',p.dignity,p.combust?'combust':''].filter(Boolean).join(' · ');
+      let ing=null;try{if(!p.outer)ing=G.nextIngress(p.key,st.instant,{nodeMode:S.nodeMode})}catch(e){}
+      const contacts=c.contacts.filter(x=>x.t===p.key);
+      return `<article class="g-rep ${mv&&mv.good===true&&!mv.vedhaBy?'good':mv&&mv.good===false?'bad':''}">
+       <div class="row between" style="gap:8px;align-items:flex-start"><h3 style="margin:0"><button type="button" class="lnk" data-pick="transit:${p.key}">${gname(p.key)}</button> <span class="muted">(${p.en})</span> — transiting the <strong>${ord(h)} bhava</strong> ${ref==='moon'?'from Chandra':'from Lagna'} <span class="muted">(${G.RASHI_EN[sign]})</span></h3><div class="row" style="gap:4px">${lords.includes(p.key)?'<span class="pill significant">dasha lord</span>':''}${verdict}</div></div>
+       <p class="small" style="margin:6px 0 2px">${G.RASHI[sign]} ${G.fmtDeg(p.deg)} · ${p.nakName} pada ${p.pada}${state?' · '+esc(state):''}${!NODE(p.key)?' · '+(p.speed>=0?'+':'')+p.speed.toFixed(2)+'°/day':''}${ing?' · in this sign until '+G.utcToZoned(ing.date,tzNow()).date:''}</p>
+       <p class="small muted" style="margin:0 0 6px">${ref==='moon'?ord(G.houseFrom(sign,natalLagnaSign))+' from Lagna':ord(G.houseFrom(sign,natalMoon.sign))+' from Chandra'} · bhava lord ${gname(lord)}${lordN?' (natal '+ord(G.houseFrom(lordN.sign,base))+')':''}${occ.length?' · natal '+occ.map(n=>gname(n.key)).join(', ')+' here':''}${dr.length?' · drishti to '+dr.map(d=>ord(d.house)+(d.there.length?' ('+d.there.map(n=>gname(n.key)).join(', ')+')':'')).join(', '):''}${contacts.length?' · within '+contacts.map(x=>G.fmtDeg(x.d)+' of natal '+gname(x.n)).join(', '):''}</p>
+       ${text?`<p style="margin:0">${esc(text)}</p>`:'<p class="small muted" style="margin:0">No classical reading for this body.</p>'}</article>`}).join('');
+    return `<div class="g-report"><div class="row between" style="margin:0 0 10px;gap:8px;flex-wrap:wrap"><span class="seg"><button type="button" data-rref="lagna" aria-pressed="${ref==='lagna'}" ${natalAsc?'':'disabled'}>From Lagna</button><button type="button" data-rref="moon" aria-pressed="${ref==='moon'}">From Chandra (Moon)</button></span><span class="small muted">${ref==='moon'?'The classical gochara verdicts and vedha are counted from the natal Moon — the subjective side.':'Houses are this native’s natal bhavas from the Lagna — circumstances and manifestation.'}</span></div>
+     ${ref==='moon'?banner:''}${cards}
+     <p class="small muted" style="margin:10px 0 0">Readings follow Phaladeepika / Brihat Samhita gochara and standard bhava significations; weigh them against dignity, daśā and natal promise. Nothing here is shown to clients.</p></div>`}
+
   /* ---------- Yogas & doshas of the natal chart ---------- */
   function yogaPanel(){const r=G.yogas(natalChart.planets,natalLagnaSign,natalAsc?natalAsc.sidereal:null);
     const pill=g=>g==='present'?'':` <span class="pill ${g==='cancelled'?'draft':g==='weakened'||g==='partial'?'caution':'significant'}">${g}</span>`;
@@ -901,7 +1004,10 @@ function mount(container,client,opts={}){
     const d=c.dasha;if(d)L.push(`\nVIMSHOTTARI DASHA NOW: ${gname(d.maha.lord)} mahadasha (until ${d.maha.end.toISOString().slice(0,10)}) → ${d.antar?gname(d.antar.lord)+' antardasha (until '+d.antar.end.toISOString().slice(0,10)+')':'—'} → ${d.pratyantar?gname(d.pratyantar.lord)+' pratyantardasha (until '+d.pratyantar.end.toISOString().slice(0,10)+')':'—'} → ${d.sookshma?gname(d.sookshma.lord)+' sookshma ('+d.sookshma.start.toISOString().slice(0,10)+' to '+d.sookshma.end.toISOString().slice(0,10)+')':'—'}.${OV?' Natal positions were entered manually by the astrologer from the native’s reference chart.':''}`);
     const yg=G.yogas?G.yogas(natalChart.planets,natalLagnaSign,natalAsc?natalAsc.sidereal:null):null;
     if(yg&&(yg.yogas.length||yg.doshas.length))L.push(`\nNOTABLE YOGAS: ${yg.yogas.map(y=>y.name+(y.grade!=='present'?' ('+y.grade+')':'')).join('; ')||'none from the standard list'}.\nDOSHAS: ${yg.doshas.map(y=>y.name+(y.grade!=='present'?' ('+y.grade+')':'')).join('; ')||'none from the standard list'}.`);
-    L.push(`\nTRANSITS on ${z.date} ${z.time} (${tzNow()}):`);for(const p of c.tr.planets){let ing=null;try{if(!p.outer)ing=G.nextIngress(p.key,st.instant,{nodeMode:S.nodeMode})}catch(e){}L.push('- transit '+pl(p)+(ing?` — in this sign until ${G.utcToZoned(ing.date,tzNow()).date}`:''))}
+    const ssP=G.sadeSati(c.tr.planets.find(p=>p.key==='saturn').sign,natalMoon.sign);
+    L.push(`\nTRANSITS on ${z.date} ${z.time} (${tzNow()}) — houses are this native's natal bhavas from the Lagna (and from the Moon)${ssP?'; '+(ssP.kind==='sade sati'?'Sade Sati, '+ssP.phase:'Shani dhaiya, '+ssP.phase):''}:`);
+    for(const p of c.tr.planets){let ing=null;try{if(!p.outer)ing=G.nextIngress(p.key,st.instant,{nodeMode:S.nodeMode})}catch(e){}const mv=G.moonTransit(p.key,p.houseMoon,c.tr.planets,natalMoon.sign);
+      L.push('- transit '+pl(p)+(mv.good!==null?` — classical gochara from the Moon: ${mv.good?(mv.vedhaBy?'favourable but obstructed (vedha) by transit '+gname(mv.vedhaBy):'favourable'):'unfavourable'}`:'')+(ing?` — in this sign until ${G.utcToZoned(ing.date,tzNow()).date}`:''))}
     if(c.contacts.length)L.push('\nCLOSE CONTACTS (within '+S.orb+'°): '+c.contacts.map(x=>`transit ${gname(x.t)} on natal ${gname(x.n)} (${G.fmtDeg(x.d)})`).join('; ')+'.');
     const sel=st.sel;let focus='the overall gochara picture at this moment for this native';
     if(sel&&sel.type==='transit'){const p=c.tr.planets.find(x=>x.key===sel.key);if(p){const dr=G.drishtiTargets(p.key,p.house);focus=`transit ${p.en} (${p.name}) in ${G.RASHI_EN[p.sign]} ${G.fmtDeg(p.deg)}, ${p.nakName} pada ${p.pada}, in natal house ${p.house} counted from ${S.ref==='moon'?'the Moon':'the Lagna'}${dr.length?', casting graha drishti to house '+dr.map(x=>x.house+' ('+G.RASHI_EN[(ref+x.house-1)%12]+(natalChart.planets.filter(n=>n.house===x.house).length?' — natal '+natalChart.planets.filter(n=>n.house===x.house).map(n=>n.en).join(', ')+' there':'')+')').join(', '):''}${natalChart.planets.filter(n=>n.house===p.house).length?'; natal '+natalChart.planets.filter(n=>n.house===p.house).map(n=>n.en).join(', ')+' in that house':''}`}}
@@ -1161,11 +1267,11 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
       <span class="seg"><button type="button" data-style="north" aria-pressed="${S.style==='north'}">North Indian</button><button type="button" data-style="south" aria-pressed="${S.style==='south'}">South Indian</button></span>
       <span class="row small" style="gap:10px"><label class="chk" style="margin:0"><input type="checkbox" id="g-outer" ${S.outer?'checked':''}>Uranus, Neptune, Pluto</label><label class="chk" style="margin:0"><input type="checkbox" id="g-node" ${S.nodeMode==='true'?'checked':''}>True nodes <span class="muted">(off = mean, as AstroSage)</span></label><label class="chk" style="margin:0">orb <select id="g-orb" style="width:auto;padding:2px 6px">${[0.5,1,2,3].map(o=>`<option ${S.orb===o?'selected':''}>${o}</option>`).join('')}</select>°</label><label class="chk" style="margin:0"><input type="checkbox" id="g-tz" ${S.tzMode==='mine'?'checked':''}>My time zone</label></span>
      </div>
-     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button><button type="button" data-gview="yogas" aria-pressed="${st.view==='yogas'}">Yogas &amp; doshas</button></span></div>
-     ${st.view==='planets'?planetTable(c):st.view==='yogas'?yogaPanel():''}
+     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button><button type="button" data-gview="report" aria-pressed="${st.view==='report'}">Gochara report</button><button type="button" data-gview="yogas" aria-pressed="${st.view==='yogas'}">Yogas &amp; doshas</button></span></div>
+     ${st.view==='planets'?planetTable(c):st.view==='yogas'?yogaPanel():st.view==='report'?gocharaReport(c):''}
      <div class="g-charts ${st.mobileView} ${st.view!=='charts'?'hidden':''}">
       <figure class="g-fig natal"><figcaption><span class="seg small"><button type="button" data-natalref="lagna" aria-pressed="${S.natalRef==='lagna'}" ${natalAsc?'':'disabled'}>Lagna</button><button type="button" data-natalref="moon" aria-pressed="${S.natalRef==='moon'}">Rasi (Chandra)</button></span><div class="cap">Natal · ${client.name?esc(client.name):''} <span class="muted">${natalAsc?'Lagna '+G.RASHI[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}</span></div></figcaption>${render(natalModel,{style:S.style,highlight:hi.natal,cls:'natal',centreLabel:S.natalRef==='moon'?'Rasi':'Lagna'})}</figure>
-      <figure class="g-fig transit"><figcaption><span class="seg small"><button type="button" data-ref="lagna" aria-pressed="${S.ref==='lagna'}" ${natalAsc?'':'disabled'}>from Lagna</button><button type="button" data-ref="moon" aria-pressed="${S.ref==='moon'}">from Chandra</button></span><div class="cap">Gochara · ${z.date} ${z.time} <span class="muted">${refWord}</span></div></figcaption>${render(trModel,{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})}</figure>
+      <figure class="g-fig transit"><figcaption><span class="seg small"><button type="button" data-ref="lagna" aria-pressed="${S.ref==='lagna'}" ${natalAsc?'':'disabled'}>from Lagna</button><button type="button" data-ref="moon" aria-pressed="${S.ref==='moon'}">from Chandra</button></span><div class="cap">Gochara · ${z.date} ${z.time} <span class="muted">${refWord} — 1st bhava ${G.RASHI[c.ref]}${client.name?' for '+esc(client.name):''}</span></div></figcaption>${render(trModel,{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})}</figure>
       <div class="g-legend small muted"><span><i class="sw occ"></i> occupied by the selected graha</span><span><i class="sw dr"></i> receives its drishti</span><span><i class="sw tg"></i> natal graha under transit</span><span><i class="sw sel"></i> selected bhava</span><span><u>marked</u> natal graha affected · <u style="text-decoration-style:double">contact</u> within ${S.orb}°</span></div>
       <div class="g-mobile seg"><button type="button" data-view="natal" aria-pressed="${st.mobileView==='natal'}">Natal</button><button type="button" data-view="both" aria-pressed="${st.mobileView==='both'}">Both</button><button type="button" data-view="transit" aria-pressed="${st.mobileView==='transit'}">Transit</button></div>
      </div>
@@ -1188,6 +1294,7 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
     el.querySelectorAll('[data-style]').forEach(b=>b.onclick=()=>{S.style=b.dataset.style;saveSettings(S);draw()});
     el.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{st.mobileView=b.dataset.view;draw()});
     el.querySelectorAll('[data-gview]').forEach(b=>b.onclick=()=>{st.view=b.dataset.gview;draw()});
+    el.querySelectorAll('[data-rref]').forEach(b=>b.onclick=()=>{st.reportRef=b.dataset.rref;draw()});
     $('#g-outer',el).onchange=e=>{S.outer=e.target.checked;saveSettings(S);rebuildNatal();draw()};
     $('#g-node',el).onchange=e=>{S.nodeMode=e.target.checked?'true':'mean';saveSettings(S);rebuildNatal();draw()};
     $('#g-orb',el).onchange=e=>{S.orb=Number(e.target.value);saveSettings(S);draw()};
@@ -1195,12 +1302,12 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
     const lat=$('#g-lat',el),lon=$('#g-lon',el);if(lat)lat.onchange=()=>{st.skyLat=Number(lat.value);draw()};if(lon)lon.onchange=()=>{st.skyLon=Number(lon.value);draw()};
     const sl=$('#g-slider',el);let raf=null;const anchor=st.instant.getTime();
     sl.oninput=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=null;st.instant=new Date(anchor+Number(sl.value)/10*SCALES[S.scale].unit);st.live=false;const c2=compute();const hi=highlights(c2);const z=G.utcToZoned(st.instant,tzNow());
-      $('#g-date',el).value=z.date;$('#g-clock',el).value=z.time;$('.g-fig.transit .cap',el).innerHTML=`Gochara · ${z.date} ${z.time} <span class="muted">${{lagna:'from Lagna',moon:'from Chandra',sky:'from the sky Lagna'}[S.ref]}</span>`;const old=$('.g-fig.transit svg',el);if(old)old.outerHTML=render({refSign:c2.ref,planets:c2.tr.planets},{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})})};
+      $('#g-date',el).value=z.date;$('#g-clock',el).value=z.time;$('.g-fig.transit .cap',el).innerHTML=`Gochara · ${z.date} ${z.time} <span class="muted">${{lagna:'from Lagna',moon:'from Chandra',sky:'from the sky Lagna'}[S.ref]} — 1st bhava ${G.RASHI[c2.ref]}${client.name?' for '+esc(client.name):''}</span>`;const old=$('.g-fig.transit svg',el);if(old)old.outerHTML=render({refSign:c2.ref,planets:c2.tr.planets},{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})})};
     sl.onchange=()=>{if(raf){cancelAnimationFrame(raf);raf=null}st.instant=new Date(anchor+Number(sl.value)/10*SCALES[S.scale].unit);st.live=false;draw()};
     el.querySelectorAll('.kundli.transit [data-planet]').forEach(t=>t.onclick=()=>{st.sel={type:'transit',key:t.dataset.planet};draw()});
     el.querySelectorAll('.kundli.natal [data-planet]').forEach(t=>t.onclick=()=>{st.sel={type:'natal',key:t.dataset.planet};draw()});
     el.querySelectorAll('.kundli [data-house]').forEach(t=>t.onclick=()=>{st.sel={type:'house',sign:Number(t.dataset.sign)};draw()});
-    el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const [type,key]=b.dataset.pick.split(':');st.sel={type,key};draw()});
+    el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const [type,key]=b.dataset.pick.split(':');st.sel={type,key};if(st.view==='report')st.view='charts';draw()});
     const cl=$('#g-clear',el);if(cl)cl.onclick=()=>{st.sel=null;draw()};
     el.querySelectorAll('[data-rq]').forEach(b=>b.onclick=()=>runResearch(b.dataset.rq));
     const pg_=$('#pr-gen',el);if(pg_)pg_.onclick=()=>{promptState.q=$('#pr-q',el).value.trim();promptState.text=buildPrompt(c);draw();const ta=$('#pr-text',el);if(ta)ta.scrollIntoView({behavior:'smooth',block:'nearest'})};
@@ -1212,7 +1319,7 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
     const rf=$('#g-rform',el);if(rf)rf.onsubmit=e=>{e.preventDefault();const q=$('#g-q',el).value.trim();if(q)runResearch(q)};
     const add=$('#g-add',el);if(add)add.onclick=()=>opts.onAdd(snapshot(c));
     const gg=$('#g-geo',el);if(gg)gg.onclick=()=>opts.onGeocode();
-    if(timer)clearInterval(timer);if(st.live)timer=setInterval(()=>{if(!document.body.contains(el)){clearInterval(timer);return}if(st.live&&(!st.sel||st.view==='planets')){st.instant=new Date();draw()}},60000);
+    if(timer)clearInterval(timer);if(st.live)timer=setInterval(()=>{if(!document.body.contains(el)){clearInterval(timer);return}if(st.live&&(!st.sel||st.view==='planets'||st.view==='report')){st.instant=new Date();draw()}},60000);
   }
   function rebuildNatal(){natalChart.planets=buildNatal().planets}
   const onEph=()=>{if(!document.body.contains(el)){window.removeEventListener('ephemeris-ready',onEph);return}rebuildNatal();draw()};window.addEventListener('ephemeris-ready',onEph);
@@ -1627,6 +1734,12 @@ function drawCalendar(pkg,root,opts={}){
   if(!ent.intentions)prefs.intention='';
   const shown=k=>!prefs.hidden.includes(k);
   const savePrefs=()=>{pkg.prefs=prefs;if(opts.code&&!opts.preview)api.setPrefs(opts.code,prefs).catch(()=>{})};
+  // notes from the astrologer: a note counts as new until the client has opened it (or the day it belongs to); edits make it new again
+  const noteHash=nn_=>{let h=5381;const t=String(nn_.heading||'')+'|'+String(nn_.body||'');for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
+  prefs.notes_seen=prefs.notes_seen&&typeof prefs.notes_seen==='object'?prefs.notes_seen:{};
+  const unreadNotes=()=>(pkg.notes||[]).filter(nn_=>prefs.notes_seen[nn_.date]!==noteHash(nn_));
+  const markNoteSeen=nn_=>{if(prefs.notes_seen[nn_.date]===noteHash(nn_))return;prefs.notes_seen[nn_.date]=noteHash(nn_);savePrefs();refreshNoteBadges()};
+  const refreshNoteBadges=()=>{const u=unreadNotes();const b=$('#nbadge',root);if(b)b.innerHTML=u.length?`<span class="nbadge"><i></i>${u.length} new</span>`:'';root.querySelectorAll('.nlist li[data-note]').forEach(li=>li.classList.toggle('unread',u.some(x=>x.date===li.dataset.note)))};
   const visible=(pkg.influences||[]).filter(i=>{
     if(prefs.mode==='essential'&&!(i.significant||i.intensity>=4))return false;
     if(prefs.mode==='supportive'&&i.polarity!=='supportive')return false;
@@ -1652,8 +1765,7 @@ function drawCalendar(pkg,root,opts={}){
     const bands=longs.map((i,ix)=>`<span class="band ${ix?'b2':''}${hasWin(i)?' notch':''}" style="background:${POLARITY[i.polarity].color};opacity:${i.start_date===ds||i.end_date===ds||hasWin(i)?.95:.55}"></span>`).join('');
     const tint=dominant?` tint-${dominant.polarity}`:'';
     const label=`${fmtDate(ds)}${here.length?', '+here.map(i=>i.accessibility_label||`${POLARITY[i.polarity].label}: ${CAT[i.category]||i.category}`).join('; '):', no entries'}`;
-    const noted=(pkg.notes||[]).some(nn_=>nn_.date===ds);
-    cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}${ds===calState.selected?' sel':''}${tint}" data-d="${ds}" aria-label="${esc(label)}${noted?', with a note from your astrologer':''}" ${other?'tabindex="-1"':''}>${bands}${noted?'<span class="nt" aria-hidden="true"></span>':''}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`;
+    cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}${ds===calState.selected?' sel':''}${tint}" data-d="${ds}" aria-label="${esc(label)}" ${other?'tabindex="-1"':''}>${bands}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`;
   }
   const allCats=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(c=>c[0]);
   const hiddenCats=allCats.filter(k=>prefs.hidden.includes(k));
@@ -1700,8 +1812,10 @@ function drawCalendar(pkg,root,opts={}){
      </details>
     </div>`:''}
     ${(pkg.notes||[]).length?`<div class="card" style="margin-top:16px" id="notesbox">
-     <details><summary>Astrologer’s notes <span class="muted" style="font-weight:400">(${pkg.notes.length})</span></summary>
-      <ul class="list" style="margin-top:8px">${pkg.notes.slice().sort((a,b)=>a.date<b.date?1:-1).map(nn_=>`<li><div><strong>${esc(fmtDate(nn_.date))}</strong>${nn_.date===todayStr()?' <span class="pill supportive">today</span>':''}${nn_.heading?' · '+esc(nn_.heading):''}<div class="small muted">${esc(String(nn_.body).slice(0,120))}${String(nn_.body).length>120?'…':''}</div></div><button type="button" class="btn ghost small" data-goto="${nn_.date}">Open that day</button></li>`).join('')}</ul>
+     <details ${unreadNotes().length?'open':''}><summary>Astrologer’s notes <span class="muted" style="font-weight:400">(${pkg.notes.length})</span><span id="nbadge">${unreadNotes().length?`<span class="nbadge"><i></i>${unreadNotes().length} new</span>`:''}</span></summary>
+      <p class="small muted" style="margin:8px 0 0">Select a note to unroll it.</p>
+      <ul class="list nlist" style="margin-top:6px">${pkg.notes.slice().sort((a,b)=>a.date<b.date?1:-1).map(nn_=>`<li data-note="${nn_.date}" class="${unreadNotes().some(x=>x.date===nn_.date)?'unread':''}" tabindex="0" role="button" aria-label="Open the note for ${esc(fmtDate(nn_.date))}"><div><strong>${esc(fmtDate(nn_.date))}</strong>${nn_.date===todayStr()?' <span class="pill supportive">today</span>':''}${nn_.heading?' · '+esc(nn_.heading):''}</div><span class="small muted">open</span></li>`).join('')}</ul>
+      <div id="npholder"></div>
      </details></div>`:''}
    </section>
    <aside id="daypanel" aria-label="Day detail"></aside>
@@ -1720,6 +1834,13 @@ function drawCalendar(pkg,root,opts={}){
   root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.hidden=[...root.querySelectorAll('[data-cat]:not(:checked)')].map(x=>x.dataset.cat);savePrefs();log('display options',{hidden:prefs.hidden.map(k=>CAT[k]||k)});redraw()});
   const ics=$('#ics',root);if(ics)ics.onclick=()=>{const pol=[];if($('#ics-sup',root).checked)pol.push('supportive');if($('#ics-cau',root).checked)pol.push('caution','especially_sensitive');if($('#ics-mix',root).checked)pol.push('mixed');
     download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');if(opts.code&&!opts.preview)ACT.action('export',{what:'calendar file',polarities:pol,exactTimes:$('#ics-time',root).checked});toast('Calendar file downloaded')};
+  // unroll a note; × rolls it back up before it closes
+  let npTimer=null;const closeNote=()=>{const cur=$('#npholder .np',root);if(!cur||cur.classList.contains('rolling'))return;cur.classList.add('rolling');clearTimeout(npTimer);npTimer=setTimeout(()=>cur.remove(),820)};
+  const openNote=d=>{const nn_=(pkg.notes||[]).find(x=>x.date===d);if(!nn_)return;const holder=$('#npholder',root);const cur=holder.querySelector('.np');
+    const show=()=>{holder.innerHTML=`<div class="np" data-note="${esc(d)}"><div class="roll" aria-hidden="true"></div><div class="sheet"><button type="button" class="x" aria-label="Close the note">×</button><p class="date">${esc(fmtDate(d))}</p><h3>${esc(String(nn_.heading||'').trim()||'A note from your astrologer')}</h3><p>${esc(nn_.body)}</p><div class="sig">— your astrologer</div></div></div>`;
+      holder.querySelector('.x').onclick=closeNote;markNoteSeen(nn_);if(opts.code&&!opts.preview)ACT.action('note opened',{date:d});holder.scrollIntoView({behavior:'smooth',block:'nearest'})};
+    if(cur){if(cur.dataset.note===d){closeNote();return}closeNote();clearTimeout(npTimer);npTimer=setTimeout(show,820)}else show()};
+  root.querySelectorAll('.nlist li[data-note]').forEach(li=>{li.onclick=()=>openNote(li.dataset.note);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openNote(li.dataset.note)}}});
   drawDay(pkg,visible,calState.selected,root);
 }
 function drawDay(pkg,visible,ds,root){
@@ -1747,11 +1868,9 @@ function drawDay(pkg,visible,ds,root){
    </article>`};
   let dd=DISCLAIMERS[pkg.default_disclaimer]||'';
   if(here.some(i=>(i.disclaimer==='custom'?i.custom_disclaimer:DISCLAIMERS[i.disclaimer])===dd))dd='';
-  const note=(pkg.notes||[]).find(nn_=>nn_.date===ds&&String(nn_.body||'').trim());
-  const noteHtml=note?`<div class="daynote"><h3>${esc(String(note.heading||'').trim()||(ds===todayStr()?'A note for today':'A note for this day'))}</h3><p>${esc(note.body)}</p><div class="sig">— your astrologer</div></div>`:'';
   // several entries on one day fold into openable tabs; a single entry stays open
   const fold=i=>{const p=POLARITY[i.polarity];return here.length>1?`<details class="infd" data-entry="${esc(i.title)}"><summary>${icon(p.shape,p.color,12)} <strong>${esc(i.title)}</strong><span class="tag">${esc(CAT[i.category]||i.category)}</span>${i.significant?icon('star','var(--significant)',11):''}<span class="chev">▶</span></summary>${block(i)}</details>`:block(i)};
-  $('#daypanel',root).innerHTML=`<div class="card"><h2>${fmtDate(ds)}</h2><p class="muted small" style="margin-top:-6px">${esc(climate)}</p>${noteHtml}
+  $('#daypanel',root).innerHTML=`<div class="card"><h2>${fmtDate(ds)}</h2><p class="muted small" style="margin-top:-6px">${esc(climate)}</p>
    ${here.length>1?`<p class="small muted" style="margin:10px 0 6px">${here.length} entries for this day — open any of them.</p>`:''}
    ${longs.length?`<h3 style="margin-top:14px">Longer periods</h3>${longs.map(fold).join('')}`:''}
    ${windows.length?`<h3 style="margin-top:14px">${longs.length?'Windows within this day':'Today'}</h3>${windows.map(fold).join('')}`:''}
@@ -1891,7 +2010,7 @@ const fmtDT=d=>new Date(d).toLocaleString(undefined,{weekday:'short',month:'shor
 const fmtDur=ms=>{const m=Math.round(ms/60000);if(m<1)return 'under a minute';if(m<60)return m+' min';const h=Math.floor(m/60);return h+' h '+(m%60?(m%60)+' min':'')};
 const monthLabel=ym=>{const [y,m]=String(ym||'').split('-').map(Number);return y&&m?new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(ym||'')};
 const fmtMs=ms=>ms<1000?'':ms<60000?Math.round(ms/1000)+' s':ms<3600000?Math.round(ms/60000)+' min':fmtDur(ms);
-const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact'];
+const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact','note opened'];
 const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;
   if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;
@@ -1901,6 +2020,7 @@ const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='print')return 'printed the page';
   if(sc==='open entry')return `opened “${d.entry||''}”`;
   if(sc==='gift opened')return 'opened their gift';
+  if(sc==='note opened')return `unrolled your note for ${d.date?fmtShort(d.date):'a day'}`;
   if(sc==='contact')return 'tapped the enquiries link';
   if(sc==='entries')return 'read '+(d.entries||[]).map(e=>`“${e.title}”${fmtMs(e.ms)?' '+fmtMs(e.ms):''}`).join(', ');
   return sc};
@@ -2045,28 +2165,28 @@ function tabCalendar(ctx,body){
   const {c,influences}=ctx;const y=wsCal.year,m=wsCal.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
   let cells='';const total=Math.ceil((startDow+dim)/7)*7;
   for(let k=0;k<total;k++){const dnum=k-startDow+1;const dt=new Date(y,m,dnum);const ds=ymd(dt);const other=dnum<1||dnum>dim;
-    const here=influences.filter(i=>i.start_date<=ds&&ds<=i.end_date);const noted=(ctx.notes||[]).some(nn_=>nn_.note_date===ds&&String(nn_.body||'').trim());
+    const here=influences.filter(i=>i.start_date<=ds&&ds<=i.end_date);
     const marks=here.map(i=>`<span title="${esc(i.title)}" style="opacity:${i.published?1:.35}">${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)}</span>`).slice(0,5).join('')+(here.length>5?`<span class="more">+${here.length-5}</span>`:'');
-    cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}" data-d="${ds}" aria-label="${esc(fmtDate(ds))}, ${here.length} influences${noted?', note written':''}">${noted?'<span class="nt" aria-hidden="true"></span>':''}<span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`}
+    cells+=`<button type="button" class="day${other?' other':''}${ds===todayStr()?' today':''}" data-d="${ds}" aria-label="${esc(fmtDate(ds))}, ${here.length} influences"><span class="num">${dt.getDate()}</span><span class="marks">${marks}</span></button>`}
   const ym=`${y}-${String(m+1).padStart(2,'0')}`;
   const outside=influences.filter(i=>!(i.start_date.slice(0,7)<=ym&&i.end_date.slice(0,7)>=ym));
   const outsideNote=outside.length&&influences.length!==outside.length?`<p class="small muted" style="margin:10px 0 0">${outside.length} influence${outside.length>1?'s':''} outside this month: ${outside.slice(0,6).map(i=>`${esc(i.title)} (${fmtYear(i.start_date)})`).join(' · ')}${outside.length>6?' …':''}</p>`:'';
   body.innerHTML=`<div class="card">${monthHint(influences,y,m)}<div class="cal-head"><button type="button" class="btn ghost small" id="p" aria-label="Previous month">&larr;</button><h2>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h2><button type="button" class="btn ghost small" id="n" aria-label="Next month">&rarr;</button></div>
    <div class="cal">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
-   <p class="small muted" style="margin:10px 0 0">Faded markers are drafts (not visible to the client). A gold dot is a note you wrote for that day. Select a day to see what is on it, or to write the client a note for it.</p>${outsideNote}
+   <p class="small muted" style="margin:10px 0 0">Faded markers are drafts (not visible to the client). Select a day to see what is on it.</p>${outsideNote}
    <div id="adminday"></div>
 </div>
 <div class="card" style="margin-top:16px" id="notescard"><h2>Notes to ${esc(c.name||'the client')}</h2>
- <p class="small muted">A note for a day appears at the top of that day in the client’s calendar, signed “your astrologer”, and in their “Astrologer’s notes” list. Write one for today, for a day ahead, or edit one you wrote earlier.</p>
+ <p class="small muted">Notes appear in the client’s “Astrologer’s notes” section beneath their calendar, dated and signed “your astrologer”; a small “new” mark tells them when there is something they have not read. Write one for today, date one ahead, or edit one you wrote earlier.</p>
  ${ctx.notesUnavailable?'<p class="note small">Notes need the latest supabase-setup.sql to be run once in the Supabase SQL Editor.</p>':`
- <form id="nf" class="grid3" style="align-items:end"><label class="f"><span>Day</span><input type="date" name="note_date" value="${esc(wsNoteDate||todayStr())}" required></label><label class="f" style="grid-column:span 2"><span>Heading <em class="muted">— shown as the title, e.g. “Your focus for today”</em></span><input type="text" name="heading" placeholder="A note for today" maxlength="80"></label></form>
+ <form id="nf" class="grid3" style="align-items:end"><label class="f"><span>Date of the note</span><input type="date" name="note_date" value="${esc(wsNoteDate||todayStr())}" required></label><label class="f" style="grid-column:span 2"><span>Heading <em class="muted">— shown as the title, e.g. “Your focus for today”</em></span><input type="text" name="heading" placeholder="A note for today" maxlength="80"></label></form>
  <label class="f"><span>Note</span><textarea id="nf-body" placeholder="A few lines from you for that day…"></textarea></label>
  <p class="row" style="gap:6px"><button type="button" class="btn small" id="nf-save">Save note</button><span class="small muted" id="nf-status">Visible to the client as soon as it is saved.</span></p>
  ${(ctx.notes||[]).length?`<h3 style="margin-top:14px">Your notes (${ctx.notes.length})</h3><ul class="list">${ctx.notes.slice().sort((a,b)=>a.note_date<b.note_date?1:-1).map(nn_=>`<li><div><strong>${esc(fmtDate(nn_.note_date))}</strong>${nn_.note_date===todayStr()?' <span class="pill supportive">today</span>':nn_.note_date>todayStr()?' <span class="pill draft">upcoming</span>':''}${nn_.heading?' · '+esc(nn_.heading):''}<div class="small muted">${esc(String(nn_.body).slice(0,140))}${String(nn_.body).length>140?'…':''}</div></div><div class="row"><button type="button" class="btn ghost small" data-editnote="${nn_.note_date}">Edit</button><button type="button" class="btn quiet small" data-delnote="${nn_.note_date}">Remove</button></div></li>`).join('')}</ul>`:'<p class="small muted">No notes yet.</p>'}`}
 </div>`;
   const nf=$('#nf',body);if(nf){const loadNote=d=>{const x=(ctx.notes||[]).find(y=>y.note_date===d);nf.elements.note_date.value=d;nf.elements.heading.value=x?x.heading||'':'';$('#nf-body',body).value=x?x.body||'':'';$('#nf-save',body).textContent=x?'Update note':'Save note';$('#nf-status',body).textContent=x?'Editing the note for '+fmtDate(d)+'.':'Visible to the client as soon as it is saved.'};
     nf.elements.note_date.onchange=()=>loadNote(nf.elements.note_date.value);if(wsNoteDate)loadNote(wsNoteDate);
-    $('#nf-save',body).onclick=guard(async()=>{const d=nf.elements.note_date.value;const bodyText=$('#nf-body',body).value.trim();if(!d){alert('Choose a day.');return}if(!bodyText){alert('Write the note first.');return}await api.saveNote({client_id:c.id,note_date:d,heading:nf.elements.heading.value.trim(),body:bodyText});toast('Note saved — the client sees it on '+fmtShort(d));wsNoteDate=d;wsCalOpen=d;const [yy,mm]=d.split('-').map(Number);wsCal.year=yy;wsCal.month=mm-1;ctx.reload()});
+    $('#nf-save',body).onclick=guard(async()=>{const d=nf.elements.note_date.value;const bodyText=$('#nf-body',body).value.trim();if(!d){alert('Choose a day.');return}if(!bodyText){alert('Write the note first.');return}await api.saveNote({client_id:c.id,note_date:d,heading:nf.elements.heading.value.trim(),body:bodyText});toast('Note saved — the client can read it now');wsNoteDate=d;ctx.reload()});
     body.querySelectorAll('[data-editnote]').forEach(b=>b.onclick=()=>{wsNoteDate=b.dataset.editnote;loadNote(wsNoteDate);$('#notescard',body).scrollIntoView({behavior:'smooth',block:'start'})});
     body.querySelectorAll('[data-delnote]').forEach(b=>b.onclick=guard(async()=>{if(confirm('Remove the note for '+fmtDate(b.dataset.delnote)+'?')){await api.deleteNote(c.id,b.dataset.delnote);toast('Note removed');wsNoteDate=null;ctx.reload()}}))}
   bindJump(body,(yy,mm)=>{wsCal.year=yy;wsCal.month=mm;ctx.reload()});
@@ -2074,18 +2194,11 @@ function tabCalendar(ctx,body){
   $('#n').onclick=()=>{wsCal.month++;if(wsCal.month>11){wsCal.month=0;wsCal.year++}ctx.reload()};
   body.querySelectorAll('.day').forEach(b=>b.onclick=()=>{const ds=b.dataset.d;body.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===ds));
     const here=influences.filter(i=>i.start_date<=ds&&ds<=i.end_date);
-    const note=(ctx.notes||[]).find(nn_=>nn_.note_date===ds)||{client_id:c.id,note_date:ds,heading:'',body:''};const hasNote=!!String(note.body||'').trim();
     $('#adminday',body).innerHTML=`<div class="card" style="margin-top:12px;background:var(--surface-2);box-shadow:none"><div class="row between"><h3 style="margin:0">${fmtDate(ds)}</h3><button type="button" class="btn small" id="addhere">Add influence on this day</button></div>
-      ${here.length?`<ul class="list" style="margin-top:10px">${here.map(i=>`<li><div>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} <strong>${esc(i.title)}</strong> <span class="small muted">${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''} · ${esc(CAT[i.category]||i.category)}</span> <span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></div><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></li>`).join('')}</ul>`:'<p class="small muted" style="margin:8px 0 0">Nothing on this day.</p>'}
-      ${ctx.notesUnavailable?'':`<details class="dn" open style="margin-top:14px"><summary><strong>${hasNote?'Your note for this day':'Write a note for this day'}</strong> <span class="small muted">— the client sees it at the top of the day${ds===todayStr()?', today':''}</span></summary>
-       <div class="grid2" style="margin-top:8px"><label class="f"><span>Heading (shown as the title of the note)</span><input type="text" id="dn-head" value="${esc(note.heading||'')}" placeholder="${ds===todayStr()?'A note for today':'A note for this day'} — or e.g. “Your focus for today”" maxlength="80"></label></div>
-       <label class="f"><span>Note</span><textarea id="dn-body" placeholder="A few lines from you for this day…">${esc(note.body||'')}</textarea></label>
-       <p class="row" style="gap:6px;margin:6px 0 0"><button type="button" class="btn small" id="dn-save">${hasNote?'Update note':'Save note'}</button>${hasNote?'<button type="button" class="btn quiet small" id="dn-del">Remove note</button>':''}<span class="small muted">${hasNote&&note.updated_at?'Last changed '+esc(ago(note.updated_at)):'Visible to the client as soon as it is saved.'}</span></p></details>`}</div>`;
-    wsCalOpen=null;const nfd=$('#nf',body);if(nfd&&!nfd.elements.note_date.value)nfd.elements.note_date.value=ds;
+      ${here.length?`<ul class="list" style="margin-top:10px">${here.map(i=>`<li><div>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} <strong>${esc(i.title)}</strong> <span class="small muted">${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''} · ${esc(CAT[i.category]||i.category)}</span> <span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></div><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></li>`).join('')}</ul>`:'<p class="small muted" style="margin:8px 0 0">Nothing on this day.</p>'}</div>`;
+    wsCalOpen=null;
     $('#addhere',body).onclick=()=>{const i=blankInfluence(c.id);i.start_date=i.end_date=ds;openEditor(ctx,i,true)};
-    body.querySelectorAll('[data-edit]').forEach(x=>x.onclick=()=>openEditor(ctx,influences.find(i=>i.id===x.dataset.edit),false));
-    const dnS=$('#dn-save',body);if(dnS)dnS.onclick=guard(async()=>{const bodyText=$('#dn-body',body).value.trim();if(!bodyText){alert('Write the note first.');return}await api.saveNote({client_id:c.id,note_date:ds,heading:$('#dn-head',body).value.trim(),body:bodyText});toast('Note saved — the client will see it on that day');wsCalOpen=ds;ctx.reload()});
-    const dnD=$('#dn-del',body);if(dnD)dnD.onclick=guard(async()=>{if(confirm('Remove your note for this day?')){await api.deleteNote(c.id,ds);toast('Note removed');wsCalOpen=ds;ctx.reload()}})});
+    body.querySelectorAll('[data-edit]').forEach(x=>x.onclick=()=>openEditor(ctx,influences.find(i=>i.id===x.dataset.edit),false))});
   if(wsCalOpen){const cell=body.querySelector(`.day[data-d="${wsCalOpen}"]`);if(cell)cell.click()}
 }
 const mergedInterpretation=i=>[i.client_interpretation,i.prediction].map(x=>String(x||'').trim()).filter(Boolean).join('\n\n');
