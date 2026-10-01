@@ -139,6 +139,7 @@ textarea{min-height:78px;resize:vertical}
 .entry h1{font-size:2rem}
 .entry input{text-align:center;letter-spacing:.14em;font-size:1.15rem;text-transform:uppercase;font-family:var(--sans)}
 .entry input[type=password]{letter-spacing:.3em;text-transform:none}
+.entry .consent{font-size:.62rem;line-height:1.4;color:var(--muted);opacity:.38;margin:-4px 0 0;font-style:italic}
 /* calendar */
 .cal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
 .cal-head h2{margin:0;font-size:1.65rem}
@@ -482,6 +483,103 @@ function chartFromOverride(computed,ov,opts={}){const out={...computed,planets:c
   if(!opts.outer)out.planets=out.planets.filter(p=>!p.outer);
   const moon=out.planets.find(p=>p.key==='moon');out.moonSign=moon.sign;return out}
 
+/* ---------- Yogas & doshas (Parashari, whole-sign houses from the Lagna unless stated) ---------- */
+const KENDRA=[1,4,7,10],TRIKONA=[1,5,9],DUSTHANA=[6,8,12];
+const GN={sun:'Sun',moon:'Moon',mars:'Mars',mercury:'Mercury',jupiter:'Jupiter',venus:'Venus',saturn:'Saturn',rahu:'Rahu',ketu:'Ketu'};
+const SEVEN=['sun','moon','mars','mercury','jupiter','venus','saturn'];
+function yogas(planets,lagnaSign,lagnaLon){
+  const P={};for(const p of planets)if(GN[p.key])P[p.key]=p;
+  const need=[...SEVEN,'rahu','ketu'];if(need.some(k=>!P[k])||!Number.isFinite(lagnaSign))return {yogas:[],doshas:[],info:[]};
+  const L=lagnaSign,M=P.moon.sign;
+  const ordn=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
+  const H=k=>houseFrom(P[k].sign,L),HM=k=>houseFrom(P[k].sign,M);
+  const inSign=s=>need.filter(k=>P[k].sign===s);
+  const lordOf=h=>SIGN_LORD[(L+h-1)%12];
+  const strong=k=>['exalted','moolatrikona','own sign'].includes(P[k].dignity);
+  const elong=norm(P.moon.lon-P.sun.lon);const bright=elong>=90&&elong<=270;const tithi=Math.floor(elong/12)+1;
+  const NAT_MAL=['sun','mars','saturn','rahu','ketu'];
+  const malefic=k=>NAT_MAL.includes(k)||(k==='moon'&&!bright)||(k==='mercury'&&inSign(P.mercury.sign).some(x=>NAT_MAL.includes(x)));
+  const benefic=k=>!malefic(k);
+  const out=[];const add=(kind,name,factors,note,grade='present')=>out.push({kind,name,factors,note,grade});
+  const where=k=>`${GN[k]} in ${RASHI_EN[P[k].sign]}, ${ordn(H(k))} house`;
+  const pair=(a,b)=>`${GN[a]} and ${GN[b]} together in ${RASHI_EN[P[a].sign]} (${ordn(H(a))} house)`;
+  // --- Pancha Mahapurusha
+  const MP={mars:'Ruchaka',mercury:'Bhadra',jupiter:'Hamsa',venus:'Malavya',saturn:'Sasa'};
+  for(const k in MP)if(KENDRA.includes(H(k))&&strong(k))add('yoga',MP[k]+' Mahapurusha yoga',where(k)+' ('+P[k].dignity+(P[k].combust?', combust':'')+')',`${GN[k]} in its own or exalted sign in a kendra from the Lagna — one of the five Mahapurusha yogas; a pronounced, self-directed ${GN[k]} nature.`+(P[k].combust?` Combustion weakens it.`:''),P[k].combust?'weakened':'present');
+  // --- Gajakesari
+  if(KENDRA.includes(HM('jupiter'))){const weak=P.jupiter.dignity==='debilitated'?'debilitated':P.jupiter.combust?'combust':'';add('yoga','Gajakesari yoga',`Jupiter ${ordn(HM('jupiter'))} from the Moon`,'Jupiter in a kendra from the Moon — supports reputation, judgement and steadiness.'+(weak?` Jupiter is ${weak}, which tempers it.`:''),weak?'weakened':'present')}
+  // --- Chandra–Mangala, Budha–Aditya, Guru–Chandala
+  if(P.mars.sign===M)add('yoga','Chandra-Mangala yoga',pair('moon','mars'),'Moon with Mars — drive and resourcefulness in earning; emotionally heated when provoked.');
+  else if(HM('mars')===7)add('yoga','Chandra-Mangala yoga (opposition)',`Mars ${ordn(HM('mars'))} from the Moon`,'Moon and Mars in mutual 7th — the milder, aspect-based form.','partial');
+  if(P.mercury.sign===P.sun.sign){const close=Math.abs(norm(P.mercury.lon-P.sun.lon+180)-180)<3;add('yoga','Budha-Aditya yoga',pair('sun','mercury'),'Sun with Mercury — intelligence and articulacy in the affairs of that house.'+(close?' Mercury is within 3° of the Sun (deeply combust), which tempers the result.':''),close?'weakened':'present')}
+  if(P.jupiter.sign===P.rahu.sign||P.jupiter.sign===P.ketu.sign)add('dosha','Guru-Chandala yoga',pair('jupiter',P.jupiter.sign===P.rahu.sign?'rahu':'ketu'),'Jupiter with a node — unconventional beliefs; wisdom and ethics can be distorted or made original.');
+  // --- Moon-based lunar yogas
+  const nonLum=k=>!['sun','moon','rahu','ketu'].includes(k);
+  const s2=inSign((M+1)%12).filter(nonLum),s12=inSign((M+11)%12).filter(nonLum),withMoon=inSign(M).filter(nonLum);
+  if(s2.length&&s12.length)add('yoga','Durudhara yoga',`${s2.map(k=>GN[k]).join(', ')} 2nd from the Moon; ${s12.map(k=>GN[k]).join(', ')} 12th from the Moon`,'Planets on both sides of the Moon — support, means and comfort; the Moon is well attended.');
+  else if(s2.length)add('yoga','Sunapha yoga',`${s2.map(k=>GN[k]).join(', ')} in the 2nd from the Moon`,'A planet in the 2nd from the Moon — self-earned standing and resources.');
+  else if(s12.length)add('yoga','Anapha yoga',`${s12.map(k=>GN[k]).join(', ')} in the 12th from the Moon`,'A planet in the 12th from the Moon — composure, health and a cultivated manner.');
+  else{const kendraMoon=need.filter(k=>k!=='moon'&&!['rahu','ketu'].includes(k)&&KENDRA.includes(HM(k)));const moonKendra=KENDRA.includes(houseFrom(M,L));
+    const cancel=[...(withMoon.length?[`${withMoon.map(k=>GN[k]).join(', ')} with the Moon`]:[]),...(kendraMoon.length?[`${kendraMoon.map(k=>GN[k]).join(', ')} in a kendra from the Moon`]:[]),...(moonKendra?['the Moon in a kendra from the Lagna']:[])];
+    add('dosha','Kemadruma yoga','No planet (other than the Sun and the nodes) in the 2nd or 12th from the Moon','Classically a lonely or fluctuating Moon — periods of thin support.'+(cancel.length?' Cancellation (bhanga) indicated: '+cancel.join('; ')+'.':' No standard cancellation found.'),cancel.length?'cancelled':'present')}
+  // --- Sun-based
+  const nonMoon=k=>!['sun','moon','rahu','ketu'].includes(k);
+  const u2=inSign((P.sun.sign+1)%12).filter(nonMoon),u12=inSign((P.sun.sign+11)%12).filter(nonMoon);
+  if(u2.length&&u12.length)add('yoga','Ubhayachari yoga',`${u2.map(k=>GN[k]).join(', ')} 2nd and ${u12.map(k=>GN[k]).join(', ')} 12th from the Sun`,'Planets on both sides of the Sun — presence, eloquence and steady fortune.');
+  else if(u2.length)add('yoga','Vesi yoga',`${u2.map(k=>GN[k]).join(', ')} in the 2nd from the Sun`,'A planet in the 2nd from the Sun — a balanced, forthright temperament'+(u2.every(benefic)?' (benefic: favourable).':' (malefic: more combative).'));
+  else if(u12.length)add('yoga','Vasi yoga',`${u12.map(k=>GN[k]).join(', ')} in the 12th from the Sun`,'A planet in the 12th from the Sun — skill and influence'+(u12.every(benefic)?' (benefic: favourable).':' (malefic: more effortful).'));
+  // --- Adhi, Amala, Shakata
+  const adhi=['jupiter','venus','mercury'].filter(k=>[6,7,8].includes(HM(k)));
+  if(adhi.length>=2)add('yoga','Adhi yoga',`${adhi.map(k=>GN[k]+' '+ordn(HM(k))).join(', ')} from the Moon`,'Natural benefics in the 6th–8th from the Moon — leadership, means and protection.',adhi.length===3?'present':'partial');
+  for(const [lbl,ref] of [['Lagna',L],['Moon',M]]){const tenth=inSign((ref+9)%12);if(tenth.length&&tenth.every(benefic)&&tenth.every(k=>k!=='rahu'&&k!=='ketu'))add('yoga','Amala yoga'+(lbl==='Moon'?' (from the Moon)':''),`${tenth.map(k=>GN[k]).join(', ')} alone in the 10th from the ${lbl}`,'Only benefics in the 10th — a clean reputation and principled work.')}
+  if(DUSTHANA.includes(HM('jupiter'))){const canc=KENDRA.includes(H('jupiter'));add('dosha','Shakata yoga',`Jupiter ${ordn(HM('jupiter'))} from the Moon`,'Jupiter in 6/8/12 from the Moon — fortunes rise and fall like a cart-wheel.'+(canc?' Cancelled by Jupiter in a kendra from the Lagna.':''),canc?'cancelled':'present')}
+  // --- Kala Sarpa
+  const arc=(a,b)=>SEVEN.filter(k=>norm(P[k].lon-a)<=norm(b-a)).length;
+  const inRK=arc(P.rahu.lon,P.ketu.lon),inKR=arc(P.ketu.lon,P.rahu.lon);
+  if(inRK===7||inKR===7)add('dosha',inRK===7?'Kala Sarpa yoga':'Kala Amrita yoga','All seven planets between '+(inRK===7?'Rahu and Ketu':'Ketu and Rahu'),'The planets hemmed within the nodal axis — a karmic, fated quality to life events; often considerable after mid-life. Naming of the two variants differs between authors.');
+  else if(inRK===6||inKR===6){const outK=SEVEN.find(k=>norm(P[k].lon-(inRK===6?P.rahu.lon:P.ketu.lon))>180);add('dosha','Kala Sarpa yoga (partial)',`Six planets within the nodal axis; ${GN[outK]} outside`,'One planet escapes the axis — the pattern is incomplete and much softened.','partial')}
+  // --- Mangal dosha
+  const MD=[1,2,4,7,8,12];const mdL=MD.includes(H('mars')),mdM=MD.includes(HM('mars')),mdV=MD.includes(houseFrom(P.mars.sign,P.venus.sign));
+  if(mdL||mdM||mdV){const from=[mdL?'Lagna':'',mdM?'Moon':'',mdV?'Venus':''].filter(Boolean);const soft=[];if(strong('mars'))soft.push('Mars is in its own or exalted sign');if([0,7,9].includes(P.mars.sign))soft.push('Mars in Aries, Scorpio or Capricorn');if(P.mars.sign===P.jupiter.sign)soft.push('Mars with Jupiter');
+    add('dosha','Mangal (Kuja) dosha',`Mars ${ordn(H('mars'))} from the Lagna, ${ordn(HM('mars'))} from the Moon, ${ordn(houseFrom(P.mars.sign,P.venus.sign))} from Venus — counts from the ${from.join(', ')}`,'Mars in 1/2/4/7/8/12 — heat in partnership matters; weigh against the partner’s chart.'+(soft.length?' Softened: '+soft.join('; ')+'.':''),mdL?(soft.length?'weakened':'present'):'partial')}
+  // --- Node afflictions
+  for(const lum of ['sun','moon'])for(const n of ['rahu','ketu'])if(P[lum].sign===P[n].sign)add('dosha','Grahan dosha',pair(lum,n),`${GN[lum]} with ${GN[n]} — the eclipse combination; ${lum==='sun'?'authority, father and vitality':'mind, mother and emotional security'} themes are shadowed.`);
+  if(P.saturn.sign===P.rahu.sign)add('dosha','Shrapit dosha',pair('saturn','rahu'),'Saturn with Rahu — delays and ancestral burdens in the affairs of that house (common usage).');
+  if(P.mars.sign===P.rahu.sign)add('dosha','Angarak dosha',pair('mars','rahu'),'Mars with Rahu — impulsive force; accidents and quarrels need care.');
+  const pit=[];if(['saturn','rahu','ketu'].some(k=>P[k].sign===P.sun.sign))pit.push('Sun with '+['saturn','rahu','ketu'].filter(k=>P[k].sign===P.sun.sign).map(k=>GN[k]).join(', '));const ninth=inSign((L+8)%12).filter(k=>['saturn','rahu','ketu'].includes(k));if(ninth.length)pit.push(ninth.map(k=>GN[k]).join(', ')+' in the 9th house');
+  if(pit.length)add('dosha','Pitru dosha (indication)',pit.join('; '),'Affliction to the Sun or the 9th house — lineage and father themes; definitions vary widely.','partial');
+  // --- Kartari
+  for(const [lbl,ref] of [['Lagna',L],['Moon',M]]){const a=inSign((ref+11)%12),b=inSign((ref+1)%12);if(a.length&&b.length){if(a.every(malefic)&&b.every(malefic))add('dosha','Papakartari yoga on the '+lbl,`${a.map(k=>GN[k]).join(', ')} 12th and ${b.map(k=>GN[k]).join(', ')} 2nd from the ${lbl}`,`Malefics on both sides of the ${lbl} — a hemmed-in, pressured ${lbl==='Lagna'?'self':'mind'}.`);
+    else if(a.every(benefic)&&b.every(benefic))add('yoga','Shubhakartari yoga on the '+lbl,`${a.map(k=>GN[k]).join(', ')} 12th and ${b.map(k=>GN[k]).join(', ')} 2nd from the ${lbl}`,`Benefics on both sides of the ${lbl} — protection and ease.`)}}
+  // --- Neecha Bhanga
+  for(const k of SEVEN)if(P[k].dignity==='debilitated'){const dl=SIGN_LORD[P[k].sign],el=SIGN_LORD[EXALT[k][0]];const why=[];
+    if(KENDRA.includes(H(dl))||KENDRA.includes(HM(dl)))why.push(`${GN[dl]} (lord of the debilitation sign) in a kendra`);if(KENDRA.includes(H(el))||KENDRA.includes(HM(el)))why.push(`${GN[el]} (lord of the exaltation sign) in a kendra`);
+    if(P[dl].dignity==='exalted')why.push(`${GN[dl]} exalted`);if(OWN[k].includes(P[dl].sign))why.push(`exchange with ${GN[dl]}`);
+    if(why.length)add('yoga','Neecha Bhanga Raja yoga',`${where(k)} (debilitated) — ${why.join('; ')}`,`The debilitation of ${GN[k]} is cancelled and can turn to strength after early difficulty.`);
+    else add('dosha',`${GN[k]} debilitated`,where(k),'No standard cancellation of the debilitation found.','partial')}
+  // --- Vipareeta Raja yoga
+  const VR={6:'Harsha',8:'Sarala',12:'Vimala'};for(const h of DUSTHANA){const l=lordOf(h);if(DUSTHANA.includes(H(l)))add('yoga',VR[h]+' (Vipareeta Raja) yoga',`${GN[l]}, lord of the ${ordn(h)}, in the ${ordn(H(l))}`,`The ${ordn(h)} lord placed in a dusthana — gains through the reversal of difficulties${H(l)===h?' (in its own house)':''}.`)}
+  // --- Parivartana
+  for(let i=0;i<SEVEN.length;i++)for(let j=i+1;j<SEVEN.length;j++){const a=SEVEN[i],b=SEVEN[j];if(OWN[b].includes(P[a].sign)&&OWN[a].includes(P[b].sign)){const ha=H(a),hb=H(b);const kind=[ha,hb].some(h=>DUSTHANA.includes(h))?'Dainya':[ha,hb].includes(3)?'Khala':'Maha';
+    add(kind==='Dainya'?'dosha':'yoga',kind+' Parivartana yoga',`${GN[a]} (${ordn(ha)}) and ${GN[b]} (${ordn(hb)}) exchange signs`,kind==='Maha'?'Exchange between lords of good houses — the two houses prosper together.':kind==='Khala'?'Exchange involving the 3rd lord — uneven results, effort-dependent.':'Exchange involving a dusthana lord — gains come through trouble, debts or loss.')}}
+  // --- Raja yogas: kendra and trikona lords in association; yogakaraka
+  const kl=[...new Set([4,7,10].map(lordOf))],tl=[...new Set([5,9].map(lordOf))],l1=lordOf(1);const seen=new Set();
+  const assoc=(a,b,label,note)=>{if(a===b)return;const key=[a,b].sort().join();if(seen.has(key))return;if(P[a].sign===P[b].sign){seen.add(key);add('yoga',label,pair(a,b),note)}};
+  for(const a of kl)for(const b of tl)assoc(a,b,'Raja yoga (kendra–trikona lords)','Lords of a kendra and a trikona together — status and achievement through that house.');
+  for(const b of tl)assoc(l1,b,'Raja yoga (Lagna lord with a trikona lord)','The Lagna lord joined with a trikona lord — fortune follows personal initiative.');
+  for(const k of SEVEN)if([4,7,10].some(h=>lordOf(h)===k)&&[5,9].some(h=>lordOf(h)===k))add('yoga',`${GN[k]} is Yogakaraka`,`${GN[k]} lords both a kendra and a trikona for ${RASHI_EN[L]} Lagna — placed ${ordn(H(k))}`,'A single planet owning a kendra and a trikona confers Raja yoga by itself when well placed.');
+  if(lordOf(9)!==lordOf(10)){const a=lordOf(9),b=lordOf(10);if(P[a].sign===P[b].sign)add('yoga','Dharma-Karmadhipati yoga',pair(a,b),'Lords of the 9th and 10th together — purpose and career align.');else if(OWN[b].includes(P[a].sign)&&OWN[a].includes(P[b].sign))add('yoga','Dharma-Karmadhipati yoga (exchange)',`${GN[a]} and ${GN[b]} exchange signs`,'Lords of the 9th and 10th in exchange.')}
+  // --- Lakshmi, Saraswati, Daridra
+  {const l9=lordOf(9);if(strong(l9)&&[...KENDRA,...TRIKONA].includes(H(l9))&&P[l1].dignity!=='debilitated'&&!P[l1].combust)add('yoga','Lakshmi yoga',`${GN[l9]}, lord of the 9th, ${P[l9].dignity} in the ${ordn(H(l9))}; Lagna lord ${GN[l1]} unafflicted`,'A dignified 9th lord in a kendra or trikona with a sound Lagna lord — prosperity and grace.')}
+  if(['jupiter','venus','mercury'].every(k=>[...KENDRA,...TRIKONA,2].includes(H(k)))&&P.jupiter.dignity!=='debilitated'&&![1,2,5,6].includes(P.jupiter.sign))add('yoga','Saraswati yoga','Jupiter, Venus and Mercury all in kendras, trikonas or the 2nd; Jupiter well placed','Learning, speech and the arts flourish.');
+  if(DUSTHANA.includes(H(lordOf(11))))add('dosha','Daridra yoga (indication)',`${GN[lordOf(11)]}, lord of the 11th, in the ${ordn(H(lordOf(11)))}`,'The gains lord in a dusthana — income arrives with struggle; weigh the rest of the chart.','partial');
+  // --- Gandanta
+  const mg=([8,17,26].includes(P.moon.nak)&&P.moon.pada===4)||([0,9,18].includes(P.moon.nak)&&P.moon.pada===1);
+  if(mg)add('dosha','Moon in gandanta',`Moon in ${P.moon.nakName} pada ${P.moon.pada}`,'The Moon at a water–fire junction — a sensitive, transitional emotional nature; early-life vulnerability in classical texts.');
+  if(Number.isFinite(lagnaLon)){const ls=Math.floor(lagnaLon/30),ld=lagnaLon-ls*30;if(([3,7,11].includes(ls)&&ld>=30-10/3)||([0,4,8].includes(ls)&&ld<10/3))add('dosha','Lagna in gandanta',`Lagna at ${RASHI_EN[ls]} ${fmtDeg(ld)}`,'The ascendant within 3°20′ of a water–fire junction.','partial')}
+  const info=[`Moon ${elong<180?'waxing (Shukla paksha)':'waning (Krishna paksha)'}, tithi ${((tithi-1)%15)+1}${bright?'':' — a dark Moon counts as a mild malefic here'}`];
+  return {yogas:out.filter(o=>o.kind==='yoga'),doshas:out.filter(o=>o.kind==='dosha'),info}}
+
 /* ---------- timezone helpers ---------- */
 function tzOffsetMinutes(tz,date){try{const f=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const parts=Object.fromEntries(f.formatToParts(date).filter(p=>p.type!=='literal').map(p=>[p.type,Number(p.value)]));
@@ -492,7 +590,7 @@ function utcToZoned(date,tz){const off=tzOffsetMinutes(tz,date);const z=new Date
   return {date:`${z.getUTCFullYear()}-${String(z.getUTCMonth()+1).padStart(2,'0')}-${String(z.getUTCDate()).padStart(2,'0')}`,time:`${String(z.getUTCHours()).padStart(2,'0')}:${String(z.getUTCMinutes()).padStart(2,'0')}`,offset:off}}
 function fmtOffset(min){const s=min<0?'-':'+';const a=Math.abs(min);return `UTC${s}${String(Math.floor(a/60)).padStart(2,'0')}:${String(a%60).padStart(2,'0')}`}
 
-return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,chartFromOverride,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
+return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,chartFromOverride,yogas,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
   _internals:{sunLongitude,moonLongitude,meanNode,trueNode,planetLongitude,centuries,gmst}};
 })();
 if(typeof module!=='undefined')module.exports=GOCHARA;
@@ -703,6 +801,14 @@ function mount(container,client,opts={}){
     return `<details class="g-natal" open><summary>Natal planets</summary><div class="g-planets" style="margin-top:8px"><table><thead><tr><th>Planet</th><th></th><th>Sign</th><th>Degree</th><th>Nakshatra (pada)</th><th>House</th><th>Navamsa · state</th></tr></thead><tbody>${rows.join('')}</tbody></table>
      <p class="small muted" style="margin:8px 0 0">${OV?`<strong>Manual positions in use</strong> (${esc(OV.source||'entered on Client &amp; access')}${OV.saved?', '+esc(String(OV.saved).slice(0,10)):''}) — grahas not entered are calculated. `:''}Birth ${z.date} ${z.time} ${esc(natal.tz)} = ${natal.instant.toISOString().replace('T',' ').slice(0,16)} UTC · ${natal.lat!==null?`${natal.lat}°, ${natal.lon}°`:'no coordinates'} · Lahiri ${G.fmtDeg(natalChart.ayan)} · ${S.nodeMode} nodes · C combust · (R) retrograde</p></div></details>`}
 
+  /* ---------- Yogas & doshas of the natal chart ---------- */
+  function yogaPanel(){const r=G.yogas(natalChart.planets,natalLagnaSign,natalAsc?natalAsc.sidereal:null);
+    const pill=g=>g==='present'?'':` <span class="pill ${g==='cancelled'?'draft':g==='weakened'||g==='partial'?'caution':'significant'}">${g}</span>`;
+    const item=y=>`<li style="margin-bottom:10px"><strong>${esc(y.name)}</strong>${pill(y.grade)}<div class="small muted">${esc(y.factors)}</div><div class="small">${esc(y.note)}</div></li>`;
+    return `<div class="g-planets g-yogas"><div class="grid2" style="gap:18px"><div><h3 style="margin:0 0 8px">Yogas <span class="muted">(${r.yogas.length})</span></h3><ul class="plain">${r.yogas.map(item).join('')||'<li class="muted small">None of the listed yogas is formed.</li>'}</ul></div>
+     <div><h3 style="margin:0 0 8px">Doshas <span class="muted">(${r.doshas.length})</span></h3><ul class="plain">${r.doshas.map(item).join('')||'<li class="muted small">None of the listed doshas is formed.</li>'}</ul></div></div>
+     <p class="small muted" style="margin:8px 0 0">${r.info.map(esc).join(' · ')}${r.info.length?' · ':''}Whole-sign houses from the ${natalAsc?'Lagna':'Moon (Lagna unavailable)'}, Lahiri${OV?', manual positions':''}. Checked: Pancha Mahapurusha, Gajakesari, Chandra-Mangala, Budha-Aditya, Guru-Chandala, Sunapha/Anapha/Durudhara/Kemadruma, Vesi/Vasi/Ubhayachari, Adhi, Amala, Shakata, Kala Sarpa, Mangal, Grahan, Shrapit, Angarak, Pitru, Kartari, Neecha Bhanga, Vipareeta Raja, Parivartana, Raja &amp; Yogakaraka, Dharma-Karmadhipati, Lakshmi, Saraswati, Daridra, gandanta. Definitions follow common Parashari usage; strengths, cancellations and exceptions differ between authorities — a checklist to verify, not a verdict.</p></div>`}
+
   /* ---------- Prompt generator (paste into ChatGPT or Claude) ---------- */
   let promptState={text:'',open:false,bpl:[]};
   function buildPrompt(c){const ref=c.ref;const L=[];const z=G.utcToZoned(st.instant,tzNow());
@@ -711,26 +817,79 @@ function mount(container,client,opts={}){
     L.push(`\nNATAL CHART (${natalAsc?'Lagna '+G.RASHI_EN[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unknown — Moon used as lagna'}; Moon ${G.RASHI_EN[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}, ${natalMoon.nakName} pada ${natalMoon.pada}):`);
     for(const p of natalChart.planets)L.push('- '+pl(p));
     const d=c.dasha;if(d)L.push(`\nVIMSHOTTARI DASHA NOW: ${gname(d.maha.lord)} mahadasha (until ${d.maha.end.toISOString().slice(0,10)}) → ${d.antar?gname(d.antar.lord)+' antardasha (until '+d.antar.end.toISOString().slice(0,10)+')':'—'} → ${d.pratyantar?gname(d.pratyantar.lord)+' pratyantardasha (until '+d.pratyantar.end.toISOString().slice(0,10)+')':'—'} → ${d.sookshma?gname(d.sookshma.lord)+' sookshma ('+d.sookshma.start.toISOString().slice(0,10)+' to '+d.sookshma.end.toISOString().slice(0,10)+')':'—'}.${OV?' Natal positions were entered manually by the astrologer from the native’s reference chart.':''}`);
-    L.push(`\nTRANSITS on ${z.date} ${z.time} (${tzNow()}):`);for(const p of c.tr.planets)L.push('- transit '+pl(p));
+    const yg=G.yogas?G.yogas(natalChart.planets,natalLagnaSign,natalAsc?natalAsc.sidereal:null):null;
+    if(yg&&(yg.yogas.length||yg.doshas.length))L.push(`\nNOTABLE YOGAS: ${yg.yogas.map(y=>y.name+(y.grade!=='present'?' ('+y.grade+')':'')).join('; ')||'none from the standard list'}.\nDOSHAS: ${yg.doshas.map(y=>y.name+(y.grade!=='present'?' ('+y.grade+')':'')).join('; ')||'none from the standard list'}.`);
+    L.push(`\nTRANSITS on ${z.date} ${z.time} (${tzNow()}):`);for(const p of c.tr.planets){let ing=null;try{if(!p.outer)ing=G.nextIngress(p.key,st.instant,{nodeMode:S.nodeMode})}catch(e){}L.push('- transit '+pl(p)+(ing?` — in this sign until ${G.utcToZoned(ing.date,tzNow()).date}`:''))}
     if(c.contacts.length)L.push('\nCLOSE CONTACTS (within '+S.orb+'°): '+c.contacts.map(x=>`transit ${gname(x.t)} on natal ${gname(x.n)} (${G.fmtDeg(x.d)})`).join('; ')+'.');
     const sel=st.sel;let focus='the overall gochara picture at this moment for this native';
     if(sel&&sel.type==='transit'){const p=c.tr.planets.find(x=>x.key===sel.key);if(p){const dr=G.drishtiTargets(p.key,p.house);focus=`transit ${p.en} (${p.name}) in ${G.RASHI_EN[p.sign]} ${G.fmtDeg(p.deg)}, ${p.nakName} pada ${p.pada}, in natal house ${p.house} counted from ${S.ref==='moon'?'the Moon':'the Lagna'}${dr.length?', casting graha drishti to house '+dr.map(x=>x.house+' ('+G.RASHI_EN[(ref+x.house-1)%12]+(natalChart.planets.filter(n=>n.house===x.house).length?' — natal '+natalChart.planets.filter(n=>n.house===x.house).map(n=>n.en).join(', ')+' there':'')+')').join(', '):''}${natalChart.planets.filter(n=>n.house===p.house).length?'; natal '+natalChart.planets.filter(n=>n.house===p.house).map(n=>n.en).join(', ')+' in that house':''}`}}
     else if(sel&&sel.type==='natal'){const n=natalChart.planets.find(x=>x.key===sel.key);if(n)focus=`natal ${n.en} in ${G.RASHI_EN[n.sign]}, house ${n.houseLagna} (${n.nakName} pada ${n.pada}) and the transits currently affecting it`}
     else if(sel&&sel.type==='house'){const h=G.houseFrom(sel.sign,ref);focus=`natal house ${h} (${G.RASHI_EN[sel.sign]}), its lord ${gname(G.SIGN_LORD[sel.sign])}, its occupants and the transits touching it now`}
     L.push(`\nPLEASE ANALYSE: ${focus}.${promptState.q?'\nSpecific question: '+promptState.q:''}`);
-    L.push(`\nWrite for this chart specifically — name the houses, lords, occupants and dasha lords involved and say which factors strengthen or soften the effect. Use calibrated language ("may", "tends to"); never present outcomes as certain. Answer directly and completely, without disclaimers or referrals elsewhere. Structure:
-1. Essence — what this means for this native
-2. How it may manifest — concrete areas and situations
-3. Timing and what modulates it — dignity, retrogression, combustion, dasha, contacts
-4. Client-facing draft — 2–4 calm paragraphs in a non-deterministic voice, then short bullet lists titled Notice, Consider, Suggestions, Consider postponing
-5. What BPL may say — a synthesis of how Barbara Pijan Lama characteristically reads the placements involved (her bhava/graha/drishti framing and the psychological texture she gives each graha in each rashi and bhava), paraphrased in your own words and marked as a synthesis of her published approach${promptState.bpl.length?', drawing on these passages from her site (paraphrase, do not quote):\n- '+promptState.bpl.join('\n- '):''}.`);
+    const cats=(typeof CATEGORIES!=='undefined'?CATEGORIES:[]).map(x=>x[1]);
+    L.push(`\nWrite for this chart specifically — name the houses, lords, occupants and dasha lords involved and say which factors strengthen or soften the effect. Use calibrated language ("may", "tends to"); never present outcomes as certain. Answer directly and completely, without disclaimers or referrals elsewhere.
+Work out the period yourself from the transit(s) in focus — sign/house entry and exit dates (the "in this sign until" dates above), stations, exact contacts and the dasha sub-period boundaries — and give real calendar dates.
+Approved categories (use these exact names): ${cats.join('; ')}.
+
+Respond in exactly this format — keep the labels, fill in the brackets, plain text:
+
+[1–3 WORD SIGNPOST TITLE]
+
+Dates: [start date – end date]
+
+Duration: [number of days or approximate duration]
+
+Polarity: [Supportive / Mixed / Danger]
+
+Intensity: [1–5]
+
+Especially significant: [Yes / No]
+
+Primary category: [choose exactly one approved category]
+
+Secondary categories: [zero to three approved categories]
+
+Prediction summary:
+[1–3 concise sentences describing what this period may concretely indicate for this native.]
+
+Why this period matters:
+[Brief Jyotiṣa reasoning. Identify the activated houses, their lords, natal occupants, daśā lords and relevant transit contacts. Explain what strengthens or softens the effect.]
+
+Supportive expression:
+[What may go well, become easier, open up or become productive.]
+
+Challenging expression:
+[What may become difficult, excessive, delayed, unstable or vulnerable to poor judgment.]
+
+Peak dates:
+[Exact dates or narrow trigger windows where relevant.]
+
+Consider
+
+* […]
+* […]
+* […]
+
+Suggestions
+
+* […]
+* […]
+* […]
+
+Consider postponing
+
+* […]
+* […]
+* […]
+
+After the template, add one closing section headed "BPL perspective": a synthesis of how Barbara Pijan Lama characteristically reads the placements involved (her bhava/graha/drishti framing and the psychological texture she gives each graha in each rashi and bhava), paraphrased in your own words and marked as a synthesis of her published approach${promptState.bpl.length?', drawing on these passages from her site (paraphrase, do not quote):\n- '+promptState.bpl.join('\n- '):''}.`);
     return L.join('\n')}
   function promptPanel(c){const sel=st.sel;const what=sel?(sel.type==='transit'?'this transit':sel.type==='natal'?'this natal placement':'this house'):'the current gochara';
     return `<div class="g-ai"><h4>Ask an AI about ${what}</h4>
      <div class="row" style="gap:6px"><input type="text" id="pr-q" placeholder="optional: a specific question (e.g. career move in November?)" value="${esc(promptState.q||'')}" style="flex:1;min-width:200px"><button type="button" class="btn small" id="pr-gen">Generate prompt</button></div>
      ${promptState.text?`<div class="row" style="gap:6px;margin-top:8px"><button type="button" class="btn small" id="pr-copy">Copy prompt</button><button type="button" class="btn ghost small" id="pr-bpl" ${promptState.busy?'disabled':''}>${promptState.busy?'Fetching BPL passages…':promptState.bpl.length?'BPL passages included ('+promptState.bpl.length+')':'Add BPL passages to the prompt'}</button><span class="small muted">${promptState.text.length.toLocaleString()} characters</span></div>
      <textarea id="pr-text" readonly style="margin-top:8px;min-height:260px;font-size:.9rem;line-height:1.45">${esc(promptState.text)}</textarea>
-     <p class="small muted">Paste into ChatGPT or Claude.</p>`:''}
+     <p class="small muted">Paste into ChatGPT or Claude. The answer comes back in the influence format — in the influence editor, “Fill from AI answer” puts it straight into the fields.</p>`:''}
     </div>`}
   async function addBplToPrompt(c){promptState.busy=true;draw();const notes=[];
     try{const topics=researchTopics(c).slice(0,2);const res=await Promise.race([Promise.all(topics.map(t=>R.search(t.q,'bpl').catch(()=>null))),new Promise(r=>setTimeout(()=>r([]),14000))]);
@@ -765,9 +924,9 @@ function mount(container,client,opts={}){
       <span class="seg"><button type="button" data-style="north" aria-pressed="${S.style==='north'}">North Indian</button><button type="button" data-style="south" aria-pressed="${S.style==='south'}">South Indian</button></span>
       <span class="row small" style="gap:10px"><label class="chk" style="margin:0"><input type="checkbox" id="g-outer" ${S.outer?'checked':''}>Uranus, Neptune, Pluto</label><label class="chk" style="margin:0"><input type="checkbox" id="g-node" ${S.nodeMode==='true'?'checked':''}>True nodes <span class="muted">(off = mean, as AstroSage)</span></label><label class="chk" style="margin:0">orb <select id="g-orb" style="width:auto;padding:2px 6px">${[0.5,1,2,3].map(o=>`<option ${S.orb===o?'selected':''}>${o}</option>`).join('')}</select>°</label><label class="chk" style="margin:0"><input type="checkbox" id="g-tz" ${S.tzMode==='mine'?'checked':''}>My time zone</label></span>
      </div>
-     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button></span></div>
-     ${st.view==='planets'?planetTable(c):''}
-     <div class="g-charts ${st.mobileView} ${st.view==='planets'?'hidden':''}">
+     <div class="row between" style="margin:2px 0 8px"><span class="seg"><button type="button" data-gview="charts" aria-pressed="${st.view==='charts'}">Charts</button><button type="button" data-gview="planets" aria-pressed="${st.view==='planets'}">Planets ${st.live?'· live':''}</button><button type="button" data-gview="yogas" aria-pressed="${st.view==='yogas'}">Yogas &amp; doshas</button></span></div>
+     ${st.view==='planets'?planetTable(c):st.view==='yogas'?yogaPanel():''}
+     <div class="g-charts ${st.mobileView} ${st.view!=='charts'?'hidden':''}">
       <figure class="g-fig natal"><figcaption><span class="seg small"><button type="button" data-natalref="lagna" aria-pressed="${S.natalRef==='lagna'}" ${natalAsc?'':'disabled'}>Lagna</button><button type="button" data-natalref="moon" aria-pressed="${S.natalRef==='moon'}">Rasi (Chandra)</button></span><div class="cap">Natal · ${client.name?esc(client.name):''} <span class="muted">${natalAsc?'Lagna '+G.RASHI[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}</span></div></figcaption>${render(natalModel,{style:S.style,highlight:hi.natal,cls:'natal',centreLabel:S.natalRef==='moon'?'Rasi':'Lagna'})}</figure>
       <figure class="g-fig transit"><figcaption><span class="seg small"><button type="button" data-ref="lagna" aria-pressed="${S.ref==='lagna'}" ${natalAsc?'':'disabled'}>from Lagna</button><button type="button" data-ref="moon" aria-pressed="${S.ref==='moon'}">from Chandra</button></span><div class="cap">Gochara · ${z.date} ${z.time} <span class="muted">${refWord}</span></div></figcaption>${render(trModel,{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})}</figure>
       <div class="g-legend small muted"><span><i class="sw occ"></i> occupied by the selected graha</span><span><i class="sw dr"></i> receives its drishti</span><span><i class="sw tg"></i> natal graha under transit</span><span><i class="sw sel"></i> selected bhava</span><span><u>marked</u> natal graha affected · <u style="text-decoration-style:double">contact</u> within ${S.orb}°</span></div>
@@ -1000,7 +1159,10 @@ CONFIG.SUPABASE_URL=String(CONFIG.SUPABASE_URL||'').trim().replace(/\/rest\/v1\/
 const configured=()=>/^https:\/\/[^/]+$/.test(CONFIG.SUPABASE_URL)&&CONFIG.SUPABASE_ANON_KEY.length>20;
 if(configured()&&window.supabase)makeClient();
 const chk=({data,error})=>{if(error)throw new Error(error.message||String(error));return data};
-function cleanClient(c){const o={...c};delete o.created_at;delete o.updated_at;for(const k of ['birth_date','birth_time','access_start','access_end'])o[k]=nn(o[k]);for(const k of ['birth_latitude','birth_longitude'])o[k]=(o[k]===''||o[k]===undefined||o[k]===null)?null:Number(o[k]);o.jyotish=o.jyotish||{};o.entitlements={...ENT_DEFAULT,...(o.entitlements||{})};return o}
+// Manual natal positions live inside the existing `jyotish` json column, so no database change is needed for them.
+function cleanClient(c){const o={...c};delete o.created_at;delete o.updated_at;for(const k of ['birth_date','birth_time','access_start','access_end'])o[k]=nn(o[k]);for(const k of ['birth_latitude','birth_longitude'])o[k]=(o[k]===''||o[k]===undefined||o[k]===null)?null:Number(o[k]);o.jyotish={...(o.jyotish||{})};
+  if('natal_override' in o){o.jyotish.natal_override=o.natal_override||null;delete o.natal_override}o.entitlements={...ENT_DEFAULT,...(o.entitlements||{})};return o}
+const normClient=c=>{if(c&&!c.natal_override&&c.jyotish&&c.jyotish.natal_override)c.natal_override=c.jyotish.natal_override;return c};
 function cleanInfluence(i){const o={...i};delete o.created_at;delete o.updated_at;for(const k of ['start_time','end_time','parent_id'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.source_reference=o.source_reference||{};o.secondary_categories=o.secondary_categories||[];o.supportive_for=o.supportive_for||[];o.difficult_for=o.difficult_for||[];if(o.end_date<o.start_date)o.end_date=o.start_date;return o}
 const api={
   async adminSignIn(password){
@@ -1023,10 +1185,31 @@ const api={
   async saveTemplate(t){const o={id:t.id,name:t.name,data:t.data||{}};return chk(await sb.from('templates').upsert(o).select().single())},
   async deleteTemplate(id){chk(await sb.from('templates').delete().eq('id',id))},
   async openCalendar(code,preview=false){return chk(await sb.rpc('client_open',{p_code:code,p_preview:!!preview}))},
-  async setPrefs(code,prefs){return chk(await sb.rpc('client_set_prefs',{p_code:code,p_prefs:prefs}))}
+  async setPrefs(code,prefs){return chk(await sb.rpc('client_set_prefs',{p_code:code,p_prefs:prefs}))},
+  async logActivity(code,sid,event,detail){return chk(await sb.rpc('client_log',{p_code:code,p_session:sid,p_event:event,p_detail:detail||{}}))},
+  async listActivity(clientId,limit=600){return chk(await sb.from('client_activity').select('id,session_id,event,detail,user_agent,at').eq('client_id',clientId).order('at',{ascending:false}).limit(limit))},
+  async recentActivity(limit=500){return chk(await sb.from('client_activity').select('client_id,session_id,event,detail,at').order('at',{ascending:false}).limit(limit))}
 };
 let MOCKED=false;
 if(window.__apiOverride){Object.assign(api,window.__apiOverride);MOCKED=true}
+
+/* ---------------- Client activity log (visible to the astrologer only) ---------------- */
+// Records when a client opens the calendar, which screen they are on, a heartbeat each minute while the page is
+// visible, and when they leave — so the dashboard can show who is on the app now and how long they stay.
+const ACT={code:null,sid:null,screen:'calendar',last:'',timer:null,bound:false,
+  start(code){ACT.code=code;let sid=sessionStorage.getItem('as.sid');if(!sid){sid=Math.random().toString(36).slice(2,10)+Date.now().toString(36);sessionStorage.setItem('as.sid',sid)}ACT.sid=sid;ACT.last='';ACT.screen='calendar';
+    ACT.send('open',{screen:'calendar',tz:Intl.DateTimeFormat().resolvedOptions().timeZone,width:window.innerWidth});ACT.bind()},
+  stop(reason){if(!ACT.code)return;ACT.beacon('close',{screen:ACT.screen,reason:reason||'signed out'});if(ACT.timer)clearInterval(ACT.timer);ACT.timer=null;ACT.code=null},
+  view(screen,detail){const d={screen,...(detail||{})};const key=JSON.stringify(d);if(key===ACT.last)return;ACT.last=key;ACT.screen=screen;ACT.send('view',d)},
+  send(event,detail){if(!ACT.code||typeof api.logActivity!=='function')return;try{Promise.resolve(api.logActivity(ACT.code,ACT.sid,event,detail||{})).catch(()=>{})}catch(e){}},
+  // Used when the page is being hidden or closed: a keep-alive request survives navigation.
+  beacon(event,detail){if(!ACT.code)return;if(MOCKED||!configured()){ACT.send(event,detail);return}
+    try{fetch(CONFIG.SUPABASE_URL+'/rest/v1/rpc/client_log',{method:'POST',keepalive:true,headers:{'content-type':'application/json',apikey:CONFIG.SUPABASE_ANON_KEY,authorization:'Bearer '+CONFIG.SUPABASE_ANON_KEY},body:JSON.stringify({p_code:ACT.code,p_session:ACT.sid,p_event:event,p_detail:detail||{}})}).catch(()=>{})}catch(e){}},
+  bind(){if(ACT.timer)clearInterval(ACT.timer);ACT.timer=setInterval(()=>{if(ACT.code&&document.visibilityState==='visible')ACT.send('heartbeat',{screen:ACT.screen})},60000);
+    if(ACT.bound)return;ACT.bound=true;
+    document.addEventListener('visibilitychange',()=>{if(!ACT.code)return;if(document.visibilityState==='hidden')ACT.beacon('close',{screen:ACT.screen,reason:'hidden'});else ACT.send('open',{screen:ACT.screen,reason:'resumed'})});
+    window.addEventListener('pagehide',()=>{if(ACT.code)ACT.beacon('close',{screen:ACT.screen,reason:'left'})})}
+};
 
 /* ---------------- Router & header ---------------- */
 const app=$('#app'), hdr=$('#hdr');
@@ -1052,7 +1235,7 @@ function showError(e){console.error(e);app.innerHTML=`<div class="entry card"><h
 async function route(){
   const h=(location.hash&&location.hash.length>1?location.hash:CUR)||'#/';CUR=h;
   const path=h.slice(1).split('?')[0];
-  window.scrollTo({top:0});stopRefresh();
+  window.scrollTo({top:0});stopRefresh();if(path!=='/calendar')ACT.stop('navigated');
   try{
     if(!configured()&&!MOCKED){renderSetup();return}
     if(path==='/client')return renderClientLogin();
@@ -1099,13 +1282,14 @@ function renderClientLogin(msg){
   app.innerHTML=`<div class="entry card"><h1>Your calendar</h1><form id="codeform"><label class="sr-only" for="code">Access code</label>
     <input id="code" type="text" autocomplete="off" autocapitalize="characters" placeholder="SONNENTAU-XXXXXX" required>
     <div class="err" id="cerr" role="alert">${esc(msg||'')}</div>
-    <p><button class="btn" type="submit" id="codebtn">Open calendar</button></p></form></div>`;
+    <p><button class="btn" type="submit" id="codebtn">Continue</button></p>
+    <p class="consent">By clicking Continue, I agree to the enabling of personalized calendar features.</p></form></div>`;
   $('#codeform').onsubmit=async e=>{e.preventDefault();const code=$('#code').value.trim().toUpperCase();const b=$('#codebtn');b.disabled=true;$('#cerr').textContent='';
     try{const pkg=await api.openCalendar(code);if(!pkg.ok){$('#cerr').textContent=pkg.why;b.disabled=false;return}
       localStorage.setItem(CODE_KEY,code);sessionStorage.removeItem('as.welcomed');go('#/calendar')}
     catch(err){$('#cerr').textContent='Could not reach the calendar service. '+(err.message||'');b.disabled=false}};
 }
-function clientSignOut(){localStorage.removeItem(CODE_KEY);go('#/')}
+function clientSignOut(){ACT.stop('signed out');localStorage.removeItem(CODE_KEY);go('#/')}
 
 /* ---------------- Client calendar ---------------- */
 let calState={year:new Date().getFullYear(),month:new Date().getMonth(),selected:todayStr()};
@@ -1126,6 +1310,7 @@ async function renderCalendar(){
     document.body.appendChild(w);w.addEventListener('animationend',()=>w.remove());setTimeout(()=>w.remove(),3200);
   }
   app.innerHTML=`<h1 style="margin-bottom:14px">Hello, ${esc(pkg.name)}</h1><div id="calroot"></div>`;
+  ACT.start(code);
   drawCalendar(pkg,$('#calroot'),{code});
   let last=JSON.stringify(pkg.influences);
   const refresh=async()=>{if(!$('#calroot')||localStorage.getItem(CODE_KEY)!==code){stopRefresh();return}
@@ -1226,17 +1411,19 @@ function drawCalendar(pkg,root,opts={}){
    <aside id="daypanel" aria-label="Day detail"></aside>
   </div>`;
   const redraw=()=>drawCalendar(pkg,root,opts);
+  const log=(screen,detail)=>{if(!opts.preview&&opts.code)ACT.view(screen,detail)};
+  log('month',{month:`${y}-${String(m+1).padStart(2,'0')}`,entries:visible.filter(i=>i.start_date.slice(0,7)<=`${y}-${String(m+1).padStart(2,'0')}`&&i.end_date.slice(0,7)>=`${y}-${String(m+1).padStart(2,'0')}`).length});
   bindJump(root,(yy,mm)=>{calState.year=yy;calState.month=mm;redraw()});
   root.addEventListener('click',e=>{const b=e.target.closest('[data-goto]');if(!b)return;const d=b.dataset.goto;const [yy,mm]=d.split('-').map(Number);if(yy!==calState.year||mm-1!==calState.month){calState.year=yy;calState.month=mm-1;calState.selected=d;redraw()}else{calState.selected=d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===d));drawDay(pkg,visible,d,root)}});
   const rp=$('#resetprefs',root);if(rp)rp.onclick=()=>{prefs.mode='everything';prefs.intention='';prefs.hidden=[];pkg.prefs=prefs;if(opts.code)api.setPrefs(opts.code,prefs).catch(()=>{});toast(opts.preview?'Display options reset for this client':'Showing everything');redraw()};
   root.__resetPrefs=()=>{prefs.mode='everything';prefs.hidden=[];prefs.intention='';savePrefs();redraw()};
   root.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calState.month+=Number(b.dataset.nav);if(calState.month<0){calState.month=11;calState.year--}if(calState.month>11){calState.month=0;calState.year++}redraw()});
-  root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
-  root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();redraw()});
+  root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);log('day',{date:calState.selected,entries:visible.filter(i=>i.start_date<=calState.selected&&calState.selected<=i.end_date).map(i=>i.title).slice(0,6)});if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
+  root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();log('display options',{mode:prefs.mode});redraw()});
   const intent=$('#intent',root);if(intent)intent.onchange=e=>{prefs.intention=e.target.value;savePrefs();redraw()};
   root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.hidden=[...root.querySelectorAll('[data-cat]:not(:checked)')].map(x=>x.dataset.cat);savePrefs();redraw()});
   const ics=$('#ics',root);if(ics)ics.onclick=()=>{const pol=[];if($('#ics-sup',root).checked)pol.push('supportive');if($('#ics-cau',root).checked)pol.push('caution','especially_sensitive');if($('#ics-mix',root).checked)pol.push('mixed');
-    download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');toast('Calendar file downloaded')};
+    download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');log('export',{what:'calendar file'});toast('Calendar file downloaded')};
   drawDay(pkg,visible,calState.selected,root);
 }
 function drawDay(pkg,visible,ds,root){
@@ -1338,13 +1525,21 @@ function accessState(c){
 async function renderDashboard(){
   wsTab='client';
   const clients=await api.listClients();
+  let presence={},actNote='';
+  const loadPresence=async()=>{const out={};const recent=await api.recentActivity(600);for(const e of recent){if(!out[e.client_id])out[e.client_id]={last:e}}
+    for(const id in out){const e=out[id].last;out[id].online=e.event!=='close'&&Date.now()-new Date(e.at).getTime()<ONLINE_MS;out[id].screen=screenText(e.detail)}return out};
+  try{presence=await loadPresence()}
+  catch(e){actNote=/schema cache|does not exist|Could not find/i.test(e.message||'')?'<p class="note small" style="margin:0 0 10px">To see when clients are on the app, run the latest supabase-setup.sql once in the Supabase SQL Editor.</p>':''}
   const active=clients.filter(c=>c.status!=='archived'), archived=clients.filter(c=>c.status==='archived');
-  const li=c=>{const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};return `<li><div><a href="#/admin/client/${c.id}">${esc(c.name||'Unnamed')}</a><div class="small muted"><span class="code" style="font-size:.8rem;padding:1px 6px">${esc(c.access_code)}</span>${c.access_end?` · until ${fmtShort(c.access_end)}`:''}${ent.remedial?' · remedial add-on':''}</div></div><span class="pill ${st.ok?'supportive':'draft'}">${st.ok?'Active':c.status==='archived'?'Archived':c.status==='inactive'?'Inactive':'Not yet / expired'}</span></li>`};
-  app.innerHTML=`<div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Clients</h1><button class="btn" id="newc">New client</button></div>
+  const presText=p=>!p?'':p.online?` · <span style="color:var(--supportive)">● on the app now</span>${p.screen?' — '+esc(p.screen):''}`:` · seen ${esc(ago(p.last.at))}`;
+  const pres=c=>`<span data-pres="${c.id}">${presText(presence[c.id])}</span>`;
+  const li=c=>{const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};return `<li><div><a href="#/admin/client/${c.id}">${esc(c.name||'Unnamed')}</a><div class="small muted"><span class="code" style="font-size:.8rem;padding:1px 6px">${esc(c.access_code)}</span>${c.access_end?` · until ${fmtShort(c.access_end)}`:''}${ent.remedial?' · remedial add-on':''}${pres(c)}</div></div><span class="pill ${st.ok?'supportive':'draft'}">${st.ok?'Active':c.status==='archived'?'Archived':c.status==='inactive'?'Inactive':'Not yet / expired'}</span></li>`};
+  app.innerHTML=`<div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Clients</h1><button class="btn" id="newc">New client</button></div>${actNote}
    <div class="card"><ul class="list">${active.map(li).join('')||'<li class="muted">No clients yet. Create your first client to generate an access code.</li>'}</ul>
    ${archived.length?`<details style="margin-top:10px"><summary class="small muted">Archived (${archived.length})</summary><ul class="list" style="margin-top:8px">${archived.map(li).join('')}</ul></details>`:''}</div>
    <p class="small muted" style="margin-top:18px"><button type="button" class="btn quiet small" id="diag">Connection check</button> <span class="muted">— if something is not saving, run this and send the result to whoever is helping you.</span></p><div id="diagout"></div>`;
   $('#diag').onclick=runDiagnostics;
+  if(actTimer)clearInterval(actTimer);actTimer=setInterval(async()=>{if(!$('#newc')){clearInterval(actTimer);actTimer=null;return}try{const p=await loadPresence();document.querySelectorAll('[data-pres]').forEach(el=>{el.innerHTML=presText(p[el.dataset.pres])})}catch(e){}},45000);
   $('#newc').onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New client',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{}});go('#/admin/client/'+c.id)});
 }
 async function runDiagnostics(){
@@ -1378,15 +1573,49 @@ async function runInfluenceDiagnostics(c){
 }
 async function renderWorkspace(id){
   if(wsClient!==id){wsClient=id;wsTab='client'}
-  let c;try{c=await api.getClient(id)}catch(e){go('#/admin');return}
+  let c;try{c=normClient(await api.getClient(id))}catch(e){go('#/admin');return}
   const [influences,templates]=await Promise.all([api.listInfluences(id),api.listTemplates()]);
   const ctx={c,influences,templates,reload:()=>renderWorkspace(id)};
-  const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['preview','Client preview']];
+  const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['preview','Client preview'],['activity','Activity']];
   app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}</h1>
    <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${wsTab===k}" data-tab="${k}">${l}</button>`).join('')}</div><div id="tabbody"></div>`;
   app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{wsTab=b.dataset.tab;renderWorkspace(id)});
   const body=$('#tabbody');
-  ({client:tabClient,natal:tabNatal,calendar:tabCalendar,influences:tabInfluences,preview:tabPreview})[wsTab](ctx,body);
+  ({client:tabClient,natal:tabNatal,calendar:tabCalendar,influences:tabInfluences,preview:tabPreview,activity:tabActivity})[wsTab](ctx,body);
+}
+/* ---------------- Client activity (astrologer side) ---------------- */
+const ONLINE_MS=3*60000; // a client counts as "on the app" if something was heard from them in the last three minutes
+const ago=d=>{const ms=Date.now()-new Date(d).getTime();if(ms<60000)return 'just now';const m=Math.round(ms/60000);if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<48)return h+' h ago';const dd=Math.round(h/24);if(dd<60)return dd+' days ago';return new Date(d).toLocaleDateString()};
+const fmtDT=d=>new Date(d).toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const fmtDur=ms=>{const m=Math.round(ms/60000);if(m<1)return 'under a minute';if(m<60)return m+' min';const h=Math.floor(m/60);return h+' h '+(m%60?(m%60)+' min':'')};
+const monthLabel=ym=>{const [y,m]=String(ym||'').split('-').map(Number);return y&&m?new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(ym||'')};
+const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;if(sc==='display options')return `display options → ${d.mode||''}`;if(sc==='export')return 'downloaded the calendar file';return sc};
+// Group raw events (newest first) into visits: one per session, split where more than ten minutes pass or the page was closed and reopened.
+function analyseActivity(rows){const ev=rows.slice().sort((a,b)=>new Date(a.at)-new Date(b.at));const visits=[];let cur=null;
+  for(const e of ev){const t=new Date(e.at).getTime();const gap=cur?t-cur.endT:Infinity;
+    if(!cur||e.session_id!==cur.sid||gap>10*60000||(cur.closed&&e.event==='open')){cur={sid:e.session_id,startT:t,endT:t,closed:false,screens:[],events:0,ua:e.user_agent};visits.push(cur)}
+    cur.endT=t;cur.events++;cur.closed=e.event==='close';if(e.event==='view'){const txt=screenText(e.detail);if(txt&&cur.screens[cur.screens.length-1]!==txt)cur.screens.push(txt)}}
+  for(const v of visits){v.ms=Math.max(v.endT-v.startT,v.events>1?60000:30000);if(!v.closed&&Date.now()-v.endT<ONLINE_MS)v.ms=Date.now()-v.startT}
+  const last=ev[ev.length-1];const online=!!last&&last.event!=='close'&&Date.now()-new Date(last.at).getTime()<ONLINE_MS;
+  const lastView=ev.slice().reverse().find(e=>e.event==='view'||e.event==='open');
+  const since=d=>visits.filter(v=>v.startT>Date.now()-d*86400000);
+  const sum=list=>list.reduce((a,v)=>a+v.ms,0);
+  return {visits:visits.reverse(),online,last,lastView,stats:{v7:since(7).length,v30:since(30).length,ms30:sum(since(30)),msAll:sum(visits),avg:visits.length?sum(visits)/visits.length:0,opens:ev.filter(e=>e.event==='open'&&!(e.detail&&e.detail.reason)).length}}}
+let actTimer=null;
+async function tabActivity({c},body){
+  let rows;try{rows=await api.listActivity(c.id,800)}catch(e){body.innerHTML=`<div class="card"><h2>Activity</h2><p class="warn">${esc(e.message||e)}</p><p class="note small">${esc(explain(e.message)||'The activity log needs the latest supabase-setup.sql to be run once in the Supabase SQL Editor.')}</p></div>`;return}
+  const a=analyseActivity(rows);const tzMine=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const status=a.online?`<span class="pill supportive">● On the app now</span> <span class="small muted">looking at ${esc(screenText(a.lastView&&a.lastView.detail)||'the calendar')}</span>`:a.last?`<span class="pill draft">Not on the app</span> <span class="small muted">last seen ${esc(ago(a.last.at))} (${esc(fmtDT(a.last.at))})${a.lastView?' · last looked at '+esc(screenText(a.lastView.detail)||'the calendar'):''}</span>`:'<span class="pill draft">Never opened</span> <span class="small muted">this client has not opened the calendar yet.</span>';
+  const stat=(v,l)=>`<div style="min-width:120px"><div style="font-size:1.4rem;line-height:1.1">${v}</div><div class="small muted">${l}</div></div>`;
+  const vis=a.visits.slice(0,60).map(v=>`<tr><td style="white-space:nowrap">${esc(fmtDT(v.startT))}</td><td style="white-space:nowrap">${v.ms?esc(fmtDur(v.ms)):'—'}${!v.closed&&Date.now()-v.endT<ONLINE_MS?' <span class="pill supportive" style="font-size:.7rem">now</span>':''}</td><td class="small">${v.screens.length?esc(v.screens.join(' → ')):'<span class="muted">opened the calendar</span>'}</td></tr>`).join('');
+  const raw=rows.slice(0,200).map(e=>`<tr><td class="small" style="white-space:nowrap">${esc(fmtDT(e.at))}</td><td class="small">${esc(e.event)}</td><td class="small muted">${esc(screenText(e.detail)||(e.detail&&e.detail.reason?e.detail.reason:''))}</td></tr>`).join('');
+  body.innerHTML=`<div class="card"><h2>Activity</h2><p style="margin:4px 0 14px">${status}</p>
+   <div class="row" style="gap:22px;flex-wrap:wrap;margin-bottom:6px">${stat(a.stats.v7,'visits, last 7 days')}${stat(a.stats.v30,'visits, last 30 days')}${stat(esc(fmtDur(a.stats.ms30)),'time on the app, 30 days')}${stat(a.visits.length,'visits in total')}${stat(esc(fmtDur(a.stats.avg)),'average visit')}</div>
+   <p class="small muted" style="margin:0 0 14px">Times are shown in your time zone (${esc(tzMine)}). A visit ends when the client closes or leaves the page, or after ten minutes without activity; the page checks in once a minute while it is open. This view refreshes every half-minute.</p>
+   <h3>Visits</h3>${a.visits.length?`<div style="overflow:auto"><table class="visits"><thead><tr><th>When</th><th>Stayed</th><th>What they looked at</th></tr></thead><tbody>${vis}</tbody></table></div>`:'<p class="muted small">No visits recorded yet.</p>'}
+   ${rows.length?`<details class="small" style="margin-top:14px"><summary>Full log (${rows.length} most recent entries)</summary><div style="overflow:auto;max-height:360px"><table><tbody>${raw}</tbody></table></div></details>`:''}
+   <p class="small muted" style="margin-top:14px">Nothing about this log is shown to clients. If your terms or privacy notice describe what you collect, usage of the calendar belongs there.</p></div>`;
+  if(actTimer)clearInterval(actTimer);actTimer=setInterval(()=>{if(!document.body.contains(body)||wsTab!=='activity'){clearInterval(actTimer);actTimer=null;return}tabActivity({c},body)},30000);
 }
 function tabClient({c,reload},body){
   const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};
@@ -1511,12 +1740,59 @@ async function tabPreview({c},body){
   body.innerHTML='<div id="pv"></div>';drawCalendar(pkg,$('#pv',body),{preview:true,code:c.access_code});
 }
 
+/* ---------------- Fill an influence from an AI answer written in the prompt's template ---------------- */
+const MONTHS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+function parseDateLoose(str,fallbackYear){const t=String(str||'').trim();let m;
+  if((m=t.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)))return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  const mon=w=>{const i=MONTHS.indexOf(String(w).slice(0,3).toLowerCase());return i<0?null:i+1};
+  if((m=t.match(/(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3,})\.?,?\s*(\d{4})?/))&&mon(m[2]))return `${m[3]||fallbackYear||new Date().getFullYear()}-${String(mon(m[2])).padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  if((m=t.match(/([A-Za-z]{3,})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})?/))&&mon(m[1]))return `${m[3]||fallbackYear||new Date().getFullYear()}-${String(mon(m[1])).padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+  return null}
+function parseAIAnswer(text){const src=String(text||'').replace(/\r/g,'');const out={};const notes=[];
+  const HEAD=['dates','duration','polarity','intensity','especially significant','primary category','secondary categories','prediction summary','why this period matters','supportive expression','challenging expression','peak dates','consider postponing','suggestions','consider','bpl perspective','what bpl may say'];
+  const clean=l=>l.replace(/^[#>\s]+/,'').replace(/\*\*/g,'').replace(/^[\[\]]+|[\[\]]+$/g,'').trim();
+  const lines=src.split('\n');const sections={};let cur=null;let title='';
+  for(const raw of lines){const l=clean(raw);if(!l)continue;const low=l.toLowerCase();
+    const h=HEAD.find(h=>low===h||low===h+':'||low.startsWith(h+':'));
+    if(h){cur=h;sections[h]=sections[h]||[];const rest=l.slice(l.toLowerCase().indexOf(h)+h.length).replace(/^:\s*/,'').trim();if(rest)sections[h].push(rest);continue}
+    if(!cur){if(!title&&!/^\[/.test(raw.trim()))title=l.replace(/^[\[\]]+|[\[\]]+$/g,'').trim();else if(!title)title=l;continue}
+    sections[cur].push(l)}
+  const joined=h=>(sections[h]||[]).join('\n').trim();
+  const bullets=h=>(sections[h]||[]).map(x=>x.replace(/^[\*\-•·]\s*|^\d+[.)]\s*/,'').replace(/^[\[\]…]+|[\[\]…]+$/g,'').trim()).filter(x=>x&&!/^\[?…\]?$/.test(x));
+  if(title&&title.length<=80)out.title=title.replace(/[.:]$/,'');
+  const dates=joined('dates');if(dates){const parts=dates.split(/\s[–—-]\s|\s*[–—]\s*|\sto\s|\suntil\s/).map(x=>x.trim()).filter(Boolean);const y2=(parts[1]||'').match(/\d{4}/);let d1=parseDateLoose(parts[0],y2&&y2[0]),d2=parts[1]?parseDateLoose(parts[1],(d1||'').slice(0,4)):d1;
+    if(!d1&&d2&&/^\d{1,2}$/.test(parts[0]))d1=d2.slice(0,8)+parts[0].padStart(2,'0'); // "12–14 October 2026"
+    if(d1)out.start_date=d1;if(d2)out.end_date=d2;if(!d1)notes.push('dates not understood: “'+dates+'”')}
+  const pol=joined('polarity').toLowerCase();const inten=parseInt((joined('intensity').match(/\d/)||[''])[0],10);if(inten>=1&&inten<=5)out.intensity=inten;
+  if(/supportive/.test(pol))out.polarity='supportive';else if(/mixed/.test(pol))out.polarity='mixed';else if(/danger|caution|challeng|difficult/.test(pol))out.polarity=(out.intensity>=4?'especially_sensitive':'caution');
+  const sig=joined('especially significant').toLowerCase();if(sig)out.significant=/^y|true/.test(sig);
+  const catKey=label=>{const t=label.toLowerCase().replace(/[^a-z ]/g,'').trim();if(!t)return null;const hit=CATEGORIES.find(([k,l])=>l.toLowerCase()===t||k===t)||CATEGORIES.find(([k,l])=>l.toLowerCase().startsWith(t)||t.startsWith(l.toLowerCase().split(' ')[0]));return hit?hit[0]:null};
+  const pc=joined('primary category');if(pc){const k=catKey(pc);if(k)out.category=k;else notes.push('category “'+pc+'” is not one of the approved categories')}
+  const sc=joined('secondary categories');if(sc){out.secondary_categories=sc.split(/[,;\n\/]/).map(catKey).filter(Boolean).filter(k=>k!==out.category).slice(0,3)}
+  const para=[joined('prediction summary'),joined('supportive expression')?'What may go well: '+joined('supportive expression'):'',joined('challenging expression')?'What may need care: '+joined('challenging expression'):'',joined('peak dates')?'Peak dates: '+joined('peak dates'):''].filter(Boolean);
+  if(para.length)out.client_interpretation=para.join('\n\n');
+  if(bullets('consider').length)out.reflection_prompt=bullets('consider').join('\n');
+  if(bullets('suggestions').length)out.recommended_actions=bullets('suggestions').join('\n');
+  if(bullets('consider postponing').length)out.avoidances=bullets('consider postponing').join('\n');
+  const priv=[joined('why this period matters')?'Why this period matters:\n'+joined('why this period matters'):'',joined('bpl perspective')||joined('what bpl may say')?'BPL perspective:\n'+(joined('bpl perspective')||joined('what bpl may say')):''].filter(Boolean);
+  if(priv.length)out.private_notes=priv.join('\n\n');
+  if(joined('why this period matters'))out.technical_basis=joined('why this period matters').split(/(?<=[.!?])\s/)[0].slice(0,160);
+  return {fields:out,notes}}
+function fillFromAI(form,text){const {fields,notes}=parseAIAnswer(text);const filled=[];
+  for(const [k,v] of Object.entries(fields)){
+    if(k==='secondary_categories'){form.querySelectorAll('input[name=sec]').forEach(cb=>cb.checked=v.includes(cb.value));filled.push('secondary categories');continue}
+    const el=form.elements[k];if(!el)continue;
+    if(k==='significant'){el.checked=!!v;filled.push('especially significant');continue}
+    if(k==='private_notes'&&el.value.trim()){el.value=el.value.trimEnd()+'\n\n'+v}else el.value=v;filled.push(k.replace(/_/g,' '))}
+  form.dispatchEvent(new Event('input'));return {filled,notes,fields}}
+
 /* ---------------- Influence editor ---------------- */
 function openEditor(ctx,inf,isNew){
   const {c,influences}=ctx;
   const others=influences.filter(i=>i.id!==inf.id&&!i.parent_id&&i.start_date!==i.end_date);
   const dlg=document.createElement('dialog');
-  dlg.innerHTML=`<div class="dh"><h2 style="margin:0">${isNew?'New influence':'Edit influence'}</h2><div class="row"><button type="button" class="btn ghost small" id="gtoggle" aria-pressed="false">Gochara</button><button type="button" class="btn quiet small" id="close" aria-label="Close">✕</button></div></div>
+  dlg.innerHTML=`<div class="dh"><h2 style="margin:0">${isNew?'New influence':'Edit influence'}</h2><div class="row"><button type="button" class="btn ghost small" id="aifill">Fill from AI answer</button><button type="button" class="btn ghost small" id="gtoggle" aria-pressed="false">Gochara</button><button type="button" class="btn quiet small" id="close" aria-label="Close">✕</button></div></div>
+  <div id="aibox" class="hidden" style="margin:0 0 12px;padding:12px;background:var(--surface-2);border-radius:10px"><p class="small muted" style="margin:0 0 6px">Paste the AI’s answer (written in the format the Gochara prompt asks for). Title, dates, polarity, intensity, category, interpretation, Consider / Suggestions / Consider postponing and the private reasoning are filled in; check everything before publishing.</p><textarea id="aitext" style="min-height:140px;width:100%" placeholder="[SIGNPOST TITLE]&#10;&#10;Dates: …"></textarea><p class="row" style="gap:6px;margin:8px 0 0"><button type="button" class="btn small" id="aiapply">Fill the form</button><button type="button" class="btn quiet small" id="aicancel">Cancel</button><span id="ainote" class="small muted"></span></p></div>
   <div class="db"><form id="ef">
    <div class="grid2">${fld('Title (client-facing)','title',inf.title,'text','required')}<label class="f"><span>Within a longer period (optional)</span>${sel('parent_id',[['','— none —'],...others.map(o=>[o.id,o.title])],inf.parent_id||'')}</label></div>
    <div class="grid2">${fld('Start date','start_date',inf.start_date,'date','required min="2000-01-01" max="2100-12-31"')}${fld('End date','end_date',inf.end_date,'date','required min="2000-01-01" max="2100-12-31"')}</div>
@@ -1570,6 +1846,9 @@ function openEditor(ctx,inf,isNew){
         const pn=f.elements.private_notes;pn.value=(pn.value?pn.value.trimEnd()+'\n\n':'')+snap.text;inf.transit_snapshot=snap.json;const p=snap.json.selected;if(p&&!f.elements.technical_basis.value)f.elements.technical_basis.value=`Transit ${GOCHARA.GRAHA.find(g=>g.key===p.key).name} ${GOCHARA.RASHI[p.sign]} ${Math.floor(p.deg)}° — ${p.houseLagna}H from Lagna, ${p.houseMoon}H from Chandra`;toast('Moment copied into the influence');f.dispatchEvent(new Event('input'))}});}};
   dlg.addEventListener('close',()=>{if(gws)gws.destroy()});
   const form=$('#ef',dlg);
+  $('#aifill',dlg).onclick=()=>{$('#aibox',dlg).classList.toggle('hidden');$('#aitext',dlg).focus()};$('#aicancel',dlg).onclick=()=>$('#aibox',dlg).classList.add('hidden');
+  $('#aiapply',dlg).onclick=()=>{const t=$('#aitext',dlg).value;if(!t.trim())return;const r=fillFromAI(form,t);if(!r.filled.length){$('#ainote',dlg).textContent='Nothing recognised — the answer should use the headings from the prompt (Dates, Polarity, Prediction summary…).';return}
+    $('#ainote',dlg).innerHTML=`Filled: ${esc(r.filled.join(', '))}.${r.notes.length?' <span style="color:var(--sensitive)">'+esc(r.notes.join(' · '))+'</span>':''}${r.fields.polarity&&/caution|especially/.test(r.fields.polarity)?' “Danger” was mapped to '+esc(POLARITY[r.fields.polarity].label)+' — adjust if needed.':''}`;toast('Form filled from the AI answer — please review it')};
   const collect=()=>{const f=new FormData(form);const o={};const j=inf.jyotish||{},s=inf.source_reference||{};const secs=[],sup=[],dif=[];
     for(const [k,v] of f){if(k==='sec')secs.push(v);else if(k==='sup')sup.push(v);else if(k==='dif')dif.push(v);else if(k.startsWith('j:'))j[k.slice(2)]=v;else if(k.startsWith('s:'))s[k.slice(2)]=v;else o[k]=v}
     o.supportive_for=o.polarity==='mixed'?sup:[];o.difficult_for=o.polarity==='mixed'?dif:[];
