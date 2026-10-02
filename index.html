@@ -164,8 +164,10 @@ textarea{min-height:78px;resize:vertical}
 @media(max-width:560px){.day{min-height:54px;padding:10px 4px 4px}.day .num{font-size:.76rem;width:20px;height:20px}.mark{width:11px;height:11px}.cal{gap:3px}}
 .legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.82rem;color:var(--muted);margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
 .legend div{display:flex;align-items:center;gap:6px}
-.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:18px;align-items:start}
-@media(max-width:880px){.layout{grid-template-columns:1fr}}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);grid-template-areas:"cal day" "more day";grid-template-rows:auto 1fr;gap:16px 18px;align-items:start}
+.layout>.calcol{grid-area:cal;min-width:0}.layout>.morecol{grid-area:more;min-width:0}.layout>#daypanel{grid-area:day;min-width:0}
+.morecol>.card{margin-top:0}.morecol>.card+.card{margin-top:16px}
+@media(max-width:880px){.layout{grid-template-columns:1fr;grid-template-areas:"cal" "day" "more";grid-template-rows:auto;gap:16px}}
 .inf{border:1px solid var(--line);border-left:3px solid var(--line-strong);border-radius:12px;padding:14px 16px;background:var(--surface);margin-bottom:12px}
 .inf.supportive{border-left-color:var(--supportive)}
 .inf.caution{border-left-color:var(--caution)}
@@ -185,18 +187,65 @@ textarea{min-height:78px;resize:vertical}
 .winlink:hover{background:var(--surface-2)}
 .inf .disc{font-size:.8rem;line-height:1.45;color:var(--muted);opacity:.85;border-top:1px dashed var(--line-strong);padding-top:7px;margin-top:10px}
 .daydisc{font-size:.8rem;line-height:1.45;color:var(--muted);opacity:.8;margin-top:14px}
-/* collapsible entries on a day with several */
-.infd{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:10px;overflow:hidden}
-.infd>summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:10px;font-size:1.02rem}
+/* collapsible entries on a day with several: one even row — marker, title, area, a thin chevron */
+.infd{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:0 0 8px;overflow:hidden}
+.infd>summary{list-style:none;cursor:pointer;min-height:48px;padding:10px 14px 10px 16px;display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:400;line-height:1.3}
 .infd>summary::-webkit-details-marker{display:none}
 .infd>summary::marker{content:''}
+.infd>summary::before{display:none}
+.infd>summary .mark{flex:none}
+.infd>summary strong{font-weight:500;flex:1 1 auto;min-width:0}
+.infd>summary .area{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:.01em;white-space:nowrap}
+.infd>summary .chev{flex:none;width:7px;height:7px;margin:0 2px 0 4px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.infd[open]>summary .chev{transform:translateY(2px) rotate(225deg)}
 .infd .inf h4{display:none}
-.infd>summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s;font-size:.8rem}
-.infd[open]>summary .chev{transform:rotate(90deg)}
-.infd>summary .tag{font-size:.75rem}
-.infd>summary strong{font-weight:500}
 .infd .inf{border:0;border-top:1px solid var(--line);border-radius:0;margin:0}
 .infd>summary:hover{background:var(--surface-2)}
+@media(max-width:560px){.infd>summary .area{display:none}}
+/* small-caps group labels in the day panel */
+.who{margin:0 0 14px}.who .seg{display:flex;width:100%;max-width:560px;margin:0 auto}.who .seg button{flex:1 1 0;padding:7px 8px;white-space:nowrap}
+@media(max-width:560px){.who .seg{flex-wrap:wrap}.who .seg button{flex:1 1 auto;min-width:33%}}
+.forwho{color:var(--primary)}
+.dp-label{margin:18px 0 8px;font-family:var(--sans);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.dp-label:first-of-type{margin-top:14px}
+/* the client's folding cards (Display options, Add to your own calendar app, Astrologer's notes): one shape, one rhythm */
+.member{border:1px solid var(--line);border-radius:12px;padding:6px 14px 12px;margin:0 0 10px;min-width:0}.member legend{padding:0 6px;color:var(--muted);font-size:.9rem}
+.fold{padding:0}
+.fold>details>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:60px;padding:14px 22px 14px 24px;font-family:var(--serif);font-size:1.12rem;font-weight:500;color:var(--text);transition:background .15s}
+.fold>details>summary::before{display:none}
+.fold>details>summary::-webkit-details-marker{display:none}
+.fold>details>summary .ft{flex:0 1 auto;min-width:0}
+.fold>details>summary .fs{font-family:var(--serif);font-size:.95rem;font-weight:400;color:var(--muted);flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fold>details>summary .fx{flex:none;margin-left:auto;width:8px;height:8px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.fold>details[open]>summary .fx{transform:translateY(2px) rotate(225deg)}
+.fold>details>summary:hover{background:var(--surface-2)}
+.fold>details[open]>summary{border-bottom:1px solid var(--line)}
+.fold .fb{padding:18px 24px 22px}
+.fold .fb>:first-child{margin-top:0}
+.fold .fb>:last-child{margin-bottom:0}
+.fold .fb label.f{margin:16px 0 6px}
+.fold .fb .seg{display:flex;width:100%;max-width:460px}.fold .fb .seg button{flex:1 1 0;padding:7px 6px;white-space:nowrap}
+@media(max-width:400px){.fold .fb .seg button{font-size:.8rem;padding:7px 2px}}
+.fold .fb label.f:first-child{margin-top:0}
+.fold .nbadge{margin-left:0}
+@media(max-width:560px){.fold>details>summary{padding:12px 16px 12px 18px;min-height:54px;font-size:1.05rem}.fold .fb{padding:14px 16px 18px}.fold>details>summary .fs{display:none}}
+/* areas of life as compact chips: shown = soft fill, hidden = dashed and faded */
+.catchips{display:flex;flex-wrap:wrap;gap:7px}
+.chip.cat span{display:inline-flex;align-items:center;gap:7px;padding:4px 12px;background:var(--surface-2);border-color:transparent;color:var(--text);font-size:.9rem}
+.chip.cat span .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.chip.cat input:not(:checked)+span{background:transparent;border:1px dashed var(--line-strong);color:var(--muted)}
+.chip.cat input:not(:checked)+span .dot{opacity:.35}
+.chip.cat input:checked+span{background:var(--surface-2);color:var(--text);border-color:transparent}
+.fold .ics-cols{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+@media(max-width:560px){.fold .ics-cols{grid-template-columns:1fr}}
+.fold .ics-cols .chk{margin:5px 0}
+.fold .ics-act{margin:16px 0 0}
+.nlist{margin:0}
+.nlist li{cursor:pointer;min-height:52px;padding:10px 16px}
+.nlist li .nd{flex:1 1 auto;min-width:0}
+.nlist li .pill{margin-left:8px;vertical-align:1px}
+.nlist li .nh{font-size:.92rem;color:var(--muted);margin-top:1px}
+.nlist li .go{flex:none;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-family:var(--sans);color:var(--muted)}
 /* a note from the astrologer for the day */
 .daynote{border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;margin:12px 0 14px;background:linear-gradient(180deg,#FDF9EE,#F9F3E3)}
 .daynote h3{margin:0 0 6px;font-family:var(--brand);font-style:italic;font-weight:500;font-size:1.35rem;color:var(--primary)}
@@ -710,6 +759,31 @@ function sadeSati(saturnSign,moonSign){const h=houseFrom(saturnSign,moonSign);
   if(h===12)return {kind:'sade sati',phase:'first phase (rising)',house:h};if(h===1)return {kind:'sade sati',phase:'second phase (peak)',house:h};if(h===2)return {kind:'sade sati',phase:'third phase (setting)',house:h};
   if(h===4)return {kind:'dhaiya',phase:'Kantaka Shani (4th from the Moon)',house:h};if(h===8)return {kind:'dhaiya',phase:'Ashtama Shani (8th from the Moon)',house:h};return null}
 
+/* ---------- Synastry: natural friendship and the Aṣṭakūṭa (classical Moon-based compatibility, Muhūrta tradition) ---------- */
+const FRIENDS={sun:{f:['moon','mars','jupiter'],e:['venus','saturn']},moon:{f:['sun','mercury'],e:[]},mars:{f:['sun','moon','jupiter'],e:['mercury']},mercury:{f:['sun','venus'],e:['moon']},jupiter:{f:['sun','moon','mars'],e:['mercury','venus']},venus:{f:['mercury','saturn'],e:['sun','moon']},saturn:{f:['mercury','venus'],e:['sun','moon','mars']}};
+function relation(a,b){if(a===b)return 'same';const r=FRIENDS[a];if(!r)return 'neutral';return r.f.includes(b)?'friend':r.e.includes(b)?'enemy':'neutral'}
+const GANA=['deva','manushya','rakshasa','manushya','deva','manushya','deva','deva','rakshasa','rakshasa','manushya','manushya','deva','rakshasa','deva','rakshasa','deva','rakshasa','rakshasa','manushya','manushya','deva','rakshasa','rakshasa','manushya','manushya','deva'];
+const NADI=['adi','madhya','antya','antya','madhya','adi','adi','madhya','antya','antya','madhya','adi','adi','madhya','antya','antya','madhya','adi','adi','madhya','antya','antya','madhya','adi','adi','madhya','antya'];
+const YONI=['horse','elephant','sheep','serpent','serpent','dog','cat','sheep','cat','rat','rat','cow','buffalo','tiger','buffalo','tiger','deer','deer','dog','monkey','mongoose','monkey','lion','horse','lion','cow','elephant'];
+const YONI_ENEMY=[['horse','buffalo'],['elephant','lion'],['sheep','monkey'],['serpent','mongoose'],['dog','deer'],['cat','rat'],['cow','tiger']];
+const VARNA_RANK={1:4,2:3,3:2,4:1};
+const VARNA_NAME=['','Brāhmaṇa','Kṣatriya','Vaiśya','Śūdra'];
+const varnaOf=sign=>[2,3,4,1,2,3,4,1,2,3,4,1][sign]; // Aries fire→Kshatriya(2), Taurus earth→Vaishya(3), Gemini air→Shudra(4), Cancer water→Brahmin(1) …
+const vashyaOf=(sign,deg)=>sign===0||sign===1?'chatushpada':sign===4?'vanachara':sign===7?'keeta':sign===8?(deg<15?'manava':'chatushpada'):sign===9?(deg<15?'chatushpada':'jalachara'):sign===3||sign===11?'jalachara':'manava';
+const VASHYA_PTS={chatushpada:{chatushpada:2,manava:1,jalachara:1,vanachara:0,keeta:1},manava:{chatushpada:1,manava:2,jalachara:0.5,vanachara:0,keeta:1},jalachara:{chatushpada:1,manava:0.5,jalachara:2,vanachara:1,keeta:1},vanachara:{chatushpada:0,manava:0,jalachara:1,vanachara:2,keeta:0},keeta:{chatushpada:1,manava:1,jalachara:1,vanachara:0,keeta:2}};
+// a: first native's Moon (sidereal longitude), b: second native's. Returns the eight kūṭas with points and short notes.
+function ashtakuta(aLon,bLon){const A=describe(aLon),B=describe(bLon);const out=[];
+  const va=varnaOf(A.sign),vb=varnaOf(B.sign);out.push({name:'Varṇa',max:1,pts:VARNA_RANK[va]>=VARNA_RANK[vb]?1:0,note:`${VARNA_NAME[va]} · ${VARNA_NAME[vb]} (temperament; classically the first native’s varṇa should not be lower)`});
+  const wa=vashyaOf(A.sign,A.deg),wb=vashyaOf(B.sign,B.deg);out.push({name:'Vaśya',max:2,pts:VASHYA_PTS[wa][wb],note:`${wa} · ${wb} (mutual influence)`});
+  const cnt=(x,y)=>((y-x+27)%27)+1;const bad=n=>[3,5,7].includes(n%9);const t1=cnt(A.nak,B.nak),t2=cnt(B.nak,A.nak);out.push({name:'Tārā',max:3,pts:(bad(t1)?0:1.5)+(bad(t2)?0:1.5),note:`${A.nakName} → ${B.nakName}: ${t1} (${bad(t1)?'unfavourable':'favourable'}), back ${t2} (${bad(t2)?'unfavourable':'favourable'}) (fortune and wellbeing)`});
+  const ya=YONI[A.nak],yb=YONI[B.nak];const enemy=YONI_ENEMY.some(([x,y])=>(x===ya&&y===yb)||(x===yb&&y===ya));out.push({name:'Yoni',max:4,pts:ya===yb?4:enemy?0:2,note:`${ya} · ${yb}${ya===yb?' (same yoni)':enemy?' (hostile pair)':' (neither same nor hostile; the full table grades these 1–3)'} (instinct and intimacy)`});
+  const la=SIGN_LORD[A.sign],lb=SIGN_LORD[B.sign];const r1=relation(la,lb),r2=relation(lb,la);let gm=0;if(la===lb||(r1==='friend'&&r2==='friend'))gm=5;else if((r1==='friend'&&r2==='neutral')||(r2==='friend'&&r1==='neutral'))gm=4;else if(r1==='neutral'&&r2==='neutral')gm=3;else if((r1==='friend'&&r2==='enemy')||(r2==='friend'&&r1==='enemy'))gm=1;else if(r1==='enemy'&&r2==='enemy')gm=0;else gm=0.5;
+  out.push({name:'Graha Maitrī',max:5,pts:gm,note:`Moon-sign lords ${GRAHA.find(g=>g.key===la).en} · ${GRAHA.find(g=>g.key===lb).en} — ${la===lb?'the same lord':r1+' / '+r2} (mental compatibility)`});
+  const ga=GANA[A.nak],gb=GANA[B.nak];const gpts=ga===gb?6:(ga!=='rakshasa'&&gb!=='rakshasa')?5:(ga==='deva'||gb==='deva')?1:0;out.push({name:'Gaṇa',max:6,pts:gpts,note:`${ga} · ${gb} (temperament)`});
+  const d1=((B.sign-A.sign+12)%12)+1,d2=((A.sign-B.sign+12)%12)+1;const bk=[2,12,5,9,6,8].includes(d1)?0:7;out.push({name:'Bhakūṭa',max:7,pts:bk,note:`Moon signs ${d1}/${d2} apart (${RASHI_EN[A.sign]} · ${RASHI_EN[B.sign]})${bk?'':' — a 2/12, 5/9 or 6/8 relation'} (shared life and prosperity)`});
+  const na=NADI[A.nak],nb=NADI[B.nak];out.push({name:'Nāḍī',max:8,pts:na===nb?0:8,note:`${na} · ${nb}${na===nb?' — the same nāḍī (nāḍī doṣa; traditions list exceptions by sign and lord)':''} (constitution and progeny)`});
+  const total=out.reduce((t,k)=>t+k.pts,0);const grade=total>=33?'excellent':total>=25?'good':total>=18?'acceptable':'weak';
+  return {kutas:out,total,grade,a:A,b:B}}
 /* ---------- timezone helpers ---------- */
 function tzOffsetMinutes(tz,date){try{const f=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const parts=Object.fromEntries(f.formatToParts(date).filter(p=>p.type!=='literal').map(p=>[p.type,Number(p.value)]));
@@ -720,7 +794,7 @@ function utcToZoned(date,tz){const off=tzOffsetMinutes(tz,date);const z=new Date
   return {date:`${z.getUTCFullYear()}-${String(z.getUTCMonth()+1).padStart(2,'0')}-${String(z.getUTCDate()).padStart(2,'0')}`,time:`${String(z.getUTCHours()).padStart(2,'0')}:${String(z.getUTCMinutes()).padStart(2,'0')}`,offset:off}}
 function fmtOffset(min){const s=min<0?'-':'+';const a=Math.abs(min);return `UTC${s}${String(Math.floor(a/60)).padStart(2,'0')}:${String(a%60).padStart(2,'0')}`}
 
-return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,chartFromOverride,yogas,moonTransit,sadeSati,GOCHARA_MOON,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
+return {GRAHA,RASHI,RASHI_EN,RASHI_AB,NAK,SIGN_LORD,DRISHTI_RULES,DASHA_YEARS,chart,chartFromOverride,yogas,moonTransit,sadeSati,GOCHARA_MOON,ashtakuta,relation,FRIENDS,ascendant,bodySidereal,nextIngress,describe,houseFrom,drishtiTargets,dignity,vimshottari,dashaAt,zonedToUtc,utcToZoned,fmtOffset,tzOffsetMinutes,fmtDeg,dms,ayanamsa,jdFromDate,dateFromJd,deltaT,libAvailable,norm,
   _internals:{sunLongitude,moonLongitude,meanNode,trueNode,planetLongitude,centuries,gmst}};
 })();
 if(typeof module!=='undefined')module.exports=GOCHARA;
@@ -796,8 +870,218 @@ function natalFor(client){const tz=client.timezone||BROWSER_TZ;const warn=[];
   const instant=G.zonedToUtc(client.birth_date,(client.birth_time||'12:00').slice(0,5),tz);
   return {instant,tz,lat:hasLoc?lat:null,lon:hasLoc?lon:null,warn}}
 
+  // The output specification shared by every prompt this app writes (single native and synastry).
+function promptSpec(cats,remedial,bpl){return `
+CORE METHOD
+
+Do the astrological reasoning internally.
+
+The final calendar entries are client-facing and must NOT contain astrological information.
+
+Do not mention planets, signs, houses, aspects, nakṣatras, daśās, yogas, doṣas, transits, combustion, retrogradation, dignity, planetary lordship or other Jyotiṣa terminology in any client-facing field.
+
+Translate the astrological analysis into ordinary descriptions of what the native may experience, notice, reconsider or reasonably do.
+
+Automatically calculate the forecast period
+
+Do not rely only on the transit snapshot supplied at the starting date.
+
+Calculate future planetary movement forward from the starting date in order to determine when meaningful conditions begin, peak, change and end. The sign changes, stations and daśā changes listed above are calculated for you — use them.
+
+Automatically identify:
+
+* sign ingresses and exits
+* stations retrograde and direct
+* exact conjunctions with natal grahas or nodes
+* exact Parāśari aspects to natal placements
+* repeated direct-retrograde-direct contacts
+* conjunctions and important aspects between transiting grahas
+* nakṣatra changes when they materially alter the interpretation
+* changes in dignity
+* changes in the active Vimśottarī subperiod
+* clusters of several triggers occurring within the same short interval
+
+Use these calculations to divide the forecast into meaningful predictive windows.
+
+Do not create arbitrary weekly periods.
+
+A period should begin or end when the underlying astrological condition meaningfully changes.
+
+Short exact triggers may produce windows of several days. Longer background influences may modify several periods without becoming separate entries of their own.
+
+HOW TO ANALYZE EACH PERIOD
+
+For every potential period, first establish the natal promise.
+
+Determine whether the natal chart actually supports the topic before predicting its manifestation.
+
+Then cross-reference the following layers:
+
+1. Vimśottarī activation
+
+Assess: mahādaśā lord; antardaśā lord; pratyantardaśā lord; smaller daśā levels when supplied; natal houses owned by each daśā lord; natal houses occupied by each daśā lord; planets associated with the daśā lords; whether the transit is activating a daśā lord directly.
+
+Give substantially more weight to a transit when it activates the current daśā sequence.
+
+2. Transit through the Lagna chart
+
+For every important transiting graha determine: which natal house it occupies; which natal house or houses it aspects; what natal planets occupy those houses; the natal lord of the occupied house; the natal lord of the houses receiving its dṛṣṭi; the houses ruled by the transiting graha for this specific Lagna; whether it is activating natal planets, nodes or sensitive degrees; whether benefic or malefic grahas reinforce or modify the result.
+
+Judge the transit according to the native’s actual chart rather than relying on generic meanings.
+
+3. Transit from the natal Moon
+
+Repeat the important transit analysis from the natal Moon.
+
+Use the Moon chart especially to understand: subjective experience; emotional atmosphere; mental preoccupation; perceived pressure or ease; interpersonal sensitivity; what may occupy the native’s attention; whether an objectively supportive period may nevertheless feel difficult; whether an objectively demanding period may be psychologically manageable.
+
+The Lagna view should describe circumstances and manifestation. The Moon/rāśi view should help describe how the native may experience and mentally process those circumstances. Neither view should automatically override the other.
+
+4. Natal triggers
+
+Check whether the transit activates: natal Lagna or Lagna lord; natal Moon; natal daśā lords; natal house lords relevant to the predicted topic; planets already involved in important natal combinations; natal nodes; natal yogas relevant to the topic; repeated house themes elsewhere in the natal chart.
+
+A strong prediction should normally have reinforcement from more than one layer.
+
+5. Modifiers
+
+Assess what strengthens, softens or complicates the effect: exaltation or debilitation; own sign or mūlatrikoṇa; combustion; retrogression; benefic protection; malefic pressure; dispositor condition; repeated transit contacts; exactness of aspect or conjunction; whether the event is supported by the natal promise; whether the active daśā agrees with the transit.
+
+Do not make a strong prediction from one isolated transit.
+
+MENTAL AND SUBJECTIVE EXPERIENCE
+
+Every period should include the likely subjective atmosphere as part of the interpretation.
+
+Infer this primarily through: natal Moon and Moon-lagna; transits to the natal Moon; transits through houses counted from the Moon; Moon’s dispositor and relevant daśā activation; Saturn, Rahu, Ketu, Jupiter and other major influences upon the Moon; 1H, 4H, 5H, 6H, 8H and 12H activation where relevant.
+
+Translate this into normal client language.
+
+Do not write: “Saturn aspects your natal Moon.”
+Write: “You may feel more serious, self-contained or mentally occupied than circumstances alone would seem to warrant.”
+
+Do not write: “Rahu activates the 5H.”
+Write: “An idea, attraction or creative project may become unusually absorbing, making it harder to judge how much attention it actually deserves.”
+
+PERIOD CLASSIFICATION
+
+For each period provide:
+
+Title: A professional 1–3 word signpost title describing the likely manifestation (for example Professional Momentum, Financial Review, Creative Acceleration, Relationship Reassessment, Critical Decisions, Restoration Period, Administrative Resolution, Network Expansion, Travel Adjustment, Private Reassessment). Never title a period after an astrological configuration.
+
+Dates: Give the actual start and end dates.
+
+Duration: Give the duration in days or an appropriate approximate duration.
+
+Polarity: Choose exactly one: Supportive, Mixed, Danger. Use Mixed when meaningful opportunity and difficulty coexist. Use Danger sparingly — only when several independent factors converge strongly enough that increased caution is genuinely warranted.
+
+Intensity: Choose 1–5. 1 = subtle, 2 = noticeable, 3 = significant, 4 = strong, 5 = unusually concentrated or consequential.
+
+Especially significant: Yes or No. Mark Yes only for genuinely reinforced periods such as exact activation of current daśā lords, major repeated contacts, a daśā transition coinciding with a transit trigger, or several predictive layers converging.
+
+Primary category: Choose exactly one from: ${cats.join('; ')}.
+
+Secondary categories: Choose zero to three from the same approved list. Do not invent additional categories.
+
+CLIENT-FACING CONTENT
+
+After the classification fields, write only the following client-facing sections. There must be no astrological terminology in these sections.
+
+Interpretation / This period may support — one concise paragraph explaining what this period may be useful for or what kinds of circumstances it may support. Include both external circumstances and the likely subjective atmosphere where relevant. For Mixed periods, describe both the opening and the complication naturally. For Danger periods, explain the area requiring greater caution without frightening or deterministic language.
+
+Notice — concrete things the client may observe occurring around them (changes in workload, increased correspondence, an offer returning, an expense appearing, somebody reconsidering an agreement, a relationship becoming more demanding, a project suddenly accelerating, disrupted sleep, greater need for solitude, renewed contact from someone, administrative delays, unusual creative focus). Use 2–5 concise bullet points. Do not explain the astrology behind them.
+
+Consider — 2–4 reflective questions or things the client might usefully think about during the period, concerning judgment, priorities, patterns or choices (for example whether urgency is actually the same thing as importance; whether the present arrangement remains sustainable; what has changed since the issue first appeared; whether the opportunity justifies the resources it requires; which obligations are necessary and which are habitual). Do not simply repeat the Notice section.
+
+Suggestions — 2–5 reasonable, practical, proportionate actions directly related to the forecast (review the agreement before confirming it; leave additional time between commitments; put important terms in writing; concentrate on work already underway; follow up with useful contacts; build additional recovery time into the week). Use bullet points.
+
+Consider postponing — 1–4 specific actions that may be better delayed until the period changes. Only include actions for which the forecast provides a meaningful reason to wait. Do not manufacture warnings merely to fill this section. If no postponement is particularly indicated, write: * Nothing specifically indicated.
+${!remedial?`
+Do not include a Remedial work section.
+`:`
+REMEDIAL WORK
+
+After the practical sections, include one short paragraph headed Remedial work. It should be client-facing and should not explain the astrological reasoning. The remedy should be selected specifically for the character of the period rather than copied generically into every entry. Research suitable options from reputable online sources before selecting them.
+
+Consider remedies from the following traditions when genuinely appropriate: classical Jyotiṣa remedial practice; seva or charitable service; yogic disciplines; meditation; prāṇāyāma; mantra or japa; restorative or contemplative yoga; Ayurveda-inspired daily routine; Traditional Chinese Medicine-informed lifestyle practices; tai chi or qigong; colour or environmental remedy; fasting or observance only when appropriate and low-risk; devotional or contemplative practice; sleep, rest or sensory-reduction practices; timing of practice. Do not force every tradition into every period. Select only one coherent remedial programme, generally containing 2–4 mutually compatible elements.
+
+Research standard for remedial work: distinguish traditional practice from modern evidence; use reputable medical or academic sources for wellness or body-based claims. Evidence is stronger for some mind-body practices such as appropriately taught yoga, meditation, tai chi and qigong than for many herbal or energetic claims (NCCIH notes that yoga may support general wellness, stress management and sleep, while tai chi and qigong are generally considered low-risk when appropriately practiced). Traditional Chinese herbal preparations and Ayurvedic medicinal products should not be prescribed by the calendar; safety and evidence vary, and contamination, toxicity or interactions may occur. Therefore: prefer low-risk lifestyle, contemplative, movement, service and environmental remedies; do not prescribe medicinal herbs, supplements, metals, minerals or ingestible preparations; do not claim that a remedy treats disease; do not present TCM, Ayurveda, colour practice or Jyotiṣa remedies as scientifically proven when evidence is absent; acupuncture may only be suggested as something to discuss with an appropriately qualified practitioner; do not recommend extreme fasting, forceful breath retention or physically advanced yoga; match movement practices to the period’s overall energy rather than automatically recommending stimulation.
+
+Remedial timing: when useful, specify a simple timing recommendation based on the predictive character of the period, traditional Jyotiṣa observance, or practical rhythm (morning for establishing steadiness and intention; evening for calming, release or sensory reduction; before important negotiations for a brief centering practice; during the exact peak window for a simple mantra, prayer or charitable act; on the traditional weekday associated with a remedial observance when relevant; daily throughout the period when consistency matters more than an exact election). Do not create false precision; do not claim that performing something at an exact minute guarantees protection or an outcome.
+
+Seva: when appropriate, make it concrete and proportionate (helping somebody with an administrative task, donating food, supporting education, volunteering, caring for animals, assisting an elder, contributing anonymously to someone in need), chosen according to the period rather than listing several unrelated acts.
+
+Yogic discipline: distinguish among āsana, prāṇāyāma, meditation, yoga nidrā, japa, svādhyāya, mauna or deliberate reduction of unnecessary speech, disciplined routine, restorative practice; choose the discipline that actually matches the forecast; prefer gentler practices during periods characterized by fatigue, pressure, agitation or reduced recovery.
+
+Ayurveda: focus on low-risk dinacaryā-style practices (regular meal timing, regular sleep and waking rhythm, reducing overstimulation, warm or grounding routines, simplified daily schedules, gentle self-care rituals) rather than medical treatment; do not diagnose doṣa imbalance from the astrology alone.
+
+Traditional Chinese Medicine: remain at the level of low-risk traditional lifestyle principles or appropriately supervised practices (gentle qigong, tai chi, regular sleep-wake rhythm, balancing activity with rest, seasonal routine, referral to a qualified practitioner if acupuncture is desired); do not diagnose a TCM pattern from the horoscope.
+
+Colour remedy: treat colour primarily as a symbolic, contemplative or environmental practice (clothing, flowers, workspace details, altar or devotional objects, lighting or visual environment); do not claim that colour treats illness or physiologically corrects an astrological condition.
+`}
+REQUIRED OUTPUT FORMAT
+
+Use exactly this structure for every period (plain text, one label per line, no tables):
+
+[1–3 WORD TITLE]
+
+Dates: [start date – end date]
+
+Duration: [duration]
+
+Polarity: [Supportive / Mixed / Danger]
+
+Intensity: [1–5]
+
+Especially significant: [Yes / No]
+
+Primary category: [approved category]
+
+Secondary categories: [zero to three approved categories]
+
+Interpretation / This period may support
+
+[client-facing paragraph]
+
+Notice
+
+* […]
+* […]
+* […]
+
+Consider
+
+* […]
+* […]
+* […]
+
+Suggestions
+
+* […]
+* […]
+* […]
+
+Consider postponing
+
+* […]
+* […]
+* […]
+${!remedial?'':`
+Remedial work
+
+[one short cohesive paragraph containing the selected practice or practices and useful timing]
+`}
+Then proceed directly to the next predictive period.
+
+STYLE
+
+Write calmly and professionally. The client does not need to know how the astrological conclusion was derived. Do not use astrological vocabulary in the output. Do not write dramatically or fatalistically. Avoid vague statements that could apply to anyone. Make each entry concrete enough that the client can recognize what the period concerns. Use “may,” “can,” “tends to,” “may be useful for,” and similar calibrated language. Do not repeat the same advice across every period. The final result should read as a sophisticated personal calendar, not an astrology report.${bpl.length?`
+
+REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — paraphrase, never quote, and never mention her or any astrology in the client-facing text):
+- `+bpl.join('\\n- '):''}`}
+
 function mount(container,client,opts={}){
-  const S=loadSettings();const natal=natalFor(client);
+  const S=loadSettings();const natal=natalFor(client);const DZ=client.jyotish&&client.jyotish.discarnate&&client.jyotish.discarnate.on?client.jyotish.discarnate:null;
   if(natal.error){container.innerHTML=`<p class="warn">${esc(natal.error)}</p>`;return {destroy(){}}}
   const st={instant:opts.instant||new Date(),live:!opts.instant,sel:null,anchor:null,skyLat:natal.lat,skyLon:natal.lon,compact:!!opts.compact,mobileView:opts.compact?'transit':'both'};
   const OV=client.natal_override&&(client.natal_override.planets||client.natal_override.lagna)?client.natal_override:null;
@@ -1257,6 +1541,7 @@ function mount(container,client,opts={}){
     L.push(`You are an experienced Jyotiṣa consultant generating predictive calendar entries for a professional astrologer.\n\nUse sidereal Jyotiṣa with Lahiri ayanāṃśa, whole-sign houses from the natal Lagna, the natal Moon chart as a secondary reference, Parāśari graha dṛṣṭi (all grahas 7th; Mars 4/8; Jupiter 5/9; Saturn 3/10; Rahu 5/7/9), natal house lordship, planetary dignity, nakṣatra where materially relevant, natal promise, and Vimśottarī daśā as the activating context. The chart data below is calculated (Lahiri, ${S.nodeMode} nodes); use it rather than recalculating positions.`);
     L.push(`\nNATAL CHART (${natalAsc?'Lagna '+G.RASHI_EN[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unknown — Moon used as lagna'}; Moon ${G.RASHI_EN[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}, ${natalMoon.nakName} pada ${natalMoon.pada}):`);
     for(const p of natalChart.planets)L.push('- '+pl(p));
+    if(DZ)L.push(`\nTHIS NATIVE IS DISCARNATE (deceased${DZ.passed_on?' '+DZ.passed_on:''}). Do not write any period as something happening to this person. Read the transits to this chart as influences on their legacy, estate, memory, unfinished matters and on the living people tied to this chart, and write the calendar for those living readers.`);
     const d=c.dasha;if(d)L.push(`\nVIMSHOTTARI DASHA NOW: ${gname(d.maha.lord)} mahadasha (until ${d.maha.end.toISOString().slice(0,10)}) → ${d.antar?gname(d.antar.lord)+' antardasha (until '+d.antar.end.toISOString().slice(0,10)+')':'—'} → ${d.pratyantar?gname(d.pratyantar.lord)+' pratyantardasha (until '+d.pratyantar.end.toISOString().slice(0,10)+')':'—'} → ${d.sookshma?gname(d.sookshma.lord)+' sookshma ('+d.sookshma.start.toISOString().slice(0,10)+' to '+d.sookshma.end.toISOString().slice(0,10)+')':'—'}.${OV?' Natal positions were entered manually by the astrologer from the native’s reference chart.':''}`);
     try{const sr=shaniReport(st.instant);L.push(`\nSATURN FROM THE NATAL MOON: ${sr.lines.join(' ')}`)}catch(e){}
     const yg=G.yogas?G.yogas(natalChart.planets,natalLagnaSign,natalAsc?natalAsc.sidereal:null):null;
@@ -1274,214 +1559,7 @@ function mount(container,client,opts={}){
     try{const dch=dashaChanges(st.instant,365);if(dch.length)L.push(`\nVIMSHOTTARI CHANGES (next 12 months):\n`+dch.join('\n'))}catch(e){}
     L.push(`\nSTARTING DATE for the forecast: ${z.date} (${tzNow()}). PLEASE ANALYSE: ${focus}.${promptState.q?'\nSpecific question: '+promptState.q:''}`);
     const cats=(typeof CATEGORIES!=='undefined'?CATEGORIES:[]).map(x=>x[1]);
-    L.push(`
-CORE METHOD
-
-Do the astrological reasoning internally.
-
-The final calendar entries are client-facing and must NOT contain astrological information.
-
-Do not mention planets, signs, houses, aspects, nakṣatras, daśās, yogas, doṣas, transits, combustion, retrogradation, dignity, planetary lordship or other Jyotiṣa terminology in any client-facing field.
-
-Translate the astrological analysis into ordinary descriptions of what the native may experience, notice, reconsider or reasonably do.
-
-Automatically calculate the forecast period
-
-Do not rely only on the transit snapshot supplied at the starting date.
-
-Calculate future planetary movement forward from the starting date in order to determine when meaningful conditions begin, peak, change and end. The sign changes, stations and daśā changes listed above are calculated for you — use them.
-
-Automatically identify:
-
-* sign ingresses and exits
-* stations retrograde and direct
-* exact conjunctions with natal grahas or nodes
-* exact Parāśari aspects to natal placements
-* repeated direct-retrograde-direct contacts
-* conjunctions and important aspects between transiting grahas
-* nakṣatra changes when they materially alter the interpretation
-* changes in dignity
-* changes in the active Vimśottarī subperiod
-* clusters of several triggers occurring within the same short interval
-
-Use these calculations to divide the forecast into meaningful predictive windows.
-
-Do not create arbitrary weekly periods.
-
-A period should begin or end when the underlying astrological condition meaningfully changes.
-
-Short exact triggers may produce windows of several days. Longer background influences may modify several periods without becoming separate entries of their own.
-
-HOW TO ANALYZE EACH PERIOD
-
-For every potential period, first establish the natal promise.
-
-Determine whether the natal chart actually supports the topic before predicting its manifestation.
-
-Then cross-reference the following layers:
-
-1. Vimśottarī activation
-
-Assess: mahādaśā lord; antardaśā lord; pratyantardaśā lord; smaller daśā levels when supplied; natal houses owned by each daśā lord; natal houses occupied by each daśā lord; planets associated with the daśā lords; whether the transit is activating a daśā lord directly.
-
-Give substantially more weight to a transit when it activates the current daśā sequence.
-
-2. Transit through the Lagna chart
-
-For every important transiting graha determine: which natal house it occupies; which natal house or houses it aspects; what natal planets occupy those houses; the natal lord of the occupied house; the natal lord of the houses receiving its dṛṣṭi; the houses ruled by the transiting graha for this specific Lagna; whether it is activating natal planets, nodes or sensitive degrees; whether benefic or malefic grahas reinforce or modify the result.
-
-Judge the transit according to the native’s actual chart rather than relying on generic meanings.
-
-3. Transit from the natal Moon
-
-Repeat the important transit analysis from the natal Moon.
-
-Use the Moon chart especially to understand: subjective experience; emotional atmosphere; mental preoccupation; perceived pressure or ease; interpersonal sensitivity; what may occupy the native’s attention; whether an objectively supportive period may nevertheless feel difficult; whether an objectively demanding period may be psychologically manageable.
-
-The Lagna view should describe circumstances and manifestation. The Moon/rāśi view should help describe how the native may experience and mentally process those circumstances. Neither view should automatically override the other.
-
-4. Natal triggers
-
-Check whether the transit activates: natal Lagna or Lagna lord; natal Moon; natal daśā lords; natal house lords relevant to the predicted topic; planets already involved in important natal combinations; natal nodes; natal yogas relevant to the topic; repeated house themes elsewhere in the natal chart.
-
-A strong prediction should normally have reinforcement from more than one layer.
-
-5. Modifiers
-
-Assess what strengthens, softens or complicates the effect: exaltation or debilitation; own sign or mūlatrikoṇa; combustion; retrogression; benefic protection; malefic pressure; dispositor condition; repeated transit contacts; exactness of aspect or conjunction; whether the event is supported by the natal promise; whether the active daśā agrees with the transit.
-
-Do not make a strong prediction from one isolated transit.
-
-MENTAL AND SUBJECTIVE EXPERIENCE
-
-Every period should include the likely subjective atmosphere as part of the interpretation.
-
-Infer this primarily through: natal Moon and Moon-lagna; transits to the natal Moon; transits through houses counted from the Moon; Moon’s dispositor and relevant daśā activation; Saturn, Rahu, Ketu, Jupiter and other major influences upon the Moon; 1H, 4H, 5H, 6H, 8H and 12H activation where relevant.
-
-Translate this into normal client language.
-
-Do not write: “Saturn aspects your natal Moon.”
-Write: “You may feel more serious, self-contained or mentally occupied than circumstances alone would seem to warrant.”
-
-Do not write: “Rahu activates the 5H.”
-Write: “An idea, attraction or creative project may become unusually absorbing, making it harder to judge how much attention it actually deserves.”
-
-PERIOD CLASSIFICATION
-
-For each period provide:
-
-Title: A professional 1–3 word signpost title describing the likely manifestation (for example Professional Momentum, Financial Review, Creative Acceleration, Relationship Reassessment, Critical Decisions, Restoration Period, Administrative Resolution, Network Expansion, Travel Adjustment, Private Reassessment). Never title a period after an astrological configuration.
-
-Dates: Give the actual start and end dates.
-
-Duration: Give the duration in days or an appropriate approximate duration.
-
-Polarity: Choose exactly one: Supportive, Mixed, Danger. Use Mixed when meaningful opportunity and difficulty coexist. Use Danger sparingly — only when several independent factors converge strongly enough that increased caution is genuinely warranted.
-
-Intensity: Choose 1–5. 1 = subtle, 2 = noticeable, 3 = significant, 4 = strong, 5 = unusually concentrated or consequential.
-
-Especially significant: Yes or No. Mark Yes only for genuinely reinforced periods such as exact activation of current daśā lords, major repeated contacts, a daśā transition coinciding with a transit trigger, or several predictive layers converging.
-
-Primary category: Choose exactly one from: ${cats.join('; ')}.
-
-Secondary categories: Choose zero to three from the same approved list. Do not invent additional categories.
-
-CLIENT-FACING CONTENT
-
-After the classification fields, write only the following client-facing sections. There must be no astrological terminology in these sections.
-
-Interpretation / This period may support — one concise paragraph explaining what this period may be useful for or what kinds of circumstances it may support. Include both external circumstances and the likely subjective atmosphere where relevant. For Mixed periods, describe both the opening and the complication naturally. For Danger periods, explain the area requiring greater caution without frightening or deterministic language.
-
-Notice — concrete things the client may observe occurring around them (changes in workload, increased correspondence, an offer returning, an expense appearing, somebody reconsidering an agreement, a relationship becoming more demanding, a project suddenly accelerating, disrupted sleep, greater need for solitude, renewed contact from someone, administrative delays, unusual creative focus). Use 2–5 concise bullet points. Do not explain the astrology behind them.
-
-Consider — 2–4 reflective questions or things the client might usefully think about during the period, concerning judgment, priorities, patterns or choices (for example whether urgency is actually the same thing as importance; whether the present arrangement remains sustainable; what has changed since the issue first appeared; whether the opportunity justifies the resources it requires; which obligations are necessary and which are habitual). Do not simply repeat the Notice section.
-
-Suggestions — 2–5 reasonable, practical, proportionate actions directly related to the forecast (review the agreement before confirming it; leave additional time between commitments; put important terms in writing; concentrate on work already underway; follow up with useful contacts; build additional recovery time into the week). Use bullet points.
-
-Consider postponing — 1–4 specific actions that may be better delayed until the period changes. Only include actions for which the forecast provides a meaningful reason to wait. Do not manufacture warnings merely to fill this section. If no postponement is particularly indicated, write: * Nothing specifically indicated.
-${promptState.remedial===false?`
-Do not include a Remedial work section.
-`:`
-REMEDIAL WORK
-
-After the practical sections, include one short paragraph headed Remedial work. It should be client-facing and should not explain the astrological reasoning. The remedy should be selected specifically for the character of the period rather than copied generically into every entry. Research suitable options from reputable online sources before selecting them.
-
-Consider remedies from the following traditions when genuinely appropriate: classical Jyotiṣa remedial practice; seva or charitable service; yogic disciplines; meditation; prāṇāyāma; mantra or japa; restorative or contemplative yoga; Ayurveda-inspired daily routine; Traditional Chinese Medicine-informed lifestyle practices; tai chi or qigong; colour or environmental remedy; fasting or observance only when appropriate and low-risk; devotional or contemplative practice; sleep, rest or sensory-reduction practices; timing of practice. Do not force every tradition into every period. Select only one coherent remedial programme, generally containing 2–4 mutually compatible elements.
-
-Research standard for remedial work: distinguish traditional practice from modern evidence; use reputable medical or academic sources for wellness or body-based claims. Evidence is stronger for some mind-body practices such as appropriately taught yoga, meditation, tai chi and qigong than for many herbal or energetic claims (NCCIH notes that yoga may support general wellness, stress management and sleep, while tai chi and qigong are generally considered low-risk when appropriately practiced). Traditional Chinese herbal preparations and Ayurvedic medicinal products should not be prescribed by the calendar; safety and evidence vary, and contamination, toxicity or interactions may occur. Therefore: prefer low-risk lifestyle, contemplative, movement, service and environmental remedies; do not prescribe medicinal herbs, supplements, metals, minerals or ingestible preparations; do not claim that a remedy treats disease; do not present TCM, Ayurveda, colour practice or Jyotiṣa remedies as scientifically proven when evidence is absent; acupuncture may only be suggested as something to discuss with an appropriately qualified practitioner; do not recommend extreme fasting, forceful breath retention or physically advanced yoga; match movement practices to the period’s overall energy rather than automatically recommending stimulation.
-
-Remedial timing: when useful, specify a simple timing recommendation based on the predictive character of the period, traditional Jyotiṣa observance, or practical rhythm (morning for establishing steadiness and intention; evening for calming, release or sensory reduction; before important negotiations for a brief centering practice; during the exact peak window for a simple mantra, prayer or charitable act; on the traditional weekday associated with a remedial observance when relevant; daily throughout the period when consistency matters more than an exact election). Do not create false precision; do not claim that performing something at an exact minute guarantees protection or an outcome.
-
-Seva: when appropriate, make it concrete and proportionate (helping somebody with an administrative task, donating food, supporting education, volunteering, caring for animals, assisting an elder, contributing anonymously to someone in need), chosen according to the period rather than listing several unrelated acts.
-
-Yogic discipline: distinguish among āsana, prāṇāyāma, meditation, yoga nidrā, japa, svādhyāya, mauna or deliberate reduction of unnecessary speech, disciplined routine, restorative practice; choose the discipline that actually matches the forecast; prefer gentler practices during periods characterized by fatigue, pressure, agitation or reduced recovery.
-
-Ayurveda: focus on low-risk dinacaryā-style practices (regular meal timing, regular sleep and waking rhythm, reducing overstimulation, warm or grounding routines, simplified daily schedules, gentle self-care rituals) rather than medical treatment; do not diagnose doṣa imbalance from the astrology alone.
-
-Traditional Chinese Medicine: remain at the level of low-risk traditional lifestyle principles or appropriately supervised practices (gentle qigong, tai chi, regular sleep-wake rhythm, balancing activity with rest, seasonal routine, referral to a qualified practitioner if acupuncture is desired); do not diagnose a TCM pattern from the horoscope.
-
-Colour remedy: treat colour primarily as a symbolic, contemplative or environmental practice (clothing, flowers, workspace details, altar or devotional objects, lighting or visual environment); do not claim that colour treats illness or physiologically corrects an astrological condition.
-`}
-REQUIRED OUTPUT FORMAT
-
-Use exactly this structure for every period (plain text, one label per line, no tables):
-
-[1–3 WORD TITLE]
-
-Dates: [start date – end date]
-
-Duration: [duration]
-
-Polarity: [Supportive / Mixed / Danger]
-
-Intensity: [1–5]
-
-Especially significant: [Yes / No]
-
-Primary category: [approved category]
-
-Secondary categories: [zero to three approved categories]
-
-Interpretation / This period may support
-
-[client-facing paragraph]
-
-Notice
-
-* […]
-* […]
-* […]
-
-Consider
-
-* […]
-* […]
-* […]
-
-Suggestions
-
-* […]
-* […]
-* […]
-
-Consider postponing
-
-* […]
-* […]
-* […]
-${promptState.remedial===false?'':`
-Remedial work
-
-[one short cohesive paragraph containing the selected practice or practices and useful timing]
-`}
-Then proceed directly to the next predictive period.
-
-STYLE
-
-Write calmly and professionally. The client does not need to know how the astrological conclusion was derived. Do not use astrological vocabulary in the output. Do not write dramatically or fatalistically. Avoid vague statements that could apply to anyone. Make each entry concrete enough that the client can recognize what the period concerns. Use “may,” “can,” “tends to,” “may be useful for,” and similar calibrated language. Do not repeat the same advice across every period. The final result should read as a sophisticated personal calendar, not an astrology report.${promptState.bpl.length?`
-
-REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — paraphrase, never quote, and never mention her or any astrology in the client-facing text):
-- `+promptState.bpl.join('\\n- '):''}`);
+    L.push(promptSpec(cats,promptState.remedial!==false,promptState.bpl));
     return L.join('\n')}
   function promptPanel(c){const sel=st.sel;const what=sel?(sel.type==='transit'?'this transit':sel.type==='natal'?'this natal placement':'this house'):'the current gochara';
     return `<div class="g-ai"><h4>Ask an AI about ${what}</h4>
@@ -1511,6 +1589,7 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
     const d=c.dasha;const per=(lbl,p)=>p?`<span><b>${lbl}</b> ${gname(p.lord)} <span class="muted">${G.utcToZoned(p.start,tzNow()).date} → ${G.utcToZoned(p.end,tzNow()).date}</span></span>`:`<span><b>${lbl}</b> —</span>`;
     const dstr=d?per('Mahadasha',d.maha)+per('Antardasha',d.antar)+per('Pratyantardasha',d.pratyantar)+per('Sookshma',d.sookshma):'';
     el.innerHTML=`<div class="goch ${st.compact?'compact':''}">
+     ${DZ?`<p class="note small" style="margin:0 0 10px">† This chart belongs to a discarnate${DZ.passed_on?' (passed on '+esc(DZ.passed_on)+')':''}. Read the transits as what moves around the legacy, estate and memory, and what they stir in the living connected to this chart — not as events for the native. Daśā is shown for reference.</p>`:''}
      ${natal.warn.length?`<p class="warn small">${natal.warn.map(esc).join(' ')}${natalAsc?'':(client.birth_location&&opts.onGeocode?` <button type="button" class="btn small" id="g-geo">Find birth place for “${esc(client.birth_location)}”</button>`:' <em>Enter the birth location on the Client &amp; access tab and save.</em>')}</p>`:''}
      ${natalTable()}
      <div class="g-time">
@@ -1591,7 +1670,166 @@ REFERENCE PASSAGES (Barbara Pijan Lama, for your internal reasoning only — par
   draw();
   return {setInstant,getSnapshot:()=>snapshot(compute()),destroy(){if(timer)clearInterval(timer);window.removeEventListener('ephemeris-ready',onEph);el.innerHTML=''}};
 }
-return {mount,renderNorthIndianChart,renderSouthIndianChart,render,natalFor};
+/* ---------------- synastry: two or more natives side by side — their charts, the relation between them, every transit on all of them ---------------- */
+function natalBundle(client,S){const natal=natalFor(client);if(natal.error)return {error:natal.error,client};
+  const OV=client.natal_override&&(client.natal_override.planets||client.natal_override.lagna)?client.natal_override:null;
+  const comp=G.chart(natal.instant,{nodeMode:S.nodeMode,outer:true});
+  const chart=OV?G.chartFromOverride(comp,OV,{outer:false}):{...comp,planets:comp.planets.filter(p=>!p.outer)};
+  const asc=OV&&OV.lagna&&Number.isFinite(Number(OV.lagna.sign))?{sidereal:G.norm(Number(OV.lagna.sign)*30+Number(OV.lagna.deg||0)),manual:true}:(natal.lat!==null?G.ascendant(natal.instant,natal.lat,natal.lon):null);
+  if(OV)natal.warn=natal.warn.filter(w=>!/Lagna cannot be calculated|Coordinates for/.test(w));
+  const moon=chart.planets.find(p=>p.key==='moon');const lagnaSign=asc?Math.floor(asc.sidereal/30):moon.sign;
+  for(const p of chart.planets){p.house=G.houseFrom(p.sign,lagnaSign);p.houseMoon=G.houseFrom(p.sign,moon.sign)}
+  const dz=client.jyotish&&client.jyotish.discarnate;const discarnate=dz&&dz.on?dz:(client.discarnate?{on:true,passed_on:client.passed_on||null}:null);
+  return {client,name:client.name||'Native',natal,chart,asc,moon,lagnaSign,override:!!OV,discarnate}}
+// maha/antar changes for one native in a window
+function dashaChangeList(natalInstant,moonLon,from,days){const out=[];const limit=from.getTime()+days*86400000;let d=G.dashaAt(natalInstant,moonLon,from);
+  for(let i=0;i<40&&d;i++){const ends=[d.antar&&d.antar.end,d.maha.end].filter(Boolean).map(x=>x.getTime());const next=Math.min(...ends);if(!isFinite(next)||next>limit)break;
+    const nd=G.dashaAt(natalInstant,moonLon,new Date(next+60000));if(!nd)break;const level=nd.maha.lord!==d.maha.lord?'mahadasha':'antardasha';
+    out.push({t:new Date(next),level,lord:level==='mahadasha'?nd.maha.lord:nd.antar.lord,text:`${gname(level==='mahadasha'?nd.maha.lord:nd.antar.lord)} ${level} begins`});d=nd}
+  return out}
+const SLOW_KEYS=['mars','jupiter','saturn','rahu','ketu'];
+function slowEvents(from,days,nodeMode){const limit=from.getTime()+days*86400000;const ev=[];
+  for(const key of SLOW_KEYS){let t=from.getTime();for(let i=0;i<12;i++){const ing=G.nextIngress(key,new Date(t),{nodeMode});if(!ing||ing.date.getTime()>limit)break;ev.push({t:ing.date,key,kind:'ingress',sign:ing.sign});t=ing.date.getTime()+3600000}}
+  for(const key of ['mars','jupiter','saturn']){const sp=t=>G.norm(G.bodySidereal(key,new Date(t+43200000))-G.bodySidereal(key,new Date(t-43200000))+180)-180;let prev=sp(from.getTime());
+    for(let t=from.getTime()+86400000;t<=limit;t+=86400000){const cur=sp(t);if((prev<0)!==(cur<0)){let lo=t-86400000,hi=t;for(let i=0;i<20;i++){const mid=(lo+hi)/2;if((sp(mid)<0)===(prev<0))lo=mid;else hi=mid}ev.push({t:new Date(hi),key,kind:'station',retro:cur<0})}prev=cur}}
+  return ev.sort((a,b)=>a.t-b.t)}
+
+function synastry(container,members,opts={}){
+  const S=loadSettings();const el=container;
+  const M=members.map(m=>natalBundle(m,S));const bad=M.filter(x=>x.error);const ok=M.filter(x=>!x.error);
+  if(ok.length<2){el.innerHTML=`<p class="warn">Synastry needs birth details for at least two natives. ${bad.map(b=>esc((b.client.name||'A native')+': '+b.error)).join(' ')}</p>`;return {destroy(){el.innerHTML=''}}}
+  const st={instant:opts.instant||new Date(),view:'relations',pair:[0,1],months:12,prompt:'',remedial:true,open:false};
+  const tz=()=>S.tzMode==='client'?(ok[0].natal.tz||BROWSER_TZ):BROWSER_TZ;const dOf=d=>G.utcToZoned(d,tz()).date;
+  const verdictPill=mv=>mv.good===null?'':mv.good?(mv.vedhaBy?`<span class="pill caution">obstructed by ${gname(mv.vedhaBy)}</span>`:'<span class="pill supportive">favourable</span>'):'<span class="pill caution">unfavourable</span>';
+  const who=m=>`<strong>${esc(m.name)}</strong>${m.discarnate?' <span class="pill draft" title="This chart belongs to a discarnate; transits are read as influences on the legacy, estate and memory, and on the living connected to it">† discarnate</span>':''}`;
+  const pairList=()=>{const out=[];for(let i=0;i<ok.length;i++)for(let j=i+1;j<ok.length;j++)out.push([i,j]);return out};
+  // ----- relation between two charts
+  function relationOf(A,B){const r={};r.kuta=G.ashtakuta(A.moon.lon,B.moon.lon);r.kutaBack=G.ashtakuta(B.moon.lon,A.moon.lon);
+    r.cross=[{what:`${B.name}’s Moon`,inA:G.houseFrom(B.moon.sign,A.lagnaSign)},{what:`${B.name}’s Lagna`,inA:G.houseFrom(B.lagnaSign,A.lagnaSign)},{what:`${A.name}’s Moon`,inB:G.houseFrom(A.moon.sign,B.lagnaSign)},{what:`${A.name}’s Lagna`,inB:G.houseFrom(A.lagnaSign,B.lagnaSign)}];
+    r.moonToMoon=G.houseFrom(B.moon.sign,A.moon.sign);
+    const overlay=(X,Y)=>{const byHouse={};for(const p of Y.chart.planets){const h=G.houseFrom(p.sign,X.lagnaSign);(byHouse[h]=byHouse[h]||[]).push(p)}return byHouse};
+    r.BinA=overlay(A,B);r.AinB=overlay(B,A);
+    r.conj=[];for(const a of A.chart.planets)for(const b of B.chart.planets){const d=Math.abs(G.norm(a.lon-b.lon+180)-180);if(d<=3)r.conj.push({a,b,d})}
+    r.conj.sort((x,y)=>x.d-y.d);
+    const aspects=(X,Y)=>{const out=[];for(const p of Y.chart.planets){const h=G.houseFrom(p.sign,X.lagnaSign);for(const t of G.drishtiTargets(p.key,h)){const hit=X.chart.planets.filter(q=>q.house===t.house);for(const q of hit)out.push({from:p,to:q,n:t.n,house:t.house})}}return out};
+    r.BaspA=aspects(A,B);r.AaspB=aspects(B,A);return r}
+  const H=h=>ord(h);
+  function relationsPanel(){const [i,j]=st.pair;const A=ok[i],B=ok[j];const r=relationOf(A,B);
+    const sel=pairList().length>1?`<span class="seg" style="margin-left:auto">${pairList().map(([a,b])=>`<button type="button" data-pair="${a},${b}" aria-pressed="${a===i&&b===j}">${esc(ok[a].name)} · ${esc(ok[b].name)}</button>`).join('')}</span>`:'';
+    const kutaRows=r.kuta.kutas.map((k,n)=>`<tr><td><strong>${k.name}</strong></td><td>${k.pts}${k.pts!==r.kutaBack.kutas[n].pts?` <span class="muted small">(${r.kutaBack.kutas[n].pts} the other way)</span>`:''} / ${k.max}</td><td class="small muted" style="white-space:normal">${esc(k.note)}</td></tr>`).join('');
+    const houseList=(by,X,Y)=>Object.keys(by).map(Number).sort((a,b)=>a-b).map(h=>`<li><strong>${H(h)}</strong> of ${esc(X.name)} (${G.RASHI_EN[(X.lagnaSign+h-1)%12]}): ${by[h].map(p=>esc(Y.name)+'’s '+p.en).join(', ')}</li>`).join('');
+    const asp=(list,X,Y)=>list.length?`<ul class="plain small">${list.slice(0,14).map(a=>`<li>${esc(Y.name)}’s ${a.from.en} (${H(G.houseFrom(a.from.sign,X.lagnaSign))} of ${esc(X.name)}) casts ${H(a.n)} dṛṣṭi on ${esc(X.name)}’s ${a.to.en} in the ${H(a.house)}</li>`).join('')}${list.length>14?`<li class="muted">… and ${list.length-14} more</li>`:''}</ul>`:'<p class="small muted">None.</p>';
+    const d12=r.moonToMoon,d21=G.houseFrom(A.moon.sign,B.moon.sign);
+    const moonRel=[1,7].includes(d12)?'the Moons stand together or opposite — strong mutual awareness':[3,11].includes(d12)?'a 3/11 relation — companionable, gains through each other':[4,10].includes(d12)?'a 4/10 relation — purpose and shelter, sometimes friction over roles':[5,9].includes(d12)?'a 5/9 relation — natural affinity and ease':[2,12].includes(d12)?'a 2/12 relation — one gives, one receives; care over loss and expense':'a 6/8 relation — the classical strain, demanding adjustment';
+    return `<div class="syn-rel">
+     <div class="row between" style="gap:8px;flex-wrap:wrap;margin-bottom:8px"><h3 style="margin:0">${who(A)} <span class="muted">and</span> ${who(B)}</h3>${sel}</div>
+     <p class="small" style="margin:0 0 10px">${esc(B.name)}’s Moon is ${H(d12)} from ${esc(A.name)}’s Moon (and ${esc(A.name)}’s is ${H(d21)} from ${esc(B.name)}’s): ${moonRel}. ${esc(B.name)}’s Moon falls in ${esc(A.name)}’s ${H(r.cross[0].inA)} house and ${esc(B.name)}’s Lagna in ${esc(A.name)}’s ${H(r.cross[1].inA)}; ${esc(A.name)}’s Moon falls in ${esc(B.name)}’s ${H(r.cross[2].inB)} and ${esc(A.name)}’s Lagna in ${esc(B.name)}’s ${H(r.cross[3].inB)}.</p>
+     <div class="g-planets"><div class="row between" style="margin:2px 0 6px"><h4 style="margin:0">Aṣṭakūṭa <span class="muted">(Moon-based compatibility)</span></h4><span class="pill ${r.kuta.total>=25?'supportive':r.kuta.total>=18?'mixed':'caution'}">${r.kuta.total} / 36 · ${r.kuta.grade}</span></div>
+      <table><tbody>${kutaRows}</tbody></table>
+      <p class="small muted" style="margin:6px 0 0">Points follow the common Muhūrta tables (first native counted first; where the two directions differ, the other is in brackets). Written for marriage matching, read here as a general measure of ease between the two Moons; traditions differ on Vaśya and Yoni details and on nāḍī exceptions — verify against your own reference.</p></div>
+     <div class="grid2" style="gap:14px">
+      <div class="g-planets"><h4 style="margin:2px 0 6px">${esc(B.name)}’s planets in ${esc(A.name)}’s bhavas</h4><ul class="plain small">${houseList(r.BinA,A,B)}</ul></div>
+      <div class="g-planets"><h4 style="margin:2px 0 6px">${esc(A.name)}’s planets in ${esc(B.name)}’s bhavas</h4><ul class="plain small">${houseList(r.AinB,B,A)}</ul></div>
+     </div>
+     <div class="g-planets"><h4 style="margin:2px 0 6px">Close conjunctions across the charts <span class="muted">(within 3°)</span></h4>${r.conj.length?`<ul class="plain small">${r.conj.map(x=>`<li>${esc(A.name)}’s ${x.a.en} and ${esc(B.name)}’s ${x.b.en} — ${G.RASHI_EN[x.a.sign]}, ${G.fmtDeg(x.d)} apart</li>`).join('')}</ul>`:'<p class="small muted">None within 3°.</p>'}</div>
+     <div class="grid2" style="gap:14px">
+      <div class="g-planets"><h4 style="margin:2px 0 6px">${esc(B.name)} → ${esc(A.name)}: graha dṛṣṭi</h4>${asp(r.BaspA,A,B)}</div>
+      <div class="g-planets"><h4 style="margin:2px 0 6px">${esc(A.name)} → ${esc(B.name)}: graha dṛṣṭi</h4>${asp(r.AaspB,B,A)}</div>
+     </div>
+     ${A.discarnate||B.discarnate?`<p class="note small">${[A,B].filter(x=>x.discarnate).map(x=>`${esc(x.name)}’s chart is marked discarnate${x.discarnate.passed_on?' (passed on '+esc(x.discarnate.passed_on)+')':''}: read the relation as the bond that remains — inheritance, memory, unfinished matters, the shape they left in the living native’s life — rather than a living exchange.`).join(' ')}</p>`:''}
+    </div>`}
+  // ----- charts side by side, plus each native's planets in the other's bhavas for the selected pair
+  function chartsPanel(){const [i,j]=st.pair;const A=ok[i],B=ok[j];
+    const fig=(m,extra)=>`<figure class="g-fig"><figcaption><div class="cap">${who(m)} <span class="muted">${m.asc?'Lagna '+G.RASHI[m.lagnaSign]+' '+G.fmtDeg(m.asc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[m.moon.sign]} ${G.fmtDeg(m.moon.deg)}${m.override?' · manual positions':''}</span></div></figcaption>${render({refSign:m.lagnaSign,planets:m.chart.planets},{style:S.style,cls:'natal',centreLabel:'Lagna'})}${extra||''}</figure>`;
+    const overlay=(X,Y)=>`<figure class="g-fig"><figcaption><div class="cap">${esc(Y.name)}’s planets in ${esc(X.name)}’s bhavas <span class="muted">(${esc(X.name)}’s Lagna frame)</span></div></figcaption>${render({refSign:X.lagnaSign,planets:Y.chart.planets},{style:S.style,cls:'transit',centreLabel:esc(Y.name).slice(0,8)})}</figure>`;
+    return `<div class="syn-charts"><div class="g-charts" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${ok.map(m=>fig(m)).join('')}</div>
+     <h4 style="margin:14px 0 6px">Overlays — ${esc(A.name)} · ${esc(B.name)}${pairList().length>1?' <span class="small muted">(choose the pair under Relations)</span>':''}</h4>
+     <div class="g-charts">${overlay(A,B)}${overlay(B,A)}</div></div>`}
+  // ----- transits on everyone at the chosen moment
+  function transitRows(instant){const tr=G.chart(instant,{nodeMode:S.nodeMode,outer:false});const rows=[];
+    for(const p of tr.planets){const cells=ok.map(m=>{const hl=G.houseFrom(p.sign,m.lagnaSign),hm=G.houseFrom(p.sign,m.moon.sign);const mv=G.moonTransit(p.key,hm,tr.planets,m.moon.sign);
+      const contacts=m.chart.planets.filter(n=>Math.abs(G.norm(p.lon-n.lon+180)-180)<=S.orb).map(n=>n.en);const dasha=G.dashaAt(m.natal.instant,m.moon.lon,instant);const lords=[dasha.maha.lord,dasha.antar&&dasha.antar.lord,dasha.pratyantar&&dasha.pratyantar.lord].filter(Boolean);
+      return {hl,hm,mv,contacts,lord:lords.includes(p.key)}});
+      const sameHouse=cells.length>1&&cells.every(c=>c.hl===cells[0].hl);const touches=cells.filter(c=>c.contacts.length).length;
+      rows.push({p,cells,shared:sameHouse?`same bhava (${H(cells[0].hl)}) for everyone`:touches>1?`on natal planets in ${touches} charts`:''})}
+    return {tr,rows}}
+  function transitsPanel(){const {tr,rows}=transitRows(st.instant);const z=G.utcToZoned(st.instant,tz());
+    const head=ok.map(m=>`<th>${who(m)}<div class="small muted" style="font-weight:400">from Lagna · from Chandra</div></th>`).join('');
+    const body=rows.map(r=>`<tr><td><strong>${gname(r.p.key)}</strong><div class="small muted">${r.p.en} · ${G.RASHI_EN[r.p.sign]} ${G.fmtDeg(r.p.deg)}${r.p.retro&&!NODE(r.p.key)?' ᴿ':''}</div></td>${r.cells.map(c=>`<td>${H(c.hl)} · ${H(c.hm)} ${verdictPill(c.mv)}${c.lord?' <span class="pill significant">dasha lord</span>':''}${c.contacts.length?`<div class="small muted">on natal ${c.contacts.join(', ')}</div>`:''}</td>`).join('')}<td class="small muted">${r.shared}</td></tr>`).join('');
+    const sat=tr.planets.find(p=>p.key==='saturn');
+    const lines=ok.map(m=>{const ss=G.sadeSati(sat.sign,m.moon.sign);const d=G.dashaAt(m.natal.instant,m.moon.lon,st.instant);return `<li>${who(m)}: ${gname(d.maha.lord)} / ${d.antar?gname(d.antar.lord):'—'} / ${d.pratyantar?gname(d.pratyantar.lord):'—'}${ss?` · <span class="pill caution">${ss.kind==='sade sati'?'Sade Sati — '+esc(ss.phase):esc(ss.phase)}</span>`:''}</li>`}).join('');
+    return `<div class="syn-tr"><p class="small muted" style="margin:0 0 6px">Transits on ${z.date} ${z.time} (${esc(tz())}) laid on each chart. The classical verdict is counted from each native’s Moon; a shared bhava or a transit sitting on natal planets in more than one chart is flagged on the right.</p>
+     <ul class="plain small" style="margin:0 0 8px">${lines}</ul>
+     <div class="g-planets"><table><thead><tr><th>Transit</th>${head}<th>Shared</th></tr></thead><tbody>${body}</tbody></table></div>
+     ${ok.some(m=>m.discarnate)?'<p class="small muted">For a discarnate’s chart, read the transits as what moves around their legacy, estate and memory, and what they stir in the living who are tied to that chart.</p>':''}
+     ${opts.onAdd?`<p><button type="button" class="btn small" id="syn-add">Draft a joint influence from this moment</button></p>`:''}</div>`}
+  // ----- the months ahead: every slow movement with each native's result
+  function aheadRows(){const from=st.instant;const days=Math.round(st.months*30.44);const ev=slowEvents(from,days,S.nodeMode);
+    const rows=ev.map(e=>{const after=G.chart(new Date(e.t.getTime()+3600000),{nodeMode:S.nodeMode,outer:false});const p=after.planets.find(x=>x.key===e.key);
+      const cells=ok.map(m=>{const hl=G.houseFrom(p.sign,m.lagnaSign),hm=G.houseFrom(p.sign,m.moon.sign);const mv=G.moonTransit(e.key,hm,after.planets,m.moon.sign);return {hl,hm,mv}});
+      const label=e.kind==='ingress'?`${gname(e.key)} enters ${G.RASHI_EN[e.sign]}`:`${gname(e.key)} stations ${e.retro?'retrograde':'direct'}`;
+      const split=cells.length>1&&new Set(cells.map(c=>c.mv.good===null?'n':c.mv.good?(c.mv.vedhaBy?'v':'g'):'b')).size>1;
+      return {date:dOf(e.t),label,cells,split,e}});
+    const dasha=ok.map(m=>dashaChangeList(m.natal.instant,m.moon.lon,from,days).map(x=>({date:dOf(x.t),text:x.text})));
+    return {rows,dasha}}
+  function aheadPanel(){const {rows,dasha}=aheadRows();
+    const head=ok.map(m=>`<th>${who(m)}</th>`).join('');
+    const body=rows.map(r=>`<tr class="${r.split?'syn-split':''}"><td><strong>${r.date}</strong></td><td>${esc(r.label)}</td>${r.cells.map(c=>`<td>${H(c.hl)} · ${H(c.hm)} ${verdictPill(c.mv)}</td>`).join('')}<td class="small muted">${r.split?'tone differs between the natives — a separation point':'same tone for all'}</td></tr>`).join('');
+    return `<div class="syn-ahead"><div class="row between" style="gap:8px;flex-wrap:wrap;margin:0 0 6px"><p class="small muted" style="margin:0">Slow movements from ${esc(dOf(st.instant))} — Mars, Jupiter, Saturn, Rahu and Ketu changing sign, Mars/Jupiter/Saturn stationing — with each native’s resulting bhava (from Lagna · from Chandra) and verdict. Rows where the tone differs between the natives are where a joint calendar should separate into individual periods.</p><span class="seg">${[6,12,24].map(m=>`<button type="button" data-months="${m}" aria-pressed="${st.months===m}">${m} months</button>`).join('')}</span></div>
+     <div class="g-planets"><table><thead><tr><th>Date</th><th>Movement</th>${head}<th></th></tr></thead><tbody>${body||'<tr><td colspan="9" class="muted">No slow movements in this window.</td></tr>'}</tbody></table></div>
+     <div class="grid2" style="gap:14px">${ok.map((m,k)=>`<div class="g-planets"><h4 style="margin:2px 0 6px">${who(m)} — daśā changes</h4>${dasha[k].length?`<ul class="plain small">${dasha[k].map(x=>`<li><strong>${x.date}</strong> ${esc(x.text)}</li>`).join('')}</ul>`:'<p class="small muted">No mahadasha or antardasha change in this window.</p>'}</div>`).join('')}</div></div>`}
+  // ----- a prompt for a synastry calendar
+  function promptText(){const L=[];const z=G.utcToZoned(st.instant,tz());const names=ok.map(m=>m.name).join(' & ');
+    const pl=(p,m)=>`${p.en} (${p.name}): ${G.RASHI_EN[p.sign]} ${G.fmtDeg(p.deg)}, ${p.nakName} pada ${p.pada}, house ${G.houseFrom(p.sign,m.lagnaSign)} from Lagna (${G.houseFrom(p.sign,m.moon.sign)} from Moon)${p.retro&&!NODE(p.key)?' — retrograde':''}${p.combust?' — combust':''}${p.dignity?' — '+p.dignity:''}`;
+    L.push(`You are an experienced Jyotiṣa consultant generating predictive calendar entries for a professional astrologer. This calendar is a SYNASTRY calendar for ${ok.length} natives together: ${names}.\n\nUse sidereal Jyotiṣa with Lahiri ayanāṃśa, whole-sign houses from each natal Lagna, each natal Moon chart as a secondary reference, Parāśari graha dṛṣṭi (all grahas 7th; Mars 4/8; Jupiter 5/9; Saturn 3/10; Rahu 5/7/9), natal house lordship, planetary dignity, nakṣatra where materially relevant, natal promise, and Vimśottarī daśā as the activating context. The chart data below is calculated (Lahiri, ${S.nodeMode} nodes); use it rather than recalculating positions.`);
+    for(const m of ok){const z0=G.utcToZoned(m.natal.instant,m.natal.tz);L.push(`\nNATIVE: ${m.name}${m.discarnate?' — DISCARNATE (deceased'+(m.discarnate.passed_on?' '+m.discarnate.passed_on:'')+'): read transits to this chart as influences on the legacy, estate, memory and on the living natives tied to it, never as events in a living person’s life':''}. Born ${z0.date} ${z0.time} ${m.natal.tz}${m.natal.lat!==null?` at ${m.natal.lat}°, ${m.natal.lon}°`:''}. ${m.asc?'Lagna '+G.RASHI_EN[m.lagnaSign]+' '+G.fmtDeg(m.asc.sidereal%30):'Lagna unknown — Moon used as lagna'}; Moon ${G.RASHI_EN[m.moon.sign]} ${G.fmtDeg(m.moon.deg)}, ${m.moon.nakName} pada ${m.moon.pada}.`);
+      for(const p of m.chart.planets)L.push('- '+pl(p,m));
+      const d=G.dashaAt(m.natal.instant,m.moon.lon,st.instant);L.push(`Vimśottarī now: ${gname(d.maha.lord)} mahadasha (until ${d.maha.end.toISOString().slice(0,10)}) → ${d.antar?gname(d.antar.lord)+' antardasha (until '+d.antar.end.toISOString().slice(0,10)+')':'—'} → ${d.pratyantar?gname(d.pratyantar.lord)+' pratyantardasha (until '+d.pratyantar.end.toISOString().slice(0,10)+')':'—'}.`);
+      const ss=G.sadeSati(Math.floor(G.bodySidereal('saturn',st.instant,{})/30),m.moon.sign);if(ss)L.push(`Saturn from this Moon: ${ss.kind==='sade sati'?'Sade Sati, '+ss.phase:ss.phase}.`)}
+    L.push('\nRELATION BETWEEN THE CHARTS:');
+    for(const [i,j] of pairList()){const A=ok[i],B=ok[j];const r=relationOf(A,B);
+      L.push(`- ${A.name} & ${B.name}: Moons ${H(r.moonToMoon)}/${H(G.houseFrom(A.moon.sign,B.moon.sign))} apart (${G.RASHI_EN[A.moon.sign]} · ${G.RASHI_EN[B.moon.sign]}); Aṣṭakūṭa ${r.kuta.total}/36 (${r.kuta.grade}; ${r.kuta.kutas.map(k=>k.name+' '+k.pts+'/'+k.max).join(', ')}). ${B.name}’s Moon in ${A.name}’s ${H(r.cross[0].inA)}, ${B.name}’s Lagna in ${A.name}’s ${H(r.cross[1].inA)}; ${A.name}’s Moon in ${B.name}’s ${H(r.cross[2].inB)}, ${A.name}’s Lagna in ${B.name}’s ${H(r.cross[3].inB)}.`);
+      const by=(o,X,Y)=>Object.keys(o).map(Number).sort((a,b)=>a-b).map(h=>`${Y.name}’s ${o[h].map(p=>p.en).join('/')} in ${X.name}’s ${H(h)}`).join('; ');
+      L.push(`  Overlays: ${by(r.BinA,A,B)}. ${by(r.AinB,B,A)}.`);
+      if(r.conj.length)L.push(`  Conjunctions across the charts (≤3°): ${r.conj.map(x=>`${A.name}’s ${x.a.en} with ${B.name}’s ${x.b.en} (${G.fmtDeg(x.d)})`).join('; ')}.`);
+      const asp=(list,X,Y)=>list.slice(0,10).map(a=>`${Y.name}’s ${a.from.en} → ${X.name}’s ${a.to.en} (${H(a.n)} dṛṣṭi)`).join('; ');
+      if(r.BaspA.length||r.AaspB.length)L.push(`  Cross dṛṣṭi: ${[asp(r.BaspA,A,B),asp(r.AaspB,B,A)].filter(Boolean).join('; ')}.`)}
+    const {rows}=transitRows(st.instant);L.push(`\nTRANSITS on ${z.date} ${z.time} (${tz()}) — for each native: house from Lagna / house from Moon, classical gochara verdict from the Moon:`);
+    for(const r of rows)L.push(`- ${r.p.en} ${G.RASHI_EN[r.p.sign]} ${G.fmtDeg(r.p.deg)}${r.p.retro&&!NODE(r.p.key)?' (R)':''}: `+r.cells.map((c,k)=>`${ok[k].name} ${c.hl}/${c.hm} ${c.mv.good===null?'':c.mv.good?(c.mv.vedhaBy?'favourable but obstructed by '+gname(c.mv.vedhaBy):'favourable'):'unfavourable'}${c.lord?' (dasha lord)':''}${c.contacts.length?' on natal '+c.contacts.join('/'):''}`).join('; ')+(r.shared?' — '+r.shared:''));
+    const ah=aheadRows();if(ah.rows.length){L.push(`\nUPCOMING SLOW MOVEMENTS (next ${st.months} months) with each native’s resulting house from Lagna / from Moon and verdict:`);for(const r of ah.rows)L.push(`- ${r.date}: ${r.label} → `+r.cells.map((c,k)=>`${ok[k].name} ${c.hl}/${c.hm} ${c.mv.good===null?'':c.mv.good?(c.mv.vedhaBy?'obstructed':'favourable'):'unfavourable'}`).join('; ')+(r.split?' — the tone differs between the natives':''))}
+    ah.dasha.forEach((list,k)=>{if(list.length)L.push(`VIMSHOTTARI CHANGES for ${ok[k].name}: `+list.map(x=>`${x.date} ${x.text}`).join('; ')+'.')});
+    L.push(`\nSTARTING DATE for the forecast: ${z.date} (${tz()}).${st.q?'\nSpecific question: '+st.q:''}`);
+    L.push(`\nSYNASTRY INSTRUCTIONS\n\nProduce three kinds of period, and give EVERY period a line "For: <name>" immediately after its title line (before Dates) — "For: ${ok.map(m=>m.name).join('", "For: ')}" for something that belongs to one native alone, or "For: ${names}" for a joint period. Joint periods describe the dynamic between the natives — where their activations coincide, support or strain each other, what each is likely to bring to the other, how the relation itself is coloured — written to be read by ${ok.length>2?'all of them':'both of them'} at once. Individual periods describe only what is specific to that native and should not be duplicated for the other unless its meaning differs. Separate a joint period into individual ones where the slow movements listed above change the tone for one native and not the other. Keep the number of periods modest; prefer fewer, well-synthesised periods over one per transit.${ok.some(m=>m.discarnate)?' Where a native is marked DISCARNATE, write nothing as happening to that person; write about what the period means for the living native(s) in relation to them.':''}`);
+    const cats=(typeof CATEGORIES!=='undefined'?CATEGORIES:[]).map(x=>x[1]);L.push(promptSpec(cats,st.remedial!==false,[]));
+    return L.join('\n')}
+  function promptPanel(){return `<div class="g-ai"><h4>Ask an AI for a synastry calendar</h4>
+     <div class="row" style="gap:6px"><input type="text" id="syn-q" placeholder="optional: a specific question (e.g. moving in together in spring?)" value="${esc(st.q||'')}" style="flex:1;min-width:200px"><button type="button" class="btn small" id="syn-gen">Generate prompt</button></div>
+     <label class="chk small" style="margin:6px 0 0"><input type="checkbox" id="syn-rem" ${st.remedial!==false?'checked':''}>Include a Remedial work paragraph in each period</label>
+     ${st.prompt?`<div class="row" style="gap:6px;margin-top:8px"><button type="button" class="btn small" id="syn-copy">Copy prompt</button><span class="small muted">Every period starts with “For: …”, so the importer can file it to the right native(s).</span></div><textarea id="syn-text" readonly style="margin-top:8px;min-height:260px;font-size:.9rem;line-height:1.45">${esc(st.prompt)}</textarea>`:'<p class="small muted" style="margin:8px 0 0">The prompt carries every native’s chart, the relation between the charts, all transits on all of them, the slow movements ahead and the output format — asking for individual periods and joint ones, each labelled with whom it is for.</p>'}</div>`}
+  function draw(){const z=G.utcToZoned(st.instant,tz());
+    el.innerHTML=`<div class="goch syn">
+     ${bad.length?`<p class="warn small">${bad.map(b=>esc((b.client.name||'A native')+': '+b.error)).join(' ')}</p>`:''}
+     ${ok.flatMap(m=>m.natal.warn.map(w=>`<p class="warn small">${esc(m.name)}: ${esc(w)}</p>`)).join('')}
+     <div class="g-time"><div class="row" style="gap:6px"><input type="date" id="syn-date" value="${z.date}" min="1800-01-01" max="2050-12-31"><input type="time" id="syn-clock" value="${z.time}"><span class="tag">${esc(tz())} · ${G.fmtOffset(z.offset)}</span><button type="button" class="btn small ${opts.instant?'ghost':''}" id="syn-now">Now</button>
+      <span class="seg" style="margin-left:auto"><button type="button" data-style="north" aria-pressed="${S.style==='north'}">North Indian</button><button type="button" data-style="south" aria-pressed="${S.style==='south'}">South Indian</button></span></div></div>
+     <div class="row between" style="margin:10px 0 8px"><span class="seg">${[['relations','Relations'],['charts','Charts'],['transits','Transits on everyone'],['ahead','The months ahead'],['prompt','AI prompt']].map(([k,l])=>`<button type="button" data-sview="${k}" aria-pressed="${st.view===k}">${l}</button>`).join('')}</span></div>
+     ${st.view==='relations'?relationsPanel():st.view==='charts'?chartsPanel():st.view==='transits'?transitsPanel():st.view==='ahead'?aheadPanel():promptPanel()}
+    </div>`;
+    el.querySelectorAll('[data-sview]').forEach(b=>b.onclick=()=>{st.view=b.dataset.sview;draw()});
+    el.querySelectorAll('[data-pair]').forEach(b=>b.onclick=()=>{st.pair=b.dataset.pair.split(',').map(Number);draw()});
+    el.querySelectorAll('[data-months]').forEach(b=>b.onclick=()=>{st.months=Number(b.dataset.months);draw()});
+    el.querySelectorAll('[data-style]').forEach(b=>b.onclick=()=>{S.style=b.dataset.style;saveSettings(S);draw()});
+    const setTime=()=>{const d=el.querySelector('#syn-date').value,t=el.querySelector('#syn-clock').value;if(d)st.instant=G.zonedToUtc(d,t||'12:00',tz());draw()};
+    el.querySelector('#syn-date').onchange=setTime;el.querySelector('#syn-clock').onchange=setTime;el.querySelector('#syn-now').onclick=()=>{st.instant=new Date();draw()};
+    const g=el.querySelector('#syn-gen');if(g)g.onclick=()=>{st.q=el.querySelector('#syn-q').value.trim();st.prompt=promptText();draw();const ta=el.querySelector('#syn-text');if(ta)ta.scrollIntoView({behavior:'smooth',block:'nearest'})};
+    const c=el.querySelector('#syn-copy');if(c)c.onclick=()=>copy(st.prompt,'Prompt copied — paste it into ChatGPT or Claude');
+    const r=el.querySelector('#syn-rem');if(r)r.onchange=()=>{st.remedial=r.checked;if(st.prompt){st.prompt=promptText();draw()}};
+    const add=el.querySelector('#syn-add');if(add)add.onclick=()=>{const {rows}=transitRows(st.instant);const loc=G.utcToZoned(st.instant,tz());
+      const text=[`Synastry snapshot ${loc.date} ${loc.time} (${tz()}) — ${ok.map(m=>m.name).join(' & ')}`,...rows.map(r=>`${r.p.en} ${G.RASHI_EN[r.p.sign]} ${G.fmtDeg(r.p.deg)}: `+r.cells.map((c,k)=>`${ok[k].name} ${c.hl}H/${c.hm}H ${c.mv.good===null?'':c.mv.good?(c.mv.vedhaBy?'obstructed':'favourable'):'unfavourable'}${c.contacts.length?' on '+c.contacts.join('/'):''}`).join('; ')+(r.shared?' — '+r.shared:''))].join('\n');
+      opts.onAdd({local:loc,tz:tz(),text,natives:ok.map(m=>m.client.id).filter(Boolean)})}}
+  draw();return {destroy(){el.innerHTML=''},setInstant(d){st.instant=d;draw()}}}
+
+return {mount,synastry,natalBundle,renderNorthIndianChart,renderSouthIndianChart,render,natalFor};
 })();
 
 </script>
@@ -1776,6 +2014,18 @@ const chk=({data,error})=>{if(error)throw new Error(error.message||String(error)
 function cleanClient(c){const o={...c};delete o.created_at;delete o.updated_at;for(const k of ['birth_date','birth_time','access_start','access_end'])o[k]=nn(o[k]);for(const k of ['birth_latitude','birth_longitude'])o[k]=(o[k]===''||o[k]===undefined||o[k]===null)?null:Number(o[k]);o.jyotish={...(o.jyotish||{})};
   if('natal_override' in o){o.jyotish.natal_override=o.natal_override||null;delete o.natal_override}o.entitlements={...ENT_DEFAULT,...(o.entitlements||{})};return o}
 const normClient=c=>{if(c&&!c.natal_override&&c.jyotish&&c.jyotish.natal_override)c.natal_override=c.jyotish.natal_override;return c};
+/* Teams (synastry): several natives behind one access code. Members live in clients.jyotish.team; each influence may name the natives it is for (influences.jyotish.natives). */
+const isTeam=c=>!!(c&&c.jyotish&&c.jyotish.team&&Array.isArray(c.jyotish.team.members));
+const teamOf=c=>{const t=(c&&c.jyotish&&c.jyotish.team)||{};const members=Array.isArray(t.members)?t.members:[];const all=members.map(m=>m.id);return {members,combos:Array.isArray(t.combos)&&t.combos.length?t.combos:defaultCombos(all),label:t.label||''}};
+const defaultCombos=ids=>[...ids.map(i=>[i]),...(ids.length>1?[ids.slice()]:[])];
+const allCombos=ids=>{const out=[];const n=ids.length;for(let m=1;m<(1<<n);m++){const set=ids.filter((_,k)=>m&(1<<k));out.push(set)}return out.sort((a,b)=>a.length-b.length||ids.indexOf(a[0])-ids.indexOf(b[0]))};
+const sameSet=(a,b)=>{const x=(a||[]).slice().sort(),y=(b||[]).slice().sort();return x.length===y.length&&x.every((v,i)=>v===y[i])};
+const comboLabel=(combo,members)=>{const names=(combo||[]).map(id=>(members.find(m=>m.id===id)||{}).name||'?');if(members.length>1&&combo.length===members.length)return names.length===2?names.join(' & '):'Everyone';return names.length===1?names[0]+' only':names.slice(0,-1).join(', ')+' & '+names[names.length-1]};
+const memberClient=(c,m)=>({id:m.id,name:m.name||'Native',birth_date:m.birth_date||null,birth_time:m.birth_time||null,timezone:m.timezone||'',birth_location:m.birth_location||'',birth_latitude:m.birth_latitude??null,birth_longitude:m.birth_longitude??null,natal_override:m.natal_override||null,jyotish:{discarnate:m.discarnate?{on:true,passed_on:m.passed_on||null}:null,shani_override:m.shani_override||null}});
+const infNatives=i=>(i&&i.jyotish&&Array.isArray(i.jyotish.natives))?i.jyotish.natives:(Array.isArray(i&&i.natives)?i.natives:[]);
+const nativesLabel=(i,members)=>{const ids=infNatives(i);if(!members.length)return '';if(!ids.length||ids.length===members.length)return members.length===2?members.map(m=>m.name).join(' & '):'Everyone';return ids.map(id=>(members.find(m=>m.id===id)||{}).name||'?').join(' & ')};
+const saveTeam=(c,team)=>api.saveClient({...c,jyotish:{...(c.jyotish||{}),team}});
+const nativesFromNames=(names,members)=>{if(!names||!names.length||!members.length)return null;const norm=x=>String(x||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'');const hits=members.filter(m=>names.some(n=>{const a=norm(n),b=norm(m.name);return a&&b&&(a===b||b.startsWith(a)||a.startsWith(b))})).map(m=>m.id);if(names.some(n=>/^(everyone|all|both|together)$/i.test(n.trim())))return members.map(m=>m.id);return hits.length?hits:null};
 function cleanInfluence(i){const o={...i};delete o.created_at;delete o.updated_at;for(const k of ['start_time','end_time','parent_id'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.source_reference=o.source_reference||{};o.secondary_categories=o.secondary_categories||[];o.supportive_for=o.supportive_for||[];o.difficult_for=o.difficult_for||[];if(o.end_date<o.start_date)o.end_date=o.start_date;return o}
 const api={
   async adminSignIn(password){
@@ -1998,6 +2248,15 @@ function drawCalendar(pkg,root,opts={}){
   const ent={...ENT_DEFAULT,...(pkg.entitlements||{})};
   const prefs=Object.assign({mode:'everything',hidden:[],intention:''},pkg.prefs||{});
   if(Array.isArray(prefs.cats)){prefs.hidden=CATEGORIES.map(c=>c[0]).filter(k=>!prefs.cats.includes(k));delete prefs.cats}
+  // a team calendar: several natives behind the code choose whose influences to see
+  const team=pkg.team&&Array.isArray(pkg.team.members)&&pkg.team.members.length>1?pkg.team:null;
+  const allIds=team?team.members.map(m=>m.id):[];
+  const combos=team?(Array.isArray(team.combos)&&team.combos.length?team.combos:defaultCombos(allIds)).filter(cb=>Array.isArray(cb)&&cb.length&&cb.every(id=>allIds.includes(id))):[];
+  const comboKey=cb=>cb.slice().sort().join('+');
+  if(team&&prefs.combo&&prefs.combo!=='all'&&!combos.some(cb=>comboKey(cb)===prefs.combo))prefs.combo='all';
+  const combo=team?(prefs.combo||'all'):'all';
+  const natsOf=i=>{const n=infNatives(i);return n.length?n:allIds};
+  const inView=i=>!team||combo==='all'||comboKey(natsOf(i))===combo;
   if(!ent.intentions)prefs.intention='';
   const shown=k=>!prefs.hidden.includes(k);
   const savePrefs=()=>{pkg.prefs=prefs;if(opts.code&&!opts.preview)api.setPrefs(opts.code,prefs).catch(()=>{})};
@@ -2012,6 +2271,7 @@ function drawCalendar(pkg,root,opts={}){
     if(prefs.mode==='supportive'&&i.polarity!=='supportive')return false;
     if(prefs.mode==='caution'&&!(i.polarity==='caution'||i.polarity==='especially_sensitive'))return false;
     if(!shown(i.category))return false;
+    if(!inView(i))return false;
     if(prefs.intention){const rel=INTENTIONS[prefs.intention]||[];if(!(i.significant||rel.includes(i.category)||(i.secondary_categories||[]).some(c=>rel.includes(c))))return false}
     return true});
   const y=calState.year,m=calState.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
@@ -2037,34 +2297,40 @@ function drawCalendar(pkg,root,opts={}){
   const allCats=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(c=>c[0]);
   const hiddenCats=allCats.filter(k=>prefs.hidden.includes(k));
   const filtersOn=prefs.mode!=='everything'||!!prefs.intention||hiddenCats.length>0;
-  const hiddenCount=(pkg.influences||[]).length-visible.length;
+  pkg._inView=inView;const hiddenCount=(pkg.influences||[]).filter(inView).length-visible.length;
   const filterDesc=[prefs.mode!=='everything'?`showing “${{essential:'Essential',supportive:'Supportive',caution:'Caution'}[prefs.mode]}” only`:'',hiddenCats.length?`${hiddenCats.length} area${hiddenCats.length>1?'s':''} hidden`:'',prefs.intention?`intention “${prefs.intention}”`:''].filter(Boolean).join(' · ');
   const banner=filtersOn?`<p class="note small" style="margin:0 0 12px;background:var(--caution-soft);color:#6d4f22">Display options are limiting this calendar (${esc(filterDesc)}) — ${hiddenCount} influence${hiddenCount===1?'':'s'} hidden. <button type="button" class="btn ghost small" id="resetprefs">${opts.preview?'Reset this client’s display options':'Show everything'}</button></p>`:'';
   const hint=monthHint(visible,y,m);
   const legend=Object.entries(POLARITY).map(([k,p])=>`<div>${icon(p.shape,p.color)}<span>${p.label}</span></div>`).join('')+`<div>${icon('star','var(--significant)')}<span>Especially significant</span></div><div><span class="mark" style="height:3px;background:var(--mixed);opacity:.6;border-radius:2px"></span><span>Longer period</span></div><div><span style="display:inline-flex;border:1.5px solid var(--mixed);border-radius:50%;padding:1px;line-height:0">${icon('circle','var(--supportive)',10)}</span><span>Window within a longer period</span></div>`;
-  const catChecks=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(([k,l])=>`<label class="chk"><input type="checkbox" data-cat="${k}" ${shown(k)?'checked':''}><span class="tag"><span class="dot" style="background:var(--cat-${k})"></span>${l}</span></label>`).join('');
+  const catChecks=CATEGORIES.filter(([k])=>ent.remedial||k!=='remedies').map(([k,l])=>`<label class="chip cat"><input type="checkbox" data-cat="${k}" ${shown(k)?'checked':''}><span><i class="dot" style="background:var(--cat-${k})"></i>${esc(l)}</span></label>`).join('');
   root.innerHTML=`<div class="layout">
-   <section aria-label="Month calendar">
+   <section class="calcol" aria-label="Month calendar">
     ${banner}
     <div class="card">
+     ${team?`<div class="who" role="group" aria-label="Whose calendar"><span class="seg">${combos.map(cb=>`<button type="button" data-combo="${esc(comboKey(cb))}" aria-pressed="${combo===comboKey(cb)}">${esc(comboLabel(cb,team.members))}</button>`).join('')}<button type="button" data-combo="all" aria-pressed="${combo==='all'}">Everything</button></span></div>`:''}
      ${hint}
      <div class="cal-head"><button type="button" class="btn ghost small" data-nav="-1" aria-label="Previous month">&larr;</button><h2>${monthName}</h2><button type="button" class="btn ghost small" data-nav="1" aria-label="Next month">&rarr;</button></div>
      <div class="cal" role="grid">${dows}${cells}</div>
      <div class="legend" aria-label="Legend">${legend}</div>
     </div>
-    <div class="card" style="margin-top:16px">
-     <details ${filtersOn?'open':''}><summary>Display options${filtersOn?` <span class="muted" style="font-weight:400">— ${esc(filterDesc)}</span>`:''}</summary>
+   </section>
+   <aside id="daypanel" aria-label="Day detail"></aside>
+   <section class="morecol" aria-label="Options and notes">
+    <div class="card fold">
+     <details ${filtersOn?'open':''}><summary><span class="ft">Display options</span>${filtersOn?`<span class="fs">${esc(filterDesc)}</span>`:''}<span class="fx" aria-hidden="true"></span></summary>
+      <div class="fb">
       <label class="f"><span>Show</span></label>
       <div class="seg" role="group" aria-label="Display mode">${[['essential','Essential'],['supportive','Supportive'],['caution','Caution'],['everything','Everything']].map(([k,l])=>`<button type="button" data-mode="${k}" aria-pressed="${prefs.mode===k}">${l}</button>`).join('')}</div>
-            ${ent.intentions?`<label class="f" for="intent"><span>Current intention (optional)</span></label>
-      <select id="intent"><option value="">— none —</option>${Object.keys(INTENTIONS).map(k=>`<option ${prefs.intention===k?'selected':''}>${k}</option>`).join('')}</select>
-`:''}
-      <label class="f"><span>Areas of life</span></label>${catChecks}
+      ${ent.intentions?`<label class="f" for="intent"><span>Current intention (optional)</span></label>
+      <select id="intent"><option value="">— none —</option>${Object.keys(INTENTIONS).map(k=>`<option ${prefs.intention===k?'selected':''}>${k}</option>`).join('')}</select>`:''}
+      <label class="f"><span>Areas of life</span></label><div class="catchips">${catChecks}</div>
+      </div>
      </details>
     </div>
-    ${ent.export?`<div class="card" style="margin-top:16px">
-     <details><summary>Add to your own calendar app</summary>
-      <div class="grid2">
+    ${ent.export?`<div class="card fold">
+     <details><summary><span class="ft">Add to your own calendar app</span><span class="fx" aria-hidden="true"></span></summary>
+      <div class="fb">
+      <div class="ics-cols">
        <div><label class="f"><span>Include</span></label>
         <label class="chk"><input type="checkbox" id="ics-sup" checked>Supportive periods</label>
         <label class="chk"><input type="checkbox" id="ics-cau" checked>Cautionary periods</label>
@@ -2075,16 +2341,18 @@ function drawCalendar(pkg,root,opts={}){
         <label class="chk"><input type="checkbox" id="ics-time">Use exact times where provided</label>
         <label class="chk"><input type="checkbox" id="ics-rem" checked>Include preparation prompts</label></div>
       </div>
-      <p><button type="button" class="btn ghost" id="ics">Download calendar file</button></p>
+      <p class="ics-act"><button type="button" class="btn ghost" id="ics">Download calendar file</button></p>
+      </div>
      </details>
     </div>`:''}
-    ${(pkg.notes||[]).length?`<div class="card" style="margin-top:16px" id="notesbox">
-     <details ${unreadNotes().length?'open':''}><summary>Astrologer’s notes <span class="muted" style="font-weight:400">(${pkg.notes.length})</span><span id="nbadge">${unreadNotes().length?`<span class="nbadge"><i></i>${unreadNotes().length} new</span>`:''}</span></summary>
-      <ul class="list nlist" style="margin-top:6px">${pkg.notes.slice().sort((a,b)=>a.date<b.date?1:-1).map(nn_=>`<li data-note="${nn_.date}" class="${unreadNotes().some(x=>x.date===nn_.date)?'unread':''}" tabindex="0" role="button" aria-label="Open the note for ${esc(fmtDate(nn_.date))}"><div><strong>${esc(fmtDate(nn_.date))}</strong>${nn_.date===todayStr()?' <span class="pill supportive">today</span>':''}${nn_.heading?' · '+esc(nn_.heading):''}</div><span class="small muted">open</span></li>`).join('')}</ul>
+    ${(pkg.notes||[]).length?`<div class="card fold" id="notesbox">
+     <details ${unreadNotes().length?'open':''}><summary><span class="ft">Astrologer’s notes</span>${pkg.notes.length>1?`<span class="fs">${pkg.notes.length}</span>`:''}<span id="nbadge">${unreadNotes().length?`<span class="nbadge"><i></i>${unreadNotes().length} new</span>`:''}</span><span class="fx" aria-hidden="true"></span></summary>
+      <div class="fb">
+      <ul class="list nlist">${pkg.notes.slice().sort((a,b)=>a.date<b.date?1:-1).map(nn_=>`<li data-note="${nn_.date}" class="${unreadNotes().some(x=>x.date===nn_.date)?'unread':''}" tabindex="0" role="button" aria-label="Open the note for ${esc(fmtDate(nn_.date))}"><div class="nd"><strong>${esc(fmtDate(nn_.date))}</strong>${nn_.date===todayStr()?'<span class="pill supportive">today</span>':''}${nn_.heading?'<div class="nh">'+esc(nn_.heading)+'</div>':''}</div><span class="go">Open</span></li>`).join('')}</ul>
       <div id="npholder"></div>
+      </div>
      </details></div>`:''}
    </section>
-   <aside id="daypanel" aria-label="Day detail"></aside>
   </div>`;
   const redraw=()=>drawCalendar(pkg,root,opts);
   const log=(screen,detail)=>{if(!opts.preview&&opts.code)ACT.view(screen,detail)};
@@ -2096,10 +2364,11 @@ function drawCalendar(pkg,root,opts={}){
   root.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calState.month+=Number(b.dataset.nav);if(calState.month<0){calState.month=11;calState.year--}if(calState.month>11){calState.month=0;calState.year++}redraw()});
   root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);log('day',{date:calState.selected,entries:visible.filter(i=>i.start_date<=calState.selected&&calState.selected<=i.end_date).map(i=>i.title).slice(0,6)});if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
   root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();log('display options',{mode:prefs.mode});redraw()});
+  root.querySelectorAll('[data-combo]').forEach(b=>b.onclick=()=>{prefs.combo=b.dataset.combo;savePrefs();log('display options',{view:b.textContent.trim()});redraw()});
   const intent=$('#intent',root);if(intent)intent.onchange=e=>{prefs.intention=e.target.value;savePrefs();log('display options',{intention:prefs.intention||'none'});redraw()};
   root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.hidden=[...root.querySelectorAll('[data-cat]:not(:checked)')].map(x=>x.dataset.cat);savePrefs();log('display options',{hidden:prefs.hidden.map(k=>CAT[k]||k)});redraw()});
   const ics=$('#ics',root);if(ics)ics.onclick=()=>{const pol=[];if($('#ics-sup',root).checked)pol.push('supportive');if($('#ics-cau',root).checked)pol.push('caution','especially_sensitive');if($('#ics-mix',root).checked)pol.push('mixed');
-    download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');if(opts.code&&!opts.preview)ACT.action('export',{what:'calendar file',polarities:pol,exactTimes:$('#ics-time',root).checked});toast('Calendar file downloaded')};
+    download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{inView,polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');if(opts.code&&!opts.preview)ACT.action('export',{what:'calendar file',polarities:pol,exactTimes:$('#ics-time',root).checked});toast('Calendar file downloaded')};
   // a short reply chain under a note: the client may answer, Masha may answer back (capped, so it stays a chain rather than a chat)
   const threadHtml=nn_=>{const rs=nn_.replies||[];const items=rs.map(r=>`<div class="rp ${r.from==='client'?'me':'them'}"><span class="who">${r.from==='client'?'You':'Masha'}</span><p>${esc(r.body)}</p></div>`).join('');
     const form=opts.preview?'':rs.length>=NOTE_REPLY_CAP?'<p class="small muted" style="margin-top:8px">This exchange is complete.</p>':`<form class="rform"><textarea class="rtext" rows="2" maxlength="600" placeholder="${rs.length?'Reply…':'Write a reply to Masha…'}" aria-label="Your reply"></textarea><div class="row between" style="margin-top:6px"><span class="small muted">Masha can read and answer this.</span><button type="submit" class="btn small">Send reply</button></div></form>`;
@@ -2118,7 +2387,7 @@ function drawCalendar(pkg,root,opts={}){
 }
 function drawDay(pkg,visible,ds,root){
   const here=visible.filter(i=>i.start_date<=ds&&ds<=i.end_date).sort((a,b)=>(b.significant-a.significant)||(b.intensity-a.intensity));
-  const hiddenCount=(pkg.influences||[]).filter(i=>i.start_date<=ds&&ds<=i.end_date).length-here.length;
+  const hiddenCount=(pkg.influences||[]).filter(i=>!pkg._inView||pkg._inView(i)).filter(i=>i.start_date<=ds&&ds<=i.end_date).length-here.length;
   const longs=here.filter(i=>i.start_date!==i.end_date&&!i.parent_id), windows=here.filter(i=>!longs.includes(i));
   const climate=here.length?(()=>{const s=new Set(here.map(i=>i.polarity));if(s.size===1)return POLARITY[[...s][0]].alt;return 'Variable conditions — more than one influence is active'})():'A quiet day in your calendar';
   const block=i=>{const p=POLARITY[i.polarity];const dur=i.start_date===i.end_date?fmtShort(i.start_date):`${fmtShort(i.start_date)} – ${fmtShort(i.end_date)}`;const parent=i.parent_id&&(pkg.influences||[]).find(x=>x.id===i.parent_id);
@@ -2127,7 +2396,7 @@ function drawDay(pkg,visible,ds,root){
    return `<article class="inf ${i.polarity}" aria-label="${esc(i.accessibility_label||`${p.label}: ${CAT[i.category]||i.category}`)}">
     <div class="meta"><span class="pill ${i.polarity}">${icon(p.shape,p.color,12)} ${p.label}</span>${i.significant?`<span class="pill significant">${icon('star','var(--significant)',12)} Especially significant</span>`:''}<span class="tag"><span class="dot" style="background:var(--cat-${i.category})"></span>${esc(CAT[i.category]||'General')}</span>${(i.secondary_categories||[]).map(c=>`<span class="tag">${esc(CAT[c]||c)}</span>`).join('')}</div>
     <h4>${esc(i.title)}</h4>
-    <div class="meta">${dur}${i.start_time?` · ${t5(i.start_time)}${i.end_time?'–'+t5(i.end_time):''}`:''} · Intensity ${i.intensity} of 5${parent?` · within “${esc(parent.title)}”`:''}</div>
+    <div class="meta">${dur}${i.start_time?` · ${t5(i.start_time)}${i.end_time?'–'+t5(i.end_time):''}`:''} · Intensity ${i.intensity} of 5${parent?` · within “${esc(parent.title)}”`:''}${pkg.team&&Array.isArray(pkg.team.members)&&pkg.team.members.length>1?` · <span class="forwho">for ${esc(nativesLabel(i,pkg.team.members))}</span>`:''}</div>
     ${mergedInterpretation(i)?`<div class="sec"><h5>Interpretation</h5>${mergedInterpretation(i).split(/\n{2,}/).map(par=>`<p>${esc(par)}</p>`).join('')}</div>`:''}
     ${((i.supportive_for||[]).length||(i.difficult_for||[]).length)?`<div class="sec areas">${(i.supportive_for||[]).length?`<div><h5>Supportive for</h5><div class="row" style="gap:5px">${i.supportive_for.map(k=>`<span class="tag sup"><span class="dot" style="background:var(--supportive)"></span>${esc(CAT[k]||k)}</span>`).join('')}</div></div>`:''}${(i.difficult_for||[]).length?`<div><h5>May be difficult for</h5><div class="row" style="gap:5px">${i.difficult_for.map(k=>`<span class="tag dif"><span class="dot" style="background:var(--caution)"></span>${esc(CAT[k]||k)}</span>`).join('')}</div></div>`:''}</div>`:''}
     ${(()=>{const kids=(pkg.influences||[]).filter(x=>x.parent_id===i.id).sort((a,b)=>a.start_date<b.start_date?-1:1);return kids.length?`<div class="sec"><h5>Windows within this period</h5><div class="row" style="gap:5px">${kids.map(k=>`<button type="button" class="tag winlink" data-goto="${k.start_date}" title="${esc(k.title)}">${icon(POLARITY[k.polarity].shape,POLARITY[k.polarity].color,11)} ${fmtShort(k.start_date)}${k.end_date!==k.start_date?' – '+fmtShort(k.end_date):''}${k.start_date===ds?' · today':''}</button>`).join('')}</div></div>`:''})()}
@@ -2142,11 +2411,10 @@ function drawDay(pkg,visible,ds,root){
   let dd=DISCLAIMERS[pkg.default_disclaimer]||'';
   if(here.some(i=>(i.disclaimer==='custom'?i.custom_disclaimer:DISCLAIMERS[i.disclaimer])===dd))dd='';
   // several entries on one day fold into openable tabs; a single entry stays open
-  const fold=i=>{const p=POLARITY[i.polarity];return here.length>1?`<details class="infd" data-entry="${esc(i.title)}"><summary>${icon(p.shape,p.color,12)} <strong>${esc(i.title)}</strong><span class="tag">${esc(CAT[i.category]||i.category)}</span>${i.significant?icon('star','var(--significant)',11):''}<span class="chev">▶</span></summary>${block(i)}</details>`:block(i)};
+  const fold=i=>{const p=POLARITY[i.polarity];return here.length>1?`<details class="infd" data-entry="${esc(i.title)}"><summary>${icon(p.shape,p.color,12)}<strong>${esc(i.title)}</strong>${i.significant?icon('star','var(--significant)',11):''}<span class="area">${esc(CAT[i.category]||i.category)}</span><span class="chev" aria-hidden="true"></span></summary>${block(i)}</details>`:block(i)};
   $('#daypanel',root).innerHTML=`<div class="card"><h2>${fmtDate(ds)}</h2><p class="muted small" style="margin-top:-6px">${esc(climate)}</p>
-   ${here.length>1?`<p class="small muted" style="margin:10px 0 6px">${here.length} entries for this day — open any of them.</p>`:''}
-   ${longs.length?`<h3 style="margin-top:14px">Longer periods</h3>${longs.map(fold).join('')}`:''}
-   ${windows.length?`<h3 style="margin-top:14px">${longs.length?'Windows within this day':'Today'}</h3>${windows.map(fold).join('')}`:''}
+   ${longs.length?`<p class="dp-label">Longer periods</p>${longs.map(fold).join('')}`:''}
+   ${windows.length?`<p class="dp-label">${longs.length?'Windows within this day':'Today'}</p>${windows.map(fold).join('')}`:''}
    ${!here.length?'<p class="muted small">No published guidance for this date'+(hiddenCount?'':' yet')+'.</p>':''}
    ${hiddenCount>0?`<p class="small muted" style="margin-top:8px">${hiddenCount} ${hiddenCount===1?'entry is':'entries are'} hidden for this day by your display options. <a href="#" data-showopts>Show everything</a></p>`:''}
    ${here.length&&dd?`<p class="daydisc">${esc(dd)}</p>`:''}</div>`;
@@ -2160,7 +2428,7 @@ function buildICS(pkg,opts){
   const dt=s=>s.replace(/-/g,'');
   const addDay=s=>{const [y,m,d]=s.split('-').map(Number);return ymd(new Date(y,m-1,d+1)).replace(/-/g,'')};
   const out=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Atelier Sonnentau//Calendar//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:Atelier Sonnentau — '+icsEscape(pkg.name)];
-  const list=(pkg.influences||[]).filter(i=>i.calendar_sync_enabled!==false).filter(i=>{
+  const list=(pkg.influences||[]).filter(i=>i.calendar_sync_enabled!==false).filter(i=>!opts.inView||opts.inView(i)).filter(i=>{
     if(opts.polarities.length&&!opts.polarities.includes(i.polarity)&&!(opts.significant&&i.significant))return false;
     if(opts.categories.length&&!opts.categories.includes(i.category))return false;return true});
   for(const i of list){
@@ -2198,7 +2466,7 @@ function openChangePassword(){
 }
 
 /* ---------------- Admin ---------------- */
-let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null;
+let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null, wsOvMember=null, wsTeamDraft=null, wsTeamDraftDirty=false, wsNative=null;
 async function renderAdmin(path){
   const session=await api.adminSession();
   if(!session){go('#/astrologer');return}
@@ -2227,14 +2495,15 @@ async function renderDashboard(){
   const active=clients.filter(c=>c.status!=='archived'), archived=clients.filter(c=>c.status==='archived');
   const presText=p=>!p?'':p.online?` · <span style="color:var(--supportive)">● on the app now</span>${p.screen?' — '+esc(p.screen):''}`:` · seen ${esc(ago(p.last.at))}`;
   const pres=c=>`<span data-pres="${c.id}">${presText(presence[c.id])}</span>`;
-  const li=c=>{const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};return `<li><div><a href="#/admin/client/${c.id}">${esc(c.name||'Unnamed')}</a><div class="small muted"><span class="code" style="font-size:.8rem;padding:1px 6px">${esc(c.access_code)}</span>${c.access_end?` · until ${fmtShort(c.access_end)}`:''}${ent.remedial?' · remedial add-on':''}${pres(c)}</div></div><span class="pill ${st.ok?'supportive':'draft'}">${st.ok?'Active':c.status==='archived'?'Archived':c.status==='inactive'?'Inactive':'Not yet / expired'}</span></li>`};
-  app.innerHTML=`<div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Clients</h1><button class="btn" id="newc">New client</button></div>${actNote}
+  const li=c=>{const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};return `<li><div><a href="#/admin/client/${c.id}">${esc(c.name||'Unnamed')}</a>${isTeam(c)?' <span class="pill significant" style="vertical-align:2px">Team · '+teamOf(c).members.length+' natives</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:2px">† discarnate</span>':''}<div class="small muted"><span class="code" style="font-size:.8rem;padding:1px 6px">${esc(c.access_code)}</span>${c.access_end?` · until ${fmtShort(c.access_end)}`:''}${ent.remedial?' · remedial add-on':''}${pres(c)}</div></div><span class="pill ${st.ok?'supportive':'draft'}">${st.ok?'Active':c.status==='archived'?'Archived':c.status==='inactive'?'Inactive':'Not yet / expired'}</span></li>`};
+  app.innerHTML=`<div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Clients</h1><div class="row"><button class="btn ghost" id="newteam" title="Several natives behind one code — synastry calendar">New team</button><button class="btn" id="newc">New client</button></div></div>${actNote}
    <div class="card"><ul class="list">${active.map(li).join('')||'<li class="muted">No clients yet. Create your first client to generate an access code.</li>'}</ul>
    ${archived.length?`<details style="margin-top:10px"><summary class="small muted">Archived (${archived.length})</summary><ul class="list" style="margin-top:8px">${archived.map(li).join('')}</ul></details>`:''}</div>
    <p class="small muted" style="margin-top:18px"><button type="button" class="btn quiet small" id="diag">Connection check</button> <span class="muted">— if something is not saving, run this and send the result to whoever is helping you.</span></p><div id="diagout"></div>`;
   $('#diag').onclick=runDiagnostics;
   if(actTimer)clearInterval(actTimer);actTimer=setInterval(async()=>{if(!$('#newc')){clearInterval(actTimer);actTimer=null;return}try{const p=await loadPresence();document.querySelectorAll('[data-pres]').forEach(el=>{el.innerHTML=presText(p[el.dataset.pres])})}catch(e){}},45000);
   $('#newc').onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New client',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{}});go('#/admin/client/'+c.id)});
+  $('#newteam').onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New team',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{team:{members:[],combos:[]}}});go('#/admin/client/'+c.id)});
 }
 async function runDiagnostics(){
   const out=$('#diagout');out.innerHTML='<p class="loading">Checking…</p>';const rows=[];
@@ -2265,12 +2534,12 @@ async function runInfluenceDiagnostics(c){
    <p class="small muted" style="margin-top:8px">${rows.every(r=>r[0])?'Saving and reading influences works for this client. If one you added is still missing, check its dates (the calendar shows one month at a time) and whether it was saved as a draft.':'The red line is the step that fails. '+esc(explain(rows.find(r=>!r[0])[2])||'')}</p></div>`;
 }
 async function renderWorkspace(id){
-  if(wsClient!==id){wsClient=id;wsTab='client'}
+  if(wsClient!==id){wsClient=id;wsTab='client';wsOvMember=null;wsTeamDraft=null;wsTeamDraftDirty=false;wsNative=null}
   let c;try{c=normClient(await api.getClient(id))}catch(e){go('#/admin');return}
-  const [influences,notes]=await Promise.all([api.listInfluences(id),api.listNotes(id).catch(e=>{console.warn(e);return null})]);
-  const ctx={c,influences,notes:notes||[],notesUnavailable:notes===null,reload:()=>renderWorkspace(id)};
+  const [influences,notes,allClients]=await Promise.all([api.listInfluences(id),api.listNotes(id).catch(e=>{console.warn(e);return null}),isTeam(c)?api.listClients().then(l=>l.map(normClient)).catch(()=>[]):Promise.resolve([])]);
+  const ctx={c,influences,notes:notes||[],notesUnavailable:notes===null,allClients,reload:()=>renderWorkspace(id)};
   const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['preview','Client preview'],['activity','Activity']];
-  app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}</h1>
+  app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}${isTeam(c)?' <span class="pill significant" style="vertical-align:middle;font-size:.8rem">Team</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:middle;font-size:.8rem">† discarnate</span>':''}</h1>
    <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${wsTab===k}" data-tab="${k}">${l}</button>`).join('')}</div><div id="tabbody"></div>`;
   app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{wsTab=b.dataset.tab;renderWorkspace(id)});
   const body=$('#tabbody');
@@ -2287,7 +2556,7 @@ const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opene
 const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;
   if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;
-  if(sc==='display options')return 'display options → '+(d.mode?'show '+d.mode:d.intention!==undefined?'intention '+d.intention:d.hidden?(d.hidden.length?'hid '+d.hidden.join(', '):'all areas shown'):'changed');
+  if(sc==='display options')return 'display options → '+(d.mode?'show '+d.mode:d.view?'view “'+d.view+'”':d.intention!==undefined?'intention '+d.intention:d.hidden?(d.hidden.length?'hid '+d.hidden.join(', '):'all areas shown'):'changed');
   if(sc==='export')return 'exported to their calendar app'+(d.polarities&&d.polarities.length&&d.polarities.length<4?' ('+d.polarities.join(', ')+')':'');
   if(sc==='copy')return `copied text${d.entry?' from “'+d.entry+'”':''}${d.chars?' ('+d.chars+' characters)':''}`;
   if(sc==='print')return 'printed the page';
@@ -2353,25 +2622,39 @@ async function tabActivity({c},body){
    <p class="small muted" style="margin-top:14px">Nothing about this log is shown to clients. If your terms or privacy notice describe what you collect, usage of the calendar belongs there.</p></div>`;
   if(actTimer)clearInterval(actTimer);actTimer=setInterval(()=>{if(!document.body.contains(body)||wsTab!=='activity'){clearInterval(actTimer);actTimer=null;return}tabActivity({c},body)},30000);
 }
-function tabClient({c,reload},body){
+function tabClient(ctx,body){const {c,reload}=ctx;
   const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};const gift={enabled:false,sender:'',occasion:'neutral',message:'',...((c.jyotish&&c.jyotish.gift)||{})};
-  const siteUrl=location.origin+location.pathname;
-  body.innerHTML=`<form id="cf" class="card"><h2>Client</h2><div class="grid2">
-   ${fld('Name','name',c.name)}${fld('Preferred language','language',c.language||'en')}
-   ${fld('Birth date','birth_date',c.birth_date,'date')}${fld('Birth time','birth_time',t5(c.birth_time),'time')}
-   ${fld('Birth location','birth_location',c.birth_location)}${fld('Birth time zone (set automatically from the birth place)','timezone',c.timezone,'text','placeholder="e.g. Europe/Paris"')}
-   ${fld('Birth latitude (decimal, north +)','birth_latitude',c.birth_latitude??'','number','step="0.0001" min="-90" max="90" placeholder="filled in from the birth location"')}${fld('Birth longitude (decimal, east +)','birth_longitude',c.birth_longitude??'','number','step="0.0001" min="-180" max="180" placeholder="filled in from the birth location"')}
+  const siteUrl=location.origin+location.pathname;const team=isTeam(c)?teamOf(c):null;if(team&&wsTeamDraft){team.members=wsTeamDraft;const ids=team.members.map(m=>m.id);team.combos=team.combos.filter(cb=>cb.every(id=>ids.includes(id)));for(const id of ids)if(!team.combos.some(cb=>cb.length===1&&cb[0]===id))team.combos.push([id]);if(ids.length>1&&!team.combos.some(cb=>cb.length===ids.length))team.combos.push(ids.slice())}const dz=(c.jyotish&&c.jyotish.discarnate)||{};
+  const memberForm=(m,k)=>`<fieldset class="member" data-m="${esc(m.id)}"><legend>Native ${k+1}</legend><div class="grid2">
+     <label class="f"><span>Name</span><input type="text" data-f="name" value="${esc(m.name||'')}" placeholder="First name"></label><label class="f"><span>Birth date</span><input type="date" data-f="birth_date" value="${esc(m.birth_date||'')}"></label>
+     <label class="f"><span>Birth time</span><input type="time" data-f="birth_time" value="${esc(t5(m.birth_time)||'')}"></label><label class="f"><span>Birth location</span><input type="text" data-f="birth_location" value="${esc(m.birth_location||'')}"></label>
+     <label class="f"><span>Time zone</span><input type="text" data-f="timezone" value="${esc(m.timezone||'')}" placeholder="e.g. Europe/Paris"></label><label class="f"><span>Latitude · longitude</span><div class="row" style="gap:6px;flex-wrap:nowrap"><input type="number" step="0.0001" data-f="birth_latitude" value="${m.birth_latitude??''}" placeholder="lat"><input type="number" step="0.0001" data-f="birth_longitude" value="${m.birth_longitude??''}" placeholder="lon"></div></label></div>
+     <div class="row" style="gap:14px;align-items:flex-end;margin-top:4px"><label class="chk" style="margin:0 0 8px"><input type="checkbox" data-f="discarnate" ${m.discarnate?'checked':''}>Discarnate (deceased) — kept for analysis and synastry</label><label class="f" style="margin:0;max-width:200px"><span>Passed on (optional)</span><input type="date" data-f="passed_on" value="${esc(m.passed_on||'')}"></label></div>
+     <p class="row" style="gap:6px;margin:8px 0 0"><button type="button" class="btn ghost small" data-geo>Find birth place</button><button type="button" class="btn quiet small" data-rm>Remove</button><span class="small muted" data-geoout></span></p></fieldset>`;
+  body.innerHTML=`<form id="cf" class="card"><h2>${team?'Team':'Client'}</h2><div class="grid2">
+   ${fld(team?'Team name (what the calendar greets them with, e.g. “Noor & Sam”)':'Name','name',c.name)}${fld('Preferred language','language',c.language||'en')}
+   ${team?'':fld('Birth date','birth_date',c.birth_date,'date')+fld('Birth time','birth_time',t5(c.birth_time),'time')+fld('Birth location','birth_location',c.birth_location)+fld('Birth time zone (set automatically from the birth place)','timezone',c.timezone,'text','placeholder="e.g. Europe/Paris"')+fld('Birth latitude (decimal, north +)','birth_latitude',c.birth_latitude??'','number','step="0.0001" min="-90" max="90" placeholder="filled in from the birth location"')+fld('Birth longitude (decimal, east +)','birth_longitude',c.birth_longitude??'','number','step="0.0001" min="-180" max="180" placeholder="filled in from the birth location"')}
    </div>
-   <p class="small muted" style="margin:6px 0 0"><button type="button" class="btn ghost small" id="geo">Find birth place (coordinates &amp; time zone)</button> <span id="geoout">Coordinates are found automatically when you save, if the boxes are empty.</span></p>
+   ${team?'':`<p class="small muted" style="margin:6px 0 0"><button type="button" class="btn ghost small" id="geo">Find birth place (coordinates &amp; time zone)</button> <span id="geoout">Coordinates are found automatically when you save, if the boxes are empty.</span></p>
+   <label class="chk" style="margin-top:12px"><input type="checkbox" id="dz-on" ${dz.on?'checked':''}>This chart belongs to a discarnate (deceased) person — kept for analysis and synastry</label>
+   <div id="dzfields" class="${dz.on?'':'hidden'}" style="max-width:240px"><label class="f" style="margin-top:4px"><span>Passed on (optional)</span><input type="date" id="dz-date" value="${esc(dz.passed_on||'')}"></label></div>`}
    ${txt('Private notes','private_notes',c.private_notes,'never shown to the client')}
    <label class="f"><span>Default client-facing disclaimer (shown beneath each day with entries)</span>${sel('default_disclaimer',Object.keys(DISCLAIMERS).map(k=>[k,k]),c.default_disclaimer)}</label>
-   <p style="margin-top:14px"><button class="btn" type="submit">Save client</button></p></form>
-  <div class="card" id="ovcard"><h2>Natal positions (manual)</h2>
+   <p style="margin-top:14px"><button class="btn" type="submit">Save ${team?'team':'client'}</button></p></form>
+  ${team?`<div class="card" id="teamcard"><h2>Natives</h2>
+   <p class="small muted">The people behind this one code. Each native gets their own chart on the Gochara tab, and the Synastry view there lays the charts and transits side by side. Influences can be filed to one native or to several; the calendar lets the natives switch between those views.</p>
+   <div id="members">${team.members.map(memberForm).join('')||'<p class="small muted">No natives yet.</p>'}</div>
+   <p class="row" style="gap:6px"><button type="button" class="btn ghost small" id="m-add">Add a native</button><select id="m-from" style="width:auto;padding:5px 10px"><option value="">Copy from an existing client…</option>${(ctx.allClients||[]).filter(o=>o.id!==c.id&&!isTeam(o)&&o.birth_date).map(o=>`<option value="${o.id}">${esc(o.name)}</option>`).join('')}</select></p>
+   <h3 style="margin-top:18px">Views the natives may choose</h3>
+   <p class="small muted">The calendar shows one view at a time. “X only” shows the influences filed to X alone; “X &amp; Y” the joint ones; the natives switch between the views you tick here.</p>
+   <div id="combos" class="row" style="gap:4px 18px">${team.members.length?allCombos(team.members.map(m=>m.id)).map(cb=>`<label class="chk" style="margin:4px 0"><input type="checkbox" data-combo="${cb.join('+')}" ${team.combos.some(x=>sameSet(x,cb))?'checked':''}>${esc(comboLabel(cb,team.members))}</label>`).join(''):'<span class="small muted">Add natives first.</span>'}</div>
+   <p style="margin-top:14px"><button type="button" class="btn" id="m-save">Save natives</button> <span class="small muted">Birth places without coordinates are looked up when you save.</span></p></div>`:''}
+  <div class="card" id="ovcard"><h2>Natal positions (manual)</h2>${team&&team.members.length?`<label class="f" style="max-width:320px"><span>Positions for</span><select id="ov-member">${team.members.map(m=>`<option value="${esc(m.id)}" ${(wsOvMember||team.members[0].id)===m.id?'selected':''}>${esc(m.name||'Native')}</option>`).join('')}</select></label>`:''}
    <p class="small muted">Use this when the calculated chart does not match the reference you trust. Paste the planet table from AstroSage (or read it from a screenshot); the positions below then replace the calculated ones for this client. Nakshatra and pada are derived from the degree and checked against what you pasted.</p>
    <div class="row" style="gap:6px"><textarea id="ov-text" placeholder="Paste lines like:  Sun  Ari  25°48'21''  Bharani(4)" style="flex:1;min-height:90px"></textarea></div>
    <div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn ghost small" id="ov-parse">Read pasted text</button><label class="btn ghost small" style="cursor:pointer">Read from image<input type="file" id="ov-img" accept="image/*" style="display:none"></label><span id="ov-status" class="small muted"></span></div>
    <div id="ov-rows" style="margin-top:10px"></div>
-   <p class="row" style="gap:6px;margin-top:10px"><button type="button" class="btn small" id="ov-save">Use these positions for the chart</button>${c.natal_override?'<button type="button" class="btn quiet small" id="ov-clear">Back to calculated positions</button>':''}<span class="small muted">${c.natal_override?'Manual positions are in use'+(c.natal_override.source?' ('+esc(c.natal_override.source)+')':'')+'.':'Calculated positions are in use.'}</span></p>
+   <p class="row" style="gap:6px;margin-top:10px"><button type="button" class="btn small" id="ov-save">Use these positions for the chart</button>${(()=>{const o=team&&team.members.length?((team.members.find(m=>m.id===wsOvMember)||team.members[0]).natal_override):c.natal_override;return (o?'<button type="button" class="btn quiet small" id="ov-clear">Back to calculated positions</button>':'')+'<span class="small muted">'+(o?'Manual positions are in use'+(o.source?' ('+esc(o.source)+')':'')+'.':'Calculated positions are in use.')+'</span>'})()}</p>
   </div>
   <div class="card" id="giftcard"><h2>Gift</h2>
    <p class="small muted">If this calendar was bought for someone, their very first visit opens with a gift box that unwraps into a message from the sender. It is shown once; you can show it again from here.</p>
@@ -2395,12 +2678,29 @@ function tabClient({c,reload},body){
   </div>`;
   const applyPlace=(form,p)=>{form.elements.birth_latitude.value=p.lat;form.elements.birth_longitude.value=p.lon;if(p.timezone)form.elements.timezone.value=p.timezone;$('#geoout').innerHTML=`Using <strong>${esc([p.name,p.region,p.country].filter(Boolean).join(', '))}</strong> · ${p.lat}°, ${p.lon}°${p.timezone?' · time zone set to '+esc(p.timezone):' · <em>set the time zone by hand</em>'} — press Save client.`};
   const fillGeo=async(form)=>{const cands=await geocodeCandidates(form.elements.birth_location.value);applyPlace(form,cands[0]);return cands[0]};
-  $('#geo').onclick=()=>pickLocation($('#cf').elements.birth_location.value,p=>{applyPlace($('#cf'),p);if(!$('#cf').elements.birth_location.value.trim())$('#cf').elements.birth_location.value=[p.name,p.country].filter(Boolean).join(', ')});
+  const geoBtn=$('#geo');if(geoBtn)geoBtn.onclick=()=>pickLocation($('#cf').elements.birth_location.value,p=>{applyPlace($('#cf'),p);if(!$('#cf').elements.birth_location.value.trim())$('#cf').elements.birth_location.value=[p.name,p.country].filter(Boolean).join(', ')});
+  const dzOn=$('#dz-on');if(dzOn)dzOn.onchange=()=>$('#dzfields').classList.toggle('hidden',!dzOn.checked);
   $('#cf').onsubmit=guard(async e=>{e.preventDefault();const form=e.target;let note='';
-    if(form.elements.birth_location.value.trim()&&!form.elements.birth_latitude.value&&!form.elements.birth_longitude.value){try{await fillGeo(form)}catch(err){note=' (coordinates not found: '+err.message+')'}}
-    const f=new FormData(form);const o={...c};for(const [k,v] of f)o[k]=v;await api.saveClient(o);toast('Client saved'+note);reload()});
+    if(!team&&form.elements.birth_location.value.trim()&&!form.elements.birth_latitude.value&&!form.elements.birth_longitude.value){try{await fillGeo(form)}catch(err){note=' (coordinates not found: '+err.message+')'}}
+    const f=new FormData(form);const o={...c};for(const [k,v] of f)o[k]=v;
+    if(!team)o.jyotish={...(c.jyotish||{}),discarnate:$('#dz-on').checked?{on:true,passed_on:$('#dz-date').value||null}:null};
+    await api.saveClient(o);toast((team?'Team':'Client')+' saved'+note);reload()});
+  if(team){const readMembers=()=>[...body.querySelectorAll('#members fieldset.member')].map(fs=>{const g=f=>fs.querySelector(`[data-f=${f}]`);const prev=team.members.find(m=>m.id===fs.dataset.m)||{};
+      const num=v=>v===''||v===null||v===undefined?null:Number(v);
+      return {...prev,id:fs.dataset.m,name:g('name').value.trim(),birth_date:g('birth_date').value||null,birth_time:g('birth_time').value||null,birth_location:g('birth_location').value.trim(),timezone:g('timezone').value.trim(),birth_latitude:num(g('birth_latitude').value),birth_longitude:num(g('birth_longitude').value),discarnate:g('discarnate').checked,passed_on:g('passed_on').value||null}});
+    const redrawMembers=list=>{wsTeamDraft=list;reload()};
+    body.querySelectorAll('#members [data-rm]').forEach(b=>b.onclick=()=>{const fs=b.closest('fieldset');if(!confirm('Remove '+(fs.querySelector('[data-f=name]').value||'this native')+' from the team?'))return;const list=readMembers().filter(m=>m.id!==fs.dataset.m);wsTeamDraftDirty=true;redrawMembers(list)});
+    body.querySelectorAll('#members [data-geo]').forEach(b=>b.onclick=()=>{const fs=b.closest('fieldset');pickLocation(fs.querySelector('[data-f=birth_location]').value,p=>{fs.querySelector('[data-f=birth_latitude]').value=p.lat;fs.querySelector('[data-f=birth_longitude]').value=p.lon;if(p.timezone)fs.querySelector('[data-f=timezone]').value=p.timezone;if(!fs.querySelector('[data-f=birth_location]').value.trim())fs.querySelector('[data-f=birth_location]').value=[p.name,p.country].filter(Boolean).join(', ');fs.querySelector('[data-geoout]').textContent=`${p.lat}°, ${p.lon}°${p.timezone?' · '+p.timezone:''} — press Save natives.`})});
+    $('#m-add').onclick=()=>{wsTeamDraftDirty=true;redrawMembers([...readMembers(),{id:'n'+uuid().slice(0,8),name:'',discarnate:false}])};
+    $('#m-from').onchange=()=>{const src=(ctx.allClients||[]).find(o=>o.id===$('#m-from').value);if(!src)return;wsTeamDraftDirty=true;redrawMembers([...readMembers(),{id:'n'+uuid().slice(0,8),name:src.name,birth_date:src.birth_date,birth_time:src.birth_time,birth_location:src.birth_location,timezone:src.timezone,birth_latitude:src.birth_latitude,birth_longitude:src.birth_longitude,natal_override:src.natal_override||null,discarnate:!!(src.jyotish&&src.jyotish.discarnate&&src.jyotish.discarnate.on),passed_on:src.jyotish&&src.jyotish.discarnate?src.jyotish.discarnate.passed_on||null:null,source_client_id:src.id}])};
+    $('#m-save').onclick=guard(async()=>{const list=readMembers();const notes=[];if(list.some(m=>!m.name)){alert('Give every native a name.');return}
+      for(const m of list){if(m.birth_location&&(m.birth_latitude===null||m.birth_longitude===null)){try{const cands=await geocodeCandidates(m.birth_location);const p=cands[0];m.birth_latitude=p.lat;m.birth_longitude=p.lon;if(p.timezone&&!m.timezone)m.timezone=p.timezone}catch(err){notes.push(m.name+': coordinates not found')}}}
+      const ids=list.map(m=>m.id);let combos=[...body.querySelectorAll('#combos [data-combo]:checked')].map(x=>x.dataset.combo.split('+')).filter(cb=>cb.every(id=>ids.includes(id)));if(!combos.length)combos=defaultCombos(ids);
+      await saveTeam(c,{...team,members:list,combos});wsTeamDraft=null;wsTeamDraftDirty=false;toast('Natives saved'+(notes.length?' ('+notes.join('; ')+')':''));reload()})}
   const OVP=[['lagna','Lagna'],...GOCHARA.GRAHA.map(g=>[g.key,g.en])];
-  const ovState={rows:Object.assign({},(c.natal_override&&c.natal_override.planets)||{},c.natal_override&&c.natal_override.lagna?{lagna:c.natal_override.lagna}:{}),source:c.natal_override&&c.natal_override.source||''};
+  const ovMember=team&&team.members.length?(team.members.find(m=>m.id===wsOvMember)||team.members[0]):null;const ovBase=ovMember?{natal_override:ovMember.natal_override||null}:c;
+  const ovm=$('#ov-member');if(ovm)ovm.onchange=()=>{wsOvMember=ovm.value;reload()};
+  const ovState={rows:Object.assign({},(ovBase.natal_override&&ovBase.natal_override.planets)||{},ovBase.natal_override&&ovBase.natal_override.lagna?{lagna:ovBase.natal_override.lagna}:{}),source:ovBase.natal_override&&ovBase.natal_override.source||''};
   const drawOv=()=>{const rows=ovState.rows;$('#ov-rows').innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Planet</th><th>Sign</th><th>Deg</th><th>Min</th><th>Sec</th><th>Nakshatra · pada</th><th>R</th><th>C</th></tr></thead><tbody>${OVP.map(([k,l])=>{const r=rows[k];const dms=r?GOCHARA.dms(r.deg):{d:'',m:'',s:''};const d=r?GOCHARA.describe(GOCHARA.norm(r.sign*30+r.deg)):null;
     return `<tr data-k="${k}"><td><strong>${l}</strong></td><td><select data-f="sign"><option value="">—</option>${GOCHARA.RASHI_EN.map((n,i)=>`<option value="${i}" ${r&&r.sign===i?'selected':''}>${n}</option>`).join('')}</select></td><td><input type="number" data-f="d" min="0" max="29" value="${dms.d}" style="width:64px"></td><td><input type="number" data-f="m" min="0" max="59" value="${dms.m}" style="width:64px"></td><td><input type="number" data-f="s" min="0" max="59" value="${dms.s}" style="width:64px"></td><td class="small muted">${d?d.nakName+' ('+d.pada+')':''}</td><td>${k==='lagna'?'':k==='rahu'||k==='ketu'?'<span class="small muted">always</span>':`<input type="checkbox" data-f="retro" ${r&&r.retro?'checked':''}>`}</td><td>${k==='lagna'?'':`<input type="checkbox" data-f="combust" ${r&&r.combust?'checked':''}>`}</td></tr>`}).join('')}</tbody></table></div>`;
     $('#ov-rows').querySelectorAll('tr[data-k]').forEach(tr=>tr.querySelectorAll('[data-f]').forEach(inp=>inp.onchange=()=>{const k=tr.dataset.k;const g=f=>tr.querySelector(`[data-f=${f}]`);const sign=g('sign').value;const nakCell=tr.children[5];
@@ -2413,8 +2713,9 @@ function tabClient({c,reload},body){
   $('#ov-parse').onclick=()=>applyParsed($('#ov-text').value,'pasted text');
   $('#ov-img').onchange=guard(async e=>{const f=e.target.files[0];if(!f)return;$('#ov-status').textContent='Reading image…';try{const text=await ocrImage(f,m=>{$('#ov-status').textContent=m});$('#ov-text').value=text;applyParsed(text,'image')}catch(err){$('#ov-status').textContent=err.message}});
   $('#ov-save').onclick=guard(async()=>{const rows={...ovState.rows};const lagna=rows.lagna;delete rows.lagna;if(!Object.keys(rows).length&&!lagna){alert('Enter at least one position first.');return}
-    await api.saveClient({...c,natal_override:{planets:rows,lagna:lagna||null,source:ovState.source||'manual',saved:new Date().toISOString()}});toast('Manual positions saved — the chart now uses them');reload()});
-  const ovc=$('#ov-clear');if(ovc)ovc.onclick=guard(async()=>{if(confirm('Go back to the calculated positions for this client?')){await api.saveClient({...c,natal_override:null});toast('Calculated positions restored');reload()}});
+    const ov={planets:rows,lagna:lagna||null,source:ovState.source||'manual',saved:new Date().toISOString()};
+    if(ovMember){await saveTeam(c,{...team,members:team.members.map(m=>m.id===ovMember.id?{...m,natal_override:ov}:m)})}else await api.saveClient({...c,natal_override:ov});toast('Manual positions saved — the chart now uses them');reload()});
+  const ovc=$('#ov-clear');if(ovc)ovc.onclick=guard(async()=>{if(confirm('Go back to the calculated positions?')){if(ovMember)await saveTeam(c,{...team,members:team.members.map(m=>m.id===ovMember.id?{...m,natal_override:null}:m)});else await api.saveClient({...c,natal_override:null});toast('Calculated positions restored');reload()}});
   const giftNow=()=>({enabled:$('#gift-on').checked,sender:$('#gift-sender').value.trim(),occasion:$('#gift-occ').value,message:$('#gift-msg').value.trim(),box_color:$('#gift-box').value,ribbon_color:$('#gift-ribbon').value});
   $('#gift-on').onchange=()=>$('#giftfields').classList.toggle('hidden',!$('#gift-on').checked);
   const themeColours=()=>{const t=GIFT_THEME[$('#gift-occ').value]||GIFT_THEME.neutral;$('#gift-box').value=t.box;$('#gift-ribbon').value=t.ribbon};
@@ -2429,10 +2730,22 @@ function tabClient({c,reload},body){
   const del=$('#delc');if(del)del.onclick=guard(async()=>{if(confirm(`Permanently delete ${c.name} and every influence in their calendar? This cannot be undone.`)){await api.deleteClient(c.id);go('#/admin')}});
 }
 function tabNatal(ctx,body){const {c,reload}=ctx;
-  body.innerHTML=`<div class="card"><div id="gochara"></div></div>`;
-  GUI.mount($('#gochara',body),c,{onGeocode:()=>pickLocation(c.birth_location,guard(async p=>{await api.saveClient({...c,birth_latitude:p.lat,birth_longitude:p.lon,timezone:p.timezone||c.timezone||''});toast('Birth place saved: '+[p.name,p.country].filter(Boolean).join(', '));reload()})),onAdd:snap=>{const i=blankInfluence(c.id);i.start_date=i.end_date=snap.local.date;i.start_time=snap.local.time;i.timezone=snap.tz;i.private_notes=snap.text;i.transit_snapshot=snap.json;
-    const p=snap.json.selected;if(p){i.technical_basis=`Transit ${GOCHARA.GRAHA.find(g=>g.key===p.key).name} ${GOCHARA.RASHI[p.sign]} ${Math.floor(p.deg)}° — ${p.houseLagna}H from Lagna, ${p.houseMoon}H from Chandra`}
-    openEditor(ctx,i,true)},onShani:guard(async o=>{await api.saveClient({...c,jyotish:{...(c.jyotish||{}),shani_override:o}});toast(o?'Sade Sati phases saved for '+(c.name||'this client'):'Back to the calculated Sade Sati')})});
+  const mountFor=(el,cl,opts)=>GUI.mount(el,cl,{onGeocode:opts.onGeocode,onAdd:snap=>{const i=blankInfluence(c.id);i.start_date=i.end_date=snap.local.date;i.start_time=snap.local.time;i.timezone=snap.tz;i.private_notes=snap.text;i.transit_snapshot=snap.json;if(opts.natives)i.jyotish={natives:opts.natives};
+    const p=snap.json.selected;if(p){i.technical_basis=`${opts.prefix||''}Transit ${GOCHARA.GRAHA.find(g=>g.key===p.key).name} ${GOCHARA.RASHI[p.sign]} ${Math.floor(p.deg)}° — ${p.houseLagna}H from Lagna, ${p.houseMoon}H from Chandra`}
+    openEditor(ctx,i,true)},onShani:opts.onShani});
+  if(!isTeam(c)){body.innerHTML=`<div class="card"><div id="gochara"></div></div>`;
+    mountFor($('#gochara',body),c,{onGeocode:()=>pickLocation(c.birth_location,guard(async p=>{await api.saveClient({...c,birth_latitude:p.lat,birth_longitude:p.lon,timezone:p.timezone||c.timezone||''});toast('Birth place saved: '+[p.name,p.country].filter(Boolean).join(', '));reload()})),
+      onShani:guard(async o=>{await api.saveClient({...c,jyotish:{...(c.jyotish||{}),shani_override:o}});toast(o?'Sade Sati phases saved for '+(c.name||'this client'):'Back to the calculated Sade Sati')})});return}
+  const team=teamOf(c);const members=team.members;
+  if(!members.length){body.innerHTML='<div class="card"><p class="warn">Add the natives on the Client &amp; access tab first.</p></div>';return}
+  const cur=wsNative&&(wsNative==='synastry'||members.some(m=>m.id===wsNative))?wsNative:(members.length>1?'synastry':members[0].id);
+  body.innerHTML=`<div class="card"><div class="row between" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"><span class="seg">${members.map(m=>`<button type="button" data-native="${esc(m.id)}" aria-pressed="${cur===m.id}">${esc(m.name||'Native')}${m.discarnate?' †':''}</button>`).join('')}${members.length>1?`<button type="button" data-native="synastry" aria-pressed="${cur==='synastry'}">Synastry</button>`:''}</span><span class="small muted">${cur==='synastry'?'All the natives together — the relation between the charts, every transit on each of them, and a prompt for a joint calendar.':'One native’s own Gochara workspace; influences drafted here are filed to them.'}</span></div><div id="gochara"></div></div>`;
+  body.querySelectorAll('[data-native]').forEach(b=>b.onclick=()=>{wsNative=b.dataset.native;reload()});
+  const saveMember=(id,patch)=>saveTeam(c,{...team,members:members.map(m=>m.id===id?{...m,...patch}:m)});
+  if(cur==='synastry'){GUI.synastry($('#gochara',body),members.map(m=>memberClient(c,m)),{onAdd:snap=>{const i=blankInfluence(c.id);i.start_date=i.end_date=snap.local.date;i.start_time=snap.local.time;i.timezone=snap.tz;i.private_notes=snap.text;i.jyotish={natives:members.map(m=>m.id)};i.technical_basis='Synastry — '+members.map(m=>m.name).join(' & ');openEditor(ctx,i,true)}});return}
+  const m=members.find(x=>x.id===cur);
+  mountFor($('#gochara',body),memberClient(c,m),{natives:[m.id],prefix:m.name+': ',onGeocode:()=>pickLocation(m.birth_location,guard(async p=>{await saveMember(m.id,{birth_latitude:p.lat,birth_longitude:p.lon,timezone:p.timezone||m.timezone||''});toast('Birth place saved for '+m.name);reload()})),
+    onShani:guard(async o=>{await saveMember(m.id,{shani_override:o});toast(o?'Sade Sati phases saved for '+m.name:'Back to the calculated Sade Sati')})});
 }
 function tabCalendar(ctx,body){
   const {c,influences}=ctx;const y=wsCal.year,m=wsCal.month;const first=new Date(y,m,1);const startDow=first.getDay();const dim=new Date(y,m+1,0).getDate();
@@ -2498,7 +2811,7 @@ function tabInfluences(ctx,body){
   const {c,influences}=ctx;const all=[...influences].sort((a,b)=>a.start_date<b.start_date?-1:1);
   const ent={...ENT_DEFAULT,...(c.entitlements||{})};
   const sees=i=>!i.published?['No','draft — open and choose Review and publish']:(i.category==='remedies'&&!ent.remedial)?['No','remedial add-on is off for this client']:['Yes',''];
-  const row=i=>{const [v,why]=sees(i);return `<tr data-row="${i.id}"><td><input type="checkbox" data-sel="${i.id}" aria-label="Select ${esc(i.title||'influence')}"></td><td>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} ${i.significant?icon('star','var(--significant)'):''}</td><td><strong>${esc(i.title||'Untitled')}</strong>${i.parent_id?`<div class="small muted">within “${esc(all.find(x=>x.id===i.parent_id)?.title||'')}”</div>`:''}</td><td>${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''}${yearOk(i.start_date)&&yearOk(i.end_date)?'':'<div><span class="pill especially_sensitive">year looks wrong — not on the calendar</span></div>'}</td><td>${esc(CAT[i.category]||i.category)}</td><td>${i.intensity}</td><td><span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></td><td><span class="pill ${v==='Yes'?'supportive':'caution'}">${v}</span>${why?`<div class="small muted">${esc(why)}</div>`:''}</td><td><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></td></tr>`};
+  const row=i=>{const [v,why]=sees(i);return `<tr data-row="${i.id}"><td><input type="checkbox" data-sel="${i.id}" aria-label="Select ${esc(i.title||'influence')}"></td><td>${icon(POLARITY[i.polarity].shape,POLARITY[i.polarity].color)} ${i.significant?icon('star','var(--significant)'):''}</td><td><strong>${esc(i.title||'Untitled')}</strong>${isTeam(c)?`<div class="small muted">for ${esc(nativesLabel(i,teamOf(c).members))}</div>`:''}${i.parent_id?`<div class="small muted">within “${esc(all.find(x=>x.id===i.parent_id)?.title||'')}”</div>`:''}</td><td>${fmtYear(i.start_date)}${i.end_date!==i.start_date?' – '+fmtYear(i.end_date):''}${yearOk(i.start_date)&&yearOk(i.end_date)?'':'<div><span class="pill especially_sensitive">year looks wrong — not on the calendar</span></div>'}</td><td>${esc(CAT[i.category]||i.category)}</td><td>${i.intensity}</td><td><span class="pill ${i.published?'supportive':'draft'}">${i.published?'Published':'Draft'}</span></td><td><span class="pill ${v==='Yes'?'supportive':'caution'}">${v}</span>${why?`<div class="small muted">${esc(why)}</div>`:''}</td><td><button type="button" class="btn ghost small" data-edit="${i.id}">Edit</button></td></tr>`};
   const badYears=all.filter(i=>!yearOk(i.start_date)||!yearOk(i.end_date));
   const fixable=badYears.filter(i=>yearOk(fixYear(i.start_date))&&yearOk(fixYear(i.end_date)));
   const yearBanner=badYears.length?`<p class="warn" style="margin:0 0 12px">${badYears.length} influence${badYears.length>1?'s have':' has'} a year that cannot be right (e.g. ${String(yearOf(badYears[0].start_date)).padStart(4,'0')} instead of ${new Date().getFullYear()}), so ${badYears.length>1?'they do':'it does'} not appear on any calendar. This happens when a date is typed with a two-digit year. ${fixable.length?`<button type="button" class="btn small" id="fixyears">Correct ${fixable.length===badYears.length?'them':fixable.length+' of them'} to 20xx</button>`:''}${fixable.length<badYears.length?' The others need editing by hand.':''}</p>`:'';
@@ -2558,8 +2871,8 @@ const AI_HEADS=[['title',['title','signpost title','signpost']],['consider postp
   ['consider',['consider','what the client may reflect on','what to reflect on','reflection','reflect on']],
   ['suggestions',['suggestions','suggestion','things they might do','things to do','recommended actions','recommendations','act']],
   ['dates',['dates','date','period','window']],['duration',['duration','length']],['polarity',['polarity','tone']],['intensity',['intensity','strength']],
-  ['bpl perspective',['bpl perspective','what bpl may say','bpl','barbara pijan lama']]];
-const AI_META=['dates','duration','polarity','intensity','especially significant','primary category','secondary categories','supportive for','difficult for','peak dates','technical basis','title'];
+  ['bpl perspective',['bpl perspective','what bpl may say','bpl','barbara pijan lama']],['for',['for','for whom','natives','native']]];
+const AI_META=['dates','duration','polarity','intensity','especially significant','primary category','secondary categories','supportive for','difficult for','peak dates','technical basis','title','for'];
 const AI_ALIAS=AI_HEADS.flatMap(([c,al])=>al.map(a=>[a,c])).sort((a,b)=>b[0].length-a[0].length);
 const AI_HEAD_RE=new RegExp('^('+AI_ALIAS.map(([a])=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\s*(?:\\([^)]*\\))?\\s*(?:([:：\\-–—]+)\\s*(.*)|$)','i');
 // Split text written in the prompt's format into labelled sections, whatever the markdown around the labels looks like.
@@ -2589,6 +2902,7 @@ function parseAIAnswer(text){const {sections,order,pre}=parseAISections(text);co
   const none=t=>!t||/^\[?(none|n\/a|not applicable|not requested|—|-)\]?\.?$/i.test(t.trim());
   // title: "Title:" line if given, otherwise the best line before the first heading
   let title=joined('title');
+  const forLines=sections['for']||[];if(forLines.length){out.for_names=forLines[0].split(/\s*(?:&|\+|·|,|\band\b)\s*/i).map(x=>x.replace(/\b(only|together|both)\b/gi,'').trim()).filter(Boolean);if(!title&&forLines.length>1)title=forLines[forLines.length-1]}
   if(!title){const cands=pre.map(x=>x.l).filter(l=>!/^(here (is|are)|below|the following|sure|certainly|of course)/i.test(l));const like=cands.filter(l=>l.length<=80&&!/[.!?]$/.test(l));title=(like[like.length-1]||cands[0]||'')}
   title=title.replace(/^(period|window|response|answer|influence)\s*\d+\s*[:.)\-–]?\s*/i,'').replace(/^\d+\s*[.)\-–]\s*/,'').replace(/^[\[\]"“”]+|[\[\]"“”]+$/g,'').trim();
   if(title&&title.length<=80)out.title=title.replace(/[.:]$/,'');
@@ -2620,7 +2934,8 @@ function parseAIAnswer(text){const {sections,order,pre}=parseAISections(text);co
   const found=order.filter(h=>h!=='title');
   return {fields:out,notes,found}}
 function fillFromAI(form,text){const {fields,notes,found}=parseAIAnswer(text);const filled=[];
-  for(const [k,v] of Object.entries(fields)){
+  if(fields.for_names&&form.querySelector('input[name=nat]')){const chips=[...form.querySelectorAll('input[name=nat]')];const members=chips.map(cb=>({id:cb.value,name:cb.nextElementSibling.textContent.replace(/\s*†$/,'')}));const ids=nativesFromNames(fields.for_names,members);if(ids){chips.forEach(cb=>cb.checked=ids.includes(cb.value));filled.push('for whom')}else notes.push('“For: '+fields.for_names.join(' & ')+'” did not match a native — tick them by hand')}
+  for(const [k,v] of Object.entries(fields)){if(k==='for_names')continue;
     if(k==='secondary_categories'){form.querySelectorAll('input[name=sec]').forEach(cb=>cb.checked=v.includes(cb.value));filled.push('secondary categories');continue}
     if(k==='supportive_for'){form.querySelectorAll('input[name=sup]').forEach(cb=>cb.checked=v.includes(cb.value));if(v.length)filled.push('supportive for');continue}
     if(k==='difficult_for'){form.querySelectorAll('input[name=dif]').forEach(cb=>cb.checked=v.includes(cb.value));if(v.length)filled.push('difficult for');continue}
@@ -2637,7 +2952,8 @@ const SECTION_RE=/^\W*(dates|duration|polarity|intensity|especially significant|
 function splitAIAnswers(text){const lines=String(text||'').replace(/\r/g,'').split('\n');const starts=[];
   const junk=l=>{const t=l.trim();return !t||/^[-=_*#~>]{3,}$/.test(t)||/^(period|window|response|answer|influence)\s*\d+\s*[:.)\-–]?\s*$/i.test(t)||/^\d+\s*[.)\-–]?\s*$/.test(t)};
   const titleLike=l=>{const t=l.replace(/^[#>\s]+/,'').replace(/\*\*/g,'').trim();return t.length>0&&t.length<=70&&!/^[\*\-•·]/.test(t)&&!SECTION_RE.test(t)&&!/[.!?]$/.test(t)};
-  for(let i=0;i<lines.length;i++){if(!/^\W*(?:dates|date|period)\b\W*\s*[:：\-–—|]/i.test(lines[i].replace(/\*\*|__/g,'')))continue;let j=i-1;while(j>=0&&junk(lines[j]))j--;starts.push(j>=0&&titleLike(lines[j])?j:i)}
+  const isFor=l=>/^\W*(?:for|for whom)\b\W*\s*[:：\-–—]/i.test(l.replace(/\*\*|__/g,''));
+  for(let i=0;i<lines.length;i++){if(!/^\W*(?:dates|date|period)\b\W*\s*[:：\-–—|]/i.test(lines[i].replace(/\*\*|__/g,'')))continue;let j=i-1;while(j>=0&&(junk(lines[j])||isFor(lines[j])))j--;let f=i-1;while(f>j&&!isFor(lines[f]))f--;starts.push(j>=0&&titleLike(lines[j])?j:(f>j?f:i))}
   return starts.map((st,k)=>lines.slice(st,k+1<starts.length?starts[k+1]:lines.length).join('\n').trim()).filter(Boolean)}
 const CAT_WORDS={work:['work','career','job','vocation','profession','business','promotion','employer','colleague','project'],money:['money','income','finance','financial','salary','invest','debt','purchase','spending','budget','resources'],relationships:['relationship','partner','marriage','romance','spouse','friend','love','dating'],communication:['communication','conversation','message','email','speech','negotiat','contract','writing'],home:['home','family','house','mother','father','parent','child','domestic','move'],health:['health','vitality','energy','body','sleep','illness','doctor','fatigue','exercise'],travel:['travel','journey','trip','abroad','move','relocation','transport'],learning:['learn','study','exam','course','teacher','education','research'],creativity:['creative','art','music','design','craft','performance'],spiritual:['spiritual','meditation','prayer','practice','temple','retreat','faith'],legal:['legal','court','lawyer','administrative','paperwork','official','government'],community:['community','network','group','public','social','audience'],rest:['rest','restoration','pause','quiet','retreat','recover','solitude'],decisions:['decision','beginning','start','launch','commit','choose'],endings:['ending','closure','transition','release','let go','completion']};
 function inferCategory(text){const t=String(text||'').toLowerCase();let best=null,bs=0;for(const k in CAT_WORDS){let sc=0;for(const w of CAT_WORDS[k]){const m=t.match(new RegExp('\\b'+w,'g'));if(m)sc+=m.length}if(sc>bs){bs=sc;best=k}}return bs?best:'general'}
@@ -2656,6 +2972,7 @@ function buildImport(ctx,text,opts={}){const {c,influences}=ctx;const blocks=spl
   for(const block of blocks){const {fields,notes}=parseAIAnswer(block);const inf=Object.assign(blankInfluence(c.id),{timezone:c.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone});const warn=[...notes];
     for(const k of ['title','start_date','end_date','polarity','intensity','significant','category','secondary_categories','supportive_for','difficult_for','client_interpretation','observation_prompt','reflection_prompt','recommended_actions','avoidances','remedial_note','private_notes','technical_basis'])if(fields[k]!==undefined)inf[k]=fields[k];
     if(inf.polarity!=='mixed'){inf.supportive_for=[];inf.difficult_for=[]}
+    if(isTeam(c)){const t=teamOf(c);const ids=nativesFromNames(fields.for_names,t.members);inf.jyotish={...(inf.jyotish||{}),natives:ids||t.members.map(m=>m.id)};if(fields.for_names&&!ids)warn.push('“For: '+fields.for_names.join(' & ')+'” did not match a native — filed to everyone');else if(!fields.for_names)warn.push('no “For:” line — filed to everyone')}
     if(!fields.start_date){warn.push('no dates found — set them by hand');inf.end_date=inf.start_date}
     if(!inf.category){inf.category=inferCategory(block);warn.push('category inferred from the text: '+CAT[inf.category])}
     if(!inf.intensity){inf.intensity=3;warn.push('intensity missing — set to 3')}
@@ -2722,6 +3039,7 @@ function openEditor(ctx,inf,isNew){
   dlg.innerHTML=`<div class="dh"><h2 style="margin:0">${isNew?'New influence':'Edit influence'}</h2><div class="row"><button type="button" class="btn ghost small" id="aifill">Fill from AI answer</button><button type="button" class="btn ghost small" id="gtoggle" aria-pressed="false">Gochara</button><button type="button" class="btn quiet small" id="close" aria-label="Close">✕</button></div></div>
   <div id="aibox" class="hidden" style="margin:0 0 12px;padding:12px;background:var(--surface-2);border-radius:10px"><p class="small muted" style="margin:0 0 6px">Paste the AI’s answer (written in the format the Gochara prompt asks for). Title, dates, polarity, intensity, category, interpretation, Consider / Suggestions / Consider postponing and the private reasoning are filled in; check everything before publishing.</p><textarea id="aitext" style="min-height:140px;width:100%" placeholder="[SIGNPOST TITLE]&#10;&#10;Dates: …"></textarea><p class="row" style="gap:6px;margin:8px 0 0"><button type="button" class="btn small" id="aiapply">Fill the form</button><button type="button" class="btn quiet small" id="aicancel">Cancel</button><span id="ainote" class="small muted"></span></p></div>
   <div class="db"><form id="ef">
+   ${isTeam(c)?(()=>{const t=teamOf(c);const cur=infNatives(inf);const sel=cur.length?cur:t.members.map(m=>m.id);return `<label class="f" style="margin-top:0"><span>For whom</span></label><div class="row chips" style="margin-bottom:10px">${t.members.map(m=>`<label class="chip"><input type="checkbox" name="nat" value="${esc(m.id)}" ${sel.includes(m.id)?'checked':''}><span>${esc(m.name)}${m.discarnate?' †':''}</span></label>`).join('')}<span class="small muted">— tick one native for an individual period, several for a joint one</span></div>`})():''}
    <div class="grid2">${fld('Title (client-facing)','title',inf.title,'text','required')}<label class="f"><span>Within a longer period (optional)</span>${sel('parent_id',[['','— none —'],...others.map(o=>[o.id,o.title])],inf.parent_id||'')}</label></div>
    <div class="grid2">${fld('Start date','start_date',inf.start_date,'date','required min="2000-01-01" max="2100-12-31"')}${fld('End date','end_date',inf.end_date,'date','required min="2000-01-01" max="2100-12-31"')}</div>
    <p class="small muted" style="margin:-4px 0 0">Type the year with four digits (2026). ${yearOk(inf.start_date)&&yearOk(inf.end_date)?'':'<strong style="color:var(--sensitive)">This influence’s saved year looks wrong — please correct it.</strong>'}</p>
@@ -2784,7 +3102,8 @@ function openEditor(ctx,inf,isNew){
     const expected=['dates','polarity','intensity','primary category','interpretation','notice','consider','suggestions','consider postponing'];const missing=expected.filter(h=>!r.found.includes(h));
     $('#ainote',dlg).innerHTML=`Filled: ${esc(r.filled.join(', '))}.${missing.length?' <span class="muted">Not found in the answer: '+esc(missing.join(', '))+'.</span>':''}${r.notes.length?' <span style="color:var(--sensitive)">'+esc(r.notes.join(' · '))+'</span>':''}${r.fields.polarity&&/caution|especially/.test(r.fields.polarity)?' “Danger” was mapped to '+esc(POLARITY[r.fields.polarity].label)+' — adjust if needed.':''}`;toast('Form filled from the AI answer — please review it')};
   const collect=()=>{const f=new FormData(form);const o={};const j=inf.jyotish||{},s=inf.source_reference||{};const secs=[],sup=[],dif=[];
-    for(const [k,v] of f){if(k==='sec')secs.push(v);else if(k==='sup')sup.push(v);else if(k==='dif')dif.push(v);else if(k.startsWith('j:'))j[k.slice(2)]=v;else if(k.startsWith('s:'))s[k.slice(2)]=v;else o[k]=v}
+    const nat=[];for(const [k,v] of f){if(k==='sec')secs.push(v);else if(k==='sup')sup.push(v);else if(k==='dif')dif.push(v);else if(k==='nat')nat.push(v);else if(k.startsWith('j:'))j[k.slice(2)]=v;else if(k.startsWith('s:'))s[k.slice(2)]=v;else o[k]=v}
+    if(isTeam(c)){const all=teamOf(c).members.map(m=>m.id);j.natives=nat.length?all.filter(id=>nat.includes(id)):all}
     o.supportive_for=o.polarity==='mixed'?sup:[];o.difficult_for=o.polarity==='mixed'?dif:[];
     for(const cb of ['significant','show_exact_time','show_technical_basis','calendar_sync_enabled'])o[cb]=form.elements[cb].checked;o.prediction='';o.show_prediction=true;
     o.intensity=o.intensity===''?'':Math.min(5,Math.max(1,Number(o.intensity)||1));o.secondary_categories=secs.filter(x=>x!==o.category);o.jyotish=j;o.source_reference=s;o.transit_snapshot=inf.transit_snapshot||null;o.parent_id=o.parent_id||null;
