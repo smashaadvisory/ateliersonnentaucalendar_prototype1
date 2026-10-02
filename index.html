@@ -337,6 +337,7 @@ details summary::-webkit-details-marker{display:none}
 .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:999px;overflow:hidden;flex-wrap:wrap;background:var(--surface)}
 .seg button{background:transparent;border:0;padding:6px 14px;font-size:.87rem}
 .seg button[aria-pressed=true]{background:var(--primary);color:#fff}
+.seg .seglink{display:inline-block;padding:6px 14px;font-size:.87rem;text-decoration:none;color:var(--text)}.seg .seglink[aria-pressed=true]{background:var(--primary);color:#fff}
 /* admin */
 .crumbs{font-size:.86rem;color:var(--muted);margin:0}
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:14px 0 18px;flex-wrap:wrap}
@@ -429,6 +430,91 @@ dialog .db.split .gpane{position:sticky;top:0;max-height:calc(92vh - 90px);overf
 @media(max-width:1000px){dialog .db.split{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 .g-insight{margin:10px 0 12px;padding:10px 12px;background:var(--surface-2);border-radius:10px;border-left:3px solid var(--gold)}.g-insight h4{margin:0 0 6px;font-size:.95rem;letter-spacing:.02em}.g-insight p{margin:0 0 8px;line-height:1.5}.g-insight p:last-child{margin-bottom:0}
+/* card of the day — the client's table */
+dialog.tarot{border:0;padding:0;max-width:100vw;max-height:100vh;width:100vw;height:100vh;background:radial-gradient(ellipse at 50% 30%,#3A4270 0%,#2B3150 55%,#1E2238 100%);color:#F5EFDF;overflow:auto}
+dialog.tarot::backdrop{background:rgba(20,22,36,.75)}
+.tarot .tt{position:relative;max-width:980px;margin:0 auto;padding:28px 18px 40px;min-height:100%;box-sizing:border-box}
+.tarot .x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(245,239,223,.35);background:rgba(245,239,223,.08);color:#F5EFDF;font-size:1.2rem;line-height:1;cursor:pointer;z-index:5}
+.tarot .x:hover{background:rgba(245,239,223,.18)}
+.tarot .tdate{font-family:var(--sans);font-size:.74rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(245,239,223,.7);text-align:center;margin:6px 0 18px}
+.tarot .tdate .muted{color:rgba(245,239,223,.5)}
+.tarot .tstage{position:relative}
+.tarot .deckwrap{display:flex;flex-direction:column;align-items:center;gap:18px;padding:24px 0 12px;max-height:420px;overflow:hidden;transition:opacity .6s,max-height .9s .4s,padding .9s .4s}
+.tarot .deck{position:relative;width:132px;height:216px;border:0;background:transparent;padding:0;cursor:pointer;filter:drop-shadow(0 0 28px rgba(212,180,120,.45));animation:deckglow 3s ease-in-out infinite}
+@keyframes deckglow{0%,100%{filter:drop-shadow(0 0 22px rgba(212,180,120,.35))}50%{filter:drop-shadow(0 0 44px rgba(212,180,120,.7))}}
+.tarot .deck .dc{position:absolute;inset:0;border-radius:10px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.45);transition:transform .35s}
+.tarot .deck .dc img{width:100%;height:100%;object-fit:cover;display:block}
+.tarot .deck .d3{transform:translate(6px,6px) rotate(2deg)}.tarot .deck .d2{transform:translate(3px,3px) rotate(-1deg)}.tarot .deck .d1{transform:translate(0,0)}
+.tarot .deck:hover .d1{transform:translateY(-6px)}
+.tarot .tcta{font-family:var(--brand);font-style:italic;font-size:1.5rem;color:#F5EFDF;margin:0;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.tarot .tstage[data-stage=shuffle] .deck{animation:none}
+.tarot .tstage[data-stage=shuffle] .d1{animation:shuf1 .5s ease-in-out 3}
+.tarot .tstage[data-stage=shuffle] .d2{animation:shuf2 .5s ease-in-out 3}
+.tarot .tstage[data-stage=shuffle] .d3{animation:shuf3 .5s ease-in-out 3}
+@keyframes shuf1{0%,100%{transform:translate(0,0)}50%{transform:translate(70px,-10px) rotate(8deg)}}
+@keyframes shuf2{0%,100%{transform:translate(3px,3px) rotate(-1deg)}50%{transform:translate(-70px,8px) rotate(-8deg)}}
+@keyframes shuf3{0%,100%{transform:translate(6px,6px) rotate(2deg)}50%{transform:translate(0,-26px) rotate(0)}}
+.tarot .tstage[data-stage=shuffle] .tcta{opacity:0;transition:opacity .4s}
+.tarot .tstage[data-stage=deal] .deckwrap{opacity:.25;pointer-events:none}
+.tarot .tstage[data-stage=read] .deckwrap{opacity:0;max-height:0;padding:0;pointer-events:none}
+.tarot .tstage[data-stage=deal] .tcta,.tarot .tstage[data-stage=read] .tcta{display:none}
+.tarot .tslots{display:none;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:22px 14px;justify-items:center;margin:8px auto 0;max-width:860px;perspective:1400px}
+.tarot .tstage[data-stage=deal] .tslots,.tarot .tstage[data-stage=read] .tslots{display:grid}
+.tarot .tslot{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.tarot .tc{position:relative;width:130px;height:214px;transform-style:preserve-3d;transition:transform .95s cubic-bezier(.3,.7,.3,1),opacity .4s;opacity:1}
+.tarot .tc .face{position:absolute;inset:0;border-radius:10px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 26px rgba(0,0,0,.5);background:#FCF8EC}
+.tarot .tc .face img{width:100%;height:100%;object-fit:cover;display:block}
+.tarot .tc .front{transform:rotateY(180deg)}
+.tarot .tc.dealt{transform:rotateY(180deg)}
+.tarot .tc.rev.dealt{transform:rotateY(180deg) rotateZ(180deg)}
+.tarot .tc.sl.dealt{transform:rotateY(180deg) rotateZ(-90deg) scale(.72)}
+.tarot .tc.sr.dealt{transform:rotateY(180deg) rotateZ(90deg) scale(.72)}
+.tarot .tlabel{font-size:.86rem;color:rgba(245,239,223,.85);text-align:center;opacity:0;transition:opacity .6s .7s;display:flex;align-items:center;gap:7px}
+.tarot .tslot.shown .tlabel{opacity:1}
+.tarot .tlabel .n{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1px solid rgba(212,180,120,.7);color:#D9C7A2;font-family:var(--sans);font-size:.7rem}
+.tarot .tread{max-width:620px;margin:34px auto 0;text-align:center}
+.tarot .tcap{font-family:var(--sans);font-size:.66rem;letter-spacing:.26em;text-transform:uppercase;color:rgba(245,239,223,.6);margin:0 0 12px}
+.tarot .scroll{position:relative;margin:0 auto;max-width:560px;text-align:left;padding-bottom:0;transition:padding .6s}
+.tarot .scroll:not(.open){padding-bottom:34px}
+.tarot .scroll:not(.open) .sroll.top{height:44px;border-radius:22px;background:linear-gradient(180deg,#FFFDF6 0%,#F3ECD9 35%,#E2D7BB 70%,#CFC2A3 100%)}
+.tarot .sroll{height:22px;border-radius:11px;background:linear-gradient(180deg,#FFFDF6,#EEE6D2 60%,#D9CDB1);box-shadow:0 6px 14px rgba(0,0,0,.35);position:relative;z-index:2}
+.tarot .sroll.top{margin:0 -6px}
+.tarot .sroll.bottom{margin:0 -6px;transform:translateY(-4px)}
+.tarot .ssheet{background:linear-gradient(180deg,#FDF9EE,#F8F2E2);color:var(--text);padding:0 26px;max-height:0;overflow:hidden;transition:max-height 1.6s cubic-bezier(.3,.6,.3,1),padding .6s;margin:0 4px;box-shadow:inset 0 0 40px rgba(181,138,74,.12)}
+.tarot .scroll.open .ssheet{max-height:1600px;padding:22px 26px}
+.tarot .ssheet p{margin:0;font-size:1.08rem;line-height:1.6;white-space:pre-line}
+.tarot .ssheet .sig{margin-top:12px;font-size:.84rem;color:var(--muted);font-style:italic}
+.tarot .ribbon{position:absolute;left:50%;top:-8px;transform:translateX(-50%);width:140px;height:60px;border:0;background:transparent;padding:0;cursor:pointer;z-index:4;transition:opacity .5s,transform .6s}
+.tarot .ribbon .band{position:absolute;left:38px;right:38px;top:22px;height:16px;background:linear-gradient(180deg,#C9443F,#9E2F2B);border-radius:3px;box-shadow:0 3px 8px rgba(0,0,0,.35)}
+.tarot .ribbon .bow{position:absolute;left:50%;top:10px;width:40px;height:40px;transform:translateX(-50%);background:radial-gradient(circle at 50% 50%,#E0625C 0 6px,transparent 7px),radial-gradient(ellipse at 28% 50%,#C9443F 0 42%,transparent 44%),radial-gradient(ellipse at 72% 50%,#C9443F 0 42%,transparent 44%)}
+.tarot .ribbon::after{content:"untie";position:absolute;left:50%;top:62px;transform:translateX(-50%);font-family:var(--sans);font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,239,223,.6)}
+.tarot .scroll.untie .ribbon{opacity:0;transform:translate(-50%,60px) rotate(12deg);pointer-events:none}
+.tarot .scroll:not(.open) .sroll.bottom{display:none}
+.tarot .scroll.open .sroll.bottom{display:block}
+.tarot .thread{margin:22px auto 0;max-width:560px;text-align:left;background:rgba(252,248,236,.95);color:var(--text);border-radius:12px;padding:14px 16px}
+.tarot .thread .rlist{display:grid;gap:8px;margin-bottom:8px}
+.tarot .thread .rp{padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);max-width:88%}
+.tarot .thread .rp.me{justify-self:end;background:var(--mixed-soft)}
+.tarot .thread .rp .who{display:block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.tarot .thread .rp p{margin:0;font-size:.98rem;line-height:1.45}
+.tarot .thread .rtext{width:100%;box-sizing:border-box;font:inherit;font-size:.98rem;padding:8px 10px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);resize:vertical;color:var(--text)}
+.tarot .thread .small.muted{color:var(--muted)}
+.tarot .tearlier{text-align:center;font-size:.86rem;color:rgba(245,239,223,.6);margin:30px 0 0}
+.tarot .tearlier .lnk{color:#D9C7A2;background:none;border:0;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:560px){.tarot .tslots{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px 8px}.tarot .tc{width:106px;height:174px}.tarot .deck{width:112px;height:184px}.tarot .tt{padding:20px 12px 32px}}
+@media(prefers-reduced-motion:reduce){.tarot .deck{animation:none}.tarot .tc{transition-duration:.3s}}
+/* the client's "Card of the day" button */
+.cardsbtn{position:relative;display:inline-flex;align-items:center;gap:8px}
+.cardsbtn .nb{position:absolute;top:-6px;right:-6px;width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--bg);animation:npulse 2s ease-out infinite}
+/* the astrologer's pulled-card list */
+.pulledlist{display:grid;gap:8px;margin:4px 0 0}
+.pulled{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface)}
+.pulled .pn{flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:.72rem;color:var(--muted)}
+.pulled .pimg{flex:none;width:44px;height:72px;border-radius:5px;overflow:hidden;border:1px solid var(--line);display:block}
+.pulled .pimg img{width:100%;height:100%;object-fit:cover;display:block}
+.pulled .pimg.rev img{transform:rotate(180deg)}.pulled .pimg.sl img{transform:rotate(-90deg) scale(.62)}.pulled .pimg.sr img{transform:rotate(90deg) scale(.62)}
+.pulled .pbody{flex:1;min-width:0}
+.pulled select{width:auto;padding:4px 8px;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -1881,9 +1967,10 @@ const DISCLAIMERS={
 const ENTITLEMENTS=[
   ['remedial','Remedial work (purchased add-on)','Remedial notes and the “Remedies and observances” category appear only when this is on.'],
   ['export','Calendar export','Lets the client download an .ics file for their own calendar app.'],
-  ['intentions','Intentions','Lets the client choose a current intention to bring related periods forward.']
+  ['intentions','Intentions','Lets the client choose a current intention to bring related periods forward.'],
+  ['tarot','Card of the day (purchased add-on)','Shows a “Card of the day” button: the cards you pulled, dealt on a table, with your interpretation on a scroll. Set up on the Cards tab.']
 ];
-const ENT_DEFAULT={remedial:false,predictions:true,export:true,intentions:true};
+const ENT_DEFAULT={remedial:false,predictions:true,export:true,intentions:true,tarot:false};
 const ALARM_WORDS=[/\bwill definitely\b/i,/\bmust\b/i,/\bdanger(ous)?\b/i,/\bdisaster\b/i,/\bno choice\b/i,/\bguarantee[ds]?\b/i,/\bfailure to\b/i,/\bbad day\b/i,/\bhave to\b/i,/\bnever\b/i,/\bcatastroph/i,/\bwill (happen|cause|bring)\b/i,/\burgent(ly)?\b/i,/\bimmediately\b/i,/\bdo not leave\b/i];
 const JYOTISH_FIELDS=['graha','bhava','bhava lord','rashi','nakshatra','pada','dasha','antardasha','pratyantardasha','gochara','drishti','yoga','dignity','combustion','retrogression','avastha','varga','strength assessment','timing rationale','remedial consideration'];
 // (starter templates removed)
@@ -2054,7 +2141,13 @@ const api={
   async recentActivity(limit=500){return chk(await sb.from('client_activity').select('client_id,session_id,event,detail,at').order('at',{ascending:false}).limit(limit))},
   async listNotes(clientId){return chk(await sb.from('day_notes').select('client_id,note_date,heading,body,replies,updated_at').eq('client_id',clientId).order('note_date'))},
   async saveNoteReplies(clientId,date,replies){return chk(await sb.from('day_notes').update({replies}).eq('client_id',clientId).eq('note_date',date).select().single())},
-  async replyNote(code,date,body){return chk(await sb.rpc('client_note_reply',{p_code:code,p_date:date,p_body:body}))},
+  async replyNote(code,date,body,memberCode){return chk(await sb.rpc('client_note_reply',{p_code:code,p_date:date,p_body:body,p_member_code:memberCode||null}))},
+  async openTeam(code,teamCode){return chk(await sb.rpc('client_open_team',{p_code:code,p_team_code:teamCode}))},
+  async listReadings(clientId){return chk(await sb.from('card_readings').select('client_id,reading_date,cards,interpretation,replies,updated_at').eq('client_id',clientId).order('reading_date',{ascending:false}))},
+  async saveReading(r){return chk(await sb.from('card_readings').upsert({client_id:r.client_id,reading_date:r.reading_date,cards:r.cards||[],interpretation:r.interpretation||'',updated_at:new Date().toISOString()}).select().single())},
+  async deleteReading(clientId,date){chk(await sb.from('card_readings').delete().eq('client_id',clientId).eq('reading_date',date))},
+  async saveReadingReplies(clientId,date,replies){return chk(await sb.from('card_readings').update({replies}).eq('client_id',clientId).eq('reading_date',date).select().single())},
+  async replyCard(code,date,body,memberCode){return chk(await sb.rpc('client_card_reply',{p_code:code,p_date:date,p_body:body,p_member_code:memberCode||null}))},
   async saveNote(n){return chk(await sb.from('day_notes').upsert({client_id:n.client_id,note_date:n.note_date,heading:n.heading||'',body:n.body||'',updated_at:new Date().toISOString()}).select().single())},
   async deleteNote(clientId,date){chk(await sb.from('day_notes').delete().eq('client_id',clientId).eq('note_date',date))},
   async getSetting(key){const r=chk(await sb.from('settings').select('value').eq('key',key).maybeSingle());return r?r.value:null},
@@ -2104,7 +2197,7 @@ const ACT={code:null,sid:null,screen:'calendar',last:'',timer:null,bound:false,c
 
 /* ---------------- Router & header ---------------- */
 const app=$('#app'), hdr=$('#hdr');
-const CODE_KEY='as.client_code';
+const CODE_KEY='as.client_code';const TEAM_KEY='as.team';const PENDING_TEAM_KEY='as.pending_team';
 let CUR='#/';
 let skipHash=false;
 function go(h){CUR=h;let changed=false;try{if(location.hash!==h){skipHash=true;location.hash=h;changed=(location.hash===h)}}catch(e){}if(!changed){skipHash=false;route()}}
@@ -2131,6 +2224,7 @@ async function route(){
     if(!configured()&&!MOCKED){renderSetup();return}
     if(path==='/client')return renderClientLogin();
     if(path==='/calendar')return await renderCalendar();
+    if(path.startsWith('/synastry/'))return await renderSynastry(decodeURIComponent(path.slice('/synastry/'.length)).toUpperCase());
     if(path==='/astrologer')return await renderAstrologerLogin();
     if(path.startsWith('/admin'))return await renderAdmin(path);
     renderHome();
@@ -2177,10 +2271,38 @@ function renderClientLogin(msg){
     <p class="consent">By clicking Continue, I agree to the enabling of personalized calendar features.</p></form></div>`;
   $('#codeform').onsubmit=async e=>{e.preventDefault();const code=$('#code').value.trim().toUpperCase();const b=$('#codebtn');b.disabled=true;$('#cerr').textContent='';
     try{const pkg=await api.openCalendar(code);if(!pkg.ok){$('#cerr').textContent=pkg.why;b.disabled=false;return}
-      localStorage.setItem(CODE_KEY,code);sessionStorage.removeItem('as.welcomed');go('#/calendar')}
+      localStorage.setItem(CODE_KEY,code);sessionStorage.removeItem('as.welcomed');const pend=localStorage.getItem(PENDING_TEAM_KEY);if(pend){localStorage.removeItem(PENDING_TEAM_KEY);go('#/synastry/'+pend)}else go('#/calendar')}
     catch(err){$('#cerr').textContent='Could not reach the calendar service. '+(err.message||'');b.disabled=false}};
 }
-function clientSignOut(){ACT.stop('signed out');localStorage.removeItem(CODE_KEY);go('#/')}
+function clientSignOut(){ACT.stop('signed out');localStorage.removeItem(CODE_KEY);localStorage.removeItem(TEAM_KEY);localStorage.removeItem(PENDING_TEAM_KEY);go('#/')}
+const teamLink=()=>{try{return JSON.parse(localStorage.getItem(TEAM_KEY)||'null')}catch(e){return null}};
+/* The shared (synastry) calendar, reached through its link. The native signs in with their OWN code; the team's code only names the calendar. */
+async function renderSynastry(teamCode){
+  const code=localStorage.getItem(CODE_KEY);
+  if(!code){localStorage.setItem(PENDING_TEAM_KEY,teamCode);renderClientLogin('Sign in with your own access code to open the shared calendar.');return}
+  app.innerHTML='<p class="loading">Opening the shared calendar…</p>';
+  let pkg,own;
+  try{[pkg,own]=await Promise.all([api.openTeam(code,teamCode),api.openCalendar(code)])}catch(err){app.innerHTML=`<div class="entry card"><h1>Not reachable</h1><p class="muted">Could not reach the calendar service. Please try again in a moment.</p></div>`;return}
+  if(!own.ok){localStorage.removeItem(CODE_KEY);renderClientLogin(own.why);return}
+  setHeader({left:[],brand:true,right:[{href:'#/calendar',label:'My calendar',cls:'quiet'},{id:'out',label:'Sign out',cls:'ghost',onClick:clientSignOut}]});
+  if(!pkg.ok){localStorage.removeItem(TEAM_KEY);app.innerHTML=`<div class="entry card"><h1>Shared calendar</h1><p class="muted">${esc(pkg.why)}</p><p><a class="btn ghost" href="#/calendar">Back to my calendar</a></p></div>`;return}
+  localStorage.setItem(TEAM_KEY,JSON.stringify({code:teamCode,label:pkg.name}));
+  applyCustomCategories(pkg.categories||[]);
+  const contact={href:(pkg.contact&&pkg.contact.url)||'https://ateliersonnentau.org',label:(pkg.contact&&pkg.contact.label)||'Enquiries · Atelier Sonnentau',cls:'quiet'};
+  setHeader({left:[],brand:true,right:[{href:'#/calendar',label:'My calendar',cls:'quiet'},contact,{id:'out',label:'Sign out',cls:'ghost',onClick:clientSignOut}]});
+  // display choices for the shared calendar live on the native's own record
+  own.prefs=own.prefs||{};const tp=own.prefs.team_prefs||{};pkg.prefs=tp[teamCode]||{};
+  const savePrefs=prefs=>{own.prefs.team_prefs={...(own.prefs.team_prefs||{}),[teamCode]:prefs};api.setPrefs(code,own.prefs).catch(()=>{})};
+  app.innerHTML=`<div class="row between" style="margin-bottom:14px;gap:10px;flex-wrap:wrap"><h1 style="margin:0">${esc(pkg.name)}</h1><span class="small muted">shared with you · signed in as ${esc(pkg.viewer_name||own.name)}</span></div><div id="calroot"></div><p class="cal-contact"><a class="btn ghost" href="${esc(contact.href)}" target="_blank" rel="noopener" id="contactbtn">${esc(contact.label)} →</a></p>`;
+  ACT.start(code);ACT.view('synastry',{team:pkg.name});
+  const cb=$('#contactbtn');if(cb)cb.addEventListener('click',()=>ACT.action('contact',{label:contact.label}));
+  drawCalendar(pkg,$('#calroot'),{code:teamCode,memberCode:code,savePrefs,viewerName:pkg.viewer_name||own.name});
+  let last=JSON.stringify([pkg.influences,pkg.notes]);
+  const refresh=async()=>{if(!$('#calroot')||localStorage.getItem(CODE_KEY)!==code){stopRefresh();return}
+    try{const fresh=await api.openTeam(code,teamCode);if(!fresh.ok){stopRefresh();go('#/calendar');return}
+      const now=JSON.stringify([fresh.influences,fresh.notes]);if(now!==last){last=now;fresh.prefs=pkg.prefs;pkg=fresh;applyCustomCategories(pkg.categories||[]);drawCalendar(pkg,$('#calroot'),{code:teamCode,memberCode:code,savePrefs,viewerName:pkg.viewer_name||own.name});toast('The shared calendar has been updated')}}catch(e){}};
+  stopRefresh();refreshTimer=setInterval(refresh,60000);refreshOnShow=()=>{if(document.visibilityState==='visible')refresh()};document.addEventListener('visibilitychange',refreshOnShow);
+}
 /* The gift opening shown on a gifted client's first visit (and previewed by the astrologer). */
 const GIFT_OCCASIONS=[['neutral','Neutral'],['birthday','Birthday'],['valentines','Valentine’s'],['christmas','Christmas'],['anniversary','Anniversary']];
 const GIFT_PARTICLES={birthday:['✦','●','▲','■'],valentines:['♥','♡','✦'],christmas:['❄','✦','❅'],anniversary:['✦','❋','●'],neutral:['✦','●','·']};
@@ -2214,7 +2336,8 @@ async function renderCalendar(){
   if(!pkg.ok){localStorage.removeItem(CODE_KEY);renderClientLogin(pkg.why);return}
   applyCustomCategories(pkg.categories||[]);
   const contact={href:(pkg.contact&&pkg.contact.url)||'https://ateliersonnentau.org',label:(pkg.contact&&pkg.contact.label)||'Enquiries · Atelier Sonnentau',cls:'quiet'};
-  setHeader({left:[],brand:true,right:[contact,{id:'out',label:'Sign out',cls:'ghost',onClick:clientSignOut}]});
+  const tl=teamLink();
+  setHeader({left:[],brand:true,right:[...(tl?[{href:'#/synastry/'+encodeURIComponent(tl.code),label:tl.label||'Shared calendar',cls:'quiet'}]:[]),contact,{id:'out',label:'Sign out',cls:'ghost',onClick:clientSignOut}]});
   const gift=pkg.gift&&pkg.gift.enabled&&!(pkg.prefs&&pkg.prefs.gift_seen)?pkg.gift:null;
   if(gift){sessionStorage.setItem('as.welcomed',code);showGift(pkg.name,gift,()=>{pkg.prefs={...(pkg.prefs||{}),gift_seen:true};api.setPrefs(code,pkg.prefs).catch(()=>{});if(ACT.code)ACT.action('gift opened',{occasion:gift.occasion})})}
   else if(sessionStorage.getItem('as.welcomed')!==code){
@@ -2223,14 +2346,18 @@ async function renderCalendar(){
     w.innerHTML=`<div><p class="wk">Welcome,</p><h1>${esc(pkg.name)}</h1><div class="orn" aria-hidden="true">${icon('star','var(--gold)',16)}</div></div>`;
     document.body.appendChild(w);w.addEventListener('animationend',()=>w.remove());setTimeout(()=>w.remove(),3200);
   }
-  app.innerHTML=`<h1 style="margin-bottom:14px">Hello, ${esc(pkg.name)}</h1><div id="calroot"></div><p class="cal-contact"><a class="btn ghost" href="${esc(contact.href)}" target="_blank" rel="noopener" id="contactbtn">${esc(contact.label)} →</a></p>`;
+  const hasCards=Array.isArray(pkg.cards)&&pkg.cards.length>0;
+  const cardsNew=()=>{const seen=(pkg.prefs&&pkg.prefs.cards_seen)||{};return hasCards&&pkg.cards.some(r=>seen[r.date]!==readingHash(r))};
+  app.innerHTML=`<div class="row between" style="margin-bottom:14px;gap:10px;flex-wrap:wrap"><h1 style="margin:0">Hello, ${esc(pkg.name)}</h1>${hasCards?`<button type="button" class="btn cardsbtn" id="cardsbtn">${icon('star','#fff',13)} Card of the day${cardsNew()?'<span class="nb" aria-label="new"></span>':''}</button>`:''}</div><div id="calroot"></div><p class="cal-contact"><a class="btn ghost" href="${esc(contact.href)}" target="_blank" rel="noopener" id="contactbtn">${esc(contact.label)} →</a></p>`;
+  const cbtn=$('#cardsbtn');if(cbtn)cbtn.onclick=()=>{const markSeen=r=>{pkg.prefs=pkg.prefs||{};pkg.prefs.cards_seen={...(pkg.prefs.cards_seen||{}),[r.date]:readingHash(r)};api.setPrefs(code,pkg.prefs).catch(()=>{});const nb=cbtn.querySelector('.nb');if(nb&&!cardsNew())nb.remove()};
+    showCards(pkg.cards,{back:pkg.tarot_back,viewerName:pkg.name,onOpen:r=>{ACT.action('cards opened',{date:r.date,cards:r.cards.length});markSeen(r)},onRead:r=>ACT.action('cards read',{date:r.date}),reply:async(r,t)=>{const rs=await api.replyCard(code,r.date,t);ACT.action('card reply',{date:r.date});if(Array.isArray(rs)){const hit=pkg.cards.find(x=>x.date===r.date);if(hit)hit.replies=rs;markSeen(hit||r)}return rs}})};
   ACT.start(code);
   const cb=$('#contactbtn');if(cb)cb.addEventListener('click',()=>ACT.action('contact',{label:contact.label}));
   drawCalendar(pkg,$('#calroot'),{code});
-  let last=JSON.stringify([pkg.influences,pkg.notes]);
+  let last=JSON.stringify([pkg.influences,pkg.notes,pkg.cards]);
   const refresh=async()=>{if(!$('#calroot')||localStorage.getItem(CODE_KEY)!==code){stopRefresh();return}
     try{const fresh=await api.openCalendar(code);if(!fresh.ok){stopRefresh();localStorage.removeItem(CODE_KEY);renderClientLogin(fresh.why);return}
-      const now=JSON.stringify([fresh.influences,fresh.notes]);if(now!==last){last=now;fresh.prefs=pkg.prefs;pkg=fresh;applyCustomCategories(pkg.categories||[]);drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
+      const now=JSON.stringify([fresh.influences,fresh.notes,fresh.cards]);if(now!==last){last=now;fresh.prefs=pkg.prefs;const cardsChanged=JSON.stringify(fresh.cards)!==JSON.stringify(pkg.cards);pkg=fresh;applyCustomCategories(pkg.categories||[]);if(cardsChanged){renderCalendar();return}drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
   stopRefresh();refreshTimer=setInterval(refresh,60000);refreshOnShow=()=>{if(document.visibilityState==='visible')refresh()};document.addEventListener('visibilitychange',refreshOnShow);
 }
 function monthHint(list,y,m,onJump){
@@ -2259,7 +2386,7 @@ function drawCalendar(pkg,root,opts={}){
   const inView=i=>!team||combo==='all'||comboKey(natsOf(i))===combo;
   if(!ent.intentions)prefs.intention='';
   const shown=k=>!prefs.hidden.includes(k);
-  const savePrefs=()=>{pkg.prefs=prefs;if(opts.code&&!opts.preview)api.setPrefs(opts.code,prefs).catch(()=>{})};
+  const savePrefs=()=>{pkg.prefs=prefs;if(opts.savePrefs)opts.savePrefs(prefs);else if(opts.code&&!opts.preview)api.setPrefs(opts.code,prefs).catch(()=>{})};
   // notes from the astrologer: a note counts as new until the client has opened it (or the day it belongs to); edits make it new again
   const noteHash=nn_=>{let h=5381;const t=String(nn_.heading||'')+'|'+String(nn_.body||'')+'|'+(nn_.replies||[]).filter(r=>r.from==='astrologer').map(r=>r.body).join('|');for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
   prefs.notes_seen=prefs.notes_seen&&typeof prefs.notes_seen==='object'?prefs.notes_seen:{};
@@ -2359,7 +2486,7 @@ function drawCalendar(pkg,root,opts={}){
   log('month',{month:`${y}-${String(m+1).padStart(2,'0')}`,entries:visible.filter(i=>i.start_date.slice(0,7)<=`${y}-${String(m+1).padStart(2,'0')}`&&i.end_date.slice(0,7)>=`${y}-${String(m+1).padStart(2,'0')}`).length});
   bindJump(root,(yy,mm)=>{calState.year=yy;calState.month=mm;redraw()});
   root.addEventListener('click',e=>{const b=e.target.closest('[data-goto]');if(!b)return;const d=b.dataset.goto;const [yy,mm]=d.split('-').map(Number);if(yy!==calState.year||mm-1!==calState.month){calState.year=yy;calState.month=mm-1;calState.selected=d;redraw()}else{calState.selected=d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===d));drawDay(pkg,visible,d,root)}});
-  const rp=$('#resetprefs',root);if(rp)rp.onclick=()=>{prefs.mode='everything';prefs.intention='';prefs.hidden=[];pkg.prefs=prefs;if(opts.code)api.setPrefs(opts.code,prefs).catch(()=>{});toast(opts.preview?'Display options reset for this client':'Showing everything');redraw()};
+  const rp=$('#resetprefs',root);if(rp)rp.onclick=()=>{prefs.mode='everything';prefs.intention='';prefs.hidden=[];savePrefs();toast(opts.preview?'Display options reset for this client':'Showing everything');redraw()};
   root.__resetPrefs=()=>{prefs.mode='everything';prefs.hidden=[];prefs.intention='';savePrefs();redraw()};
   root.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calState.month+=Number(b.dataset.nav);if(calState.month<0){calState.month=11;calState.year--}if(calState.month>11){calState.month=0;calState.year++}redraw()});
   root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);log('day',{date:calState.selected,entries:visible.filter(i=>i.start_date<=calState.selected&&calState.selected<=i.end_date).map(i=>i.title).slice(0,6)});if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
@@ -2370,11 +2497,11 @@ function drawCalendar(pkg,root,opts={}){
   const ics=$('#ics',root);if(ics)ics.onclick=()=>{const pol=[];if($('#ics-sup',root).checked)pol.push('supportive');if($('#ics-cau',root).checked)pol.push('caution','especially_sensitive');if($('#ics-mix',root).checked)pol.push('mixed');
     download(`sonnentau-${String(pkg.name).toLowerCase().replace(/\W+/g,'-')}.ics`,buildICS(pkg,{inView,polarities:pol,significant:$('#ics-sig',root).checked,categories:$('#ics-cats',root).checked?CATEGORIES.map(c=>c[0]).filter(shown):[],exactTimes:$('#ics-time',root).checked,reminders:$('#ics-rem',root).checked}),'text/calendar');if(opts.code&&!opts.preview)ACT.action('export',{what:'calendar file',polarities:pol,exactTimes:$('#ics-time',root).checked});toast('Calendar file downloaded')};
   // a short reply chain under a note: the client may answer, Masha may answer back (capped, so it stays a chain rather than a chat)
-  const threadHtml=nn_=>{const rs=nn_.replies||[];const items=rs.map(r=>`<div class="rp ${r.from==='client'?'me':'them'}"><span class="who">${r.from==='client'?'You':'Masha'}</span><p>${esc(r.body)}</p></div>`).join('');
+  const threadHtml=nn_=>{const rs=nn_.replies||[];const items=rs.map(r=>`<div class="rp ${r.from==='client'?'me':'them'}"><span class="who">${r.from==='client'?(r.by&&opts.viewerName&&r.by!==opts.viewerName?esc(r.by):'You'):'Masha'}</span><p>${esc(r.body)}</p></div>`).join('');
     const form=opts.preview?'':rs.length>=NOTE_REPLY_CAP?'<p class="small muted" style="margin-top:8px">This exchange is complete.</p>':`<form class="rform"><textarea class="rtext" rows="2" maxlength="600" placeholder="${rs.length?'Reply…':'Write a reply to Masha…'}" aria-label="Your reply"></textarea><div class="row between" style="margin-top:6px"><span class="small muted">Masha can read and answer this.</span><button type="submit" class="btn small">Send reply</button></div></form>`;
     return (items?`<div class="rlist">${items}</div>`:'')+form};
   const bindThread=(holder,nn_)=>{const f=holder.querySelector('.rform');if(!f)return;f.onsubmit=async e=>{e.preventDefault();const t=f.querySelector('.rtext').value.trim();if(!t||!opts.code)return;const btn=f.querySelector('button');btn.disabled=true;
-    try{const rs=await api.replyNote(opts.code,nn_.date,t);nn_.replies=Array.isArray(rs)?rs:[...(nn_.replies||[]),{from:'client',body:t,at:new Date().toISOString()}];const th=holder.querySelector('.thread');th.innerHTML=threadHtml(nn_);bindThread(holder,nn_);markNoteSeen(nn_);ACT.action('note reply',{date:nn_.date});toast('Reply sent')}
+    try{const rs=await api.replyNote(opts.code,nn_.date,t,opts.memberCode);nn_.replies=Array.isArray(rs)?rs:[...(nn_.replies||[]),{from:'client',body:t,at:new Date().toISOString()}];const th=holder.querySelector('.thread');th.innerHTML=threadHtml(nn_);bindThread(holder,nn_);markNoteSeen(nn_);ACT.action('note reply',{date:nn_.date});toast('Reply sent')}
     catch(err){btn.disabled=false;toast('Could not send the reply — please try again')}}};
   // unroll a note; × rolls it back up before it closes
   let npTimer=null;const closeNote=()=>{const cur=$('#npholder .np',root);if(!cur||cur.classList.contains('rolling'))return;cur.classList.add('rolling');clearTimeout(npTimer);npTimer=setTimeout(()=>cur.remove(),820)};
@@ -2466,7 +2593,7 @@ function openChangePassword(){
 }
 
 /* ---------------- Admin ---------------- */
-let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null, wsOvMember=null, wsTeamDraft=null, wsTeamDraftDirty=false, wsNative=null;
+let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null, wsOvMember=null, wsTeamDraft=null, wsTeamDraftDirty=false, wsNative=null, wsCardDate=null, wsCardDraft=null;
 async function renderAdmin(path){
   const session=await api.adminSession();
   if(!session){go('#/astrologer');return}
@@ -2475,7 +2602,7 @@ async function renderAdmin(path){
   app.innerHTML='<p class="loading">Loading…</p>';
   const m=path.match(/^\/admin\/client\/([^/]+)/);
   if(m)return renderWorkspace(m[1]);
-  return renderDashboard();
+  return renderDashboard(path.startsWith('/admin/teams')?'teams':'clients');
 }
 function accessState(c){
   if(c.status==='archived'||c.status==='inactive')return{ok:false,why:'status is '+c.status};
@@ -2484,9 +2611,9 @@ function accessState(c){
   if(c.access_end&&t>c.access_end)return{ok:false,why:'access ended '+fmtShort(c.access_end)};
   return{ok:true};
 }
-async function renderDashboard(){
-  wsTab='client';
-  const clients=await api.listClients();
+async function renderDashboard(kind='clients'){
+  wsTab='client';const teamsView=kind==='teams';
+  const clients=(await api.listClients()).filter(c=>isTeam(c)===teamsView);
   let presence={},actNote='';
   const loadPresence=async()=>{const out={};const recent=await api.recentActivity(600);for(const e of recent){const o=out[e.client_id]=out[e.client_id]||{last:e};const d=e.detail||{};if(!o.view&&((e.event==='view'&&!ACTION_SCREENS.includes(d.screen))||e.event==='open'))o.view=e}
     for(const id in out){const e=out[id].last;out[id].online=e.event!=='close'&&Date.now()-new Date(e.at).getTime()<ONLINE_MS;out[id].screen=out[id].view?screenText(out[id].view.detail):''}return out};
@@ -2495,15 +2622,16 @@ async function renderDashboard(){
   const active=clients.filter(c=>c.status!=='archived'), archived=clients.filter(c=>c.status==='archived');
   const presText=p=>!p?'':p.online?` · <span style="color:var(--supportive)">● on the app now</span>${p.screen?' — '+esc(p.screen):''}`:` · seen ${esc(ago(p.last.at))}`;
   const pres=c=>`<span data-pres="${c.id}">${presText(presence[c.id])}</span>`;
-  const li=c=>{const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};return `<li><div><a href="#/admin/client/${c.id}">${esc(c.name||'Unnamed')}</a>${isTeam(c)?' <span class="pill significant" style="vertical-align:2px">Team · '+teamOf(c).members.length+' natives</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:2px">† discarnate</span>':''}<div class="small muted"><span class="code" style="font-size:.8rem;padding:1px 6px">${esc(c.access_code)}</span>${c.access_end?` · until ${fmtShort(c.access_end)}`:''}${ent.remedial?' · remedial add-on':''}${pres(c)}</div></div><span class="pill ${st.ok?'supportive':'draft'}">${st.ok?'Active':c.status==='archived'?'Archived':c.status==='inactive'?'Inactive':'Not yet / expired'}</span></li>`};
-  app.innerHTML=`<div class="row between" style="margin-bottom:14px"><h1 style="margin:0">Clients</h1><div class="row"><button class="btn ghost" id="newteam" title="Several natives behind one code — synastry calendar">New team</button><button class="btn" id="newc">New client</button></div></div>${actNote}
-   <div class="card"><ul class="list">${active.map(li).join('')||'<li class="muted">No clients yet. Create your first client to generate an access code.</li>'}</ul>
+  const li=c=>{const st=accessState(c);const ent={...ENT_DEFAULT,...(c.entitlements||{})};return `<li><div><a href="#/admin/client/${c.id}">${esc(c.name||'Unnamed')}</a>${isTeam(c)?' <span class="small muted">· '+teamOf(c).members.map(m=>esc(m.name||'?')).join(', ')+'</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:2px">† discarnate</span>':''}<div class="small muted"><span class="code" style="font-size:.8rem;padding:1px 6px">${esc(c.access_code)}</span>${c.access_end?` · until ${fmtShort(c.access_end)}`:''}${ent.remedial?' · remedial add-on':''}${pres(c)}</div></div><span class="pill ${st.ok?'supportive':'draft'}">${st.ok?'Active':c.status==='archived'?'Archived':c.status==='inactive'?'Inactive':'Not yet / expired'}</span></li>`};
+  app.innerHTML=`<div class="row between" style="margin-bottom:14px;gap:10px;flex-wrap:wrap"><div class="row" style="gap:14px"><h1 style="margin:0">${teamsView?'Teams':'Clients'}</h1><span class="seg"><a href="#/admin" class="seglink" aria-pressed="${!teamsView}">Clients</a><a href="#/admin/teams" class="seglink" aria-pressed="${teamsView}">Teams</a></span></div>${teamsView?'<button class="btn" id="newteam">New team</button>':'<button class="btn" id="newc">New client</button>'}</div>${actNote}
+   ${teamsView?'<p class="small muted" style="margin:-4px 0 12px">A team is several natives behind one shared (synastry) calendar. Each native signs in with their own client code and opens the shared calendar through its link; the team’s own code is never a sign-in.</p>':''}
+   <div class="card"><ul class="list">${active.map(li).join('')||(teamsView?'<li class="muted">No teams yet. Create one to lay two or more natives’ charts side by side and give them a shared calendar.</li>':'<li class="muted">No clients yet. Create your first client to generate an access code.</li>')}</ul>
    ${archived.length?`<details style="margin-top:10px"><summary class="small muted">Archived (${archived.length})</summary><ul class="list" style="margin-top:8px">${archived.map(li).join('')}</ul></details>`:''}</div>
    <p class="small muted" style="margin-top:18px"><button type="button" class="btn quiet small" id="diag">Connection check</button> <span class="muted">— if something is not saving, run this and send the result to whoever is helping you.</span></p><div id="diagout"></div>`;
-  $('#diag').onclick=runDiagnostics;
-  if(actTimer)clearInterval(actTimer);actTimer=setInterval(async()=>{if(!$('#newc')){clearInterval(actTimer);actTimer=null;return}try{const p=await loadPresence();document.querySelectorAll('[data-pres]').forEach(el=>{el.innerHTML=presText(p[el.dataset.pres])})}catch(e){}},45000);
-  $('#newc').onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New client',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{}});go('#/admin/client/'+c.id)});
-  $('#newteam').onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New team',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{team:{members:[],combos:[]}}});go('#/admin/client/'+c.id)});
+  const dg=$('#diag');if(dg)dg.onclick=runDiagnostics;
+  if(actTimer)clearInterval(actTimer);actTimer=setInterval(async()=>{if(!$('#newc')&&!$('#newteam')){clearInterval(actTimer);actTimer=null;return}try{const p=await loadPresence();document.querySelectorAll('[data-pres]').forEach(el=>{el.innerHTML=presText(p[el.dataset.pres])})}catch(e){}},45000);
+  const nc=$('#newc');if(nc)nc.onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New client',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{}});go('#/admin/client/'+c.id)});
+  const nt=$('#newteam');if(nt)nt.onclick=guard(async()=>{const c=await api.saveClient({id:uuid(),name:'New team',access_code:genCode(),timezone:'',status:'active',language:'en',default_disclaimer:'general',entitlements:{...ENT_DEFAULT},jyotish:{team:{members:[],combos:[]}}});go('#/admin/client/'+c.id)});
 }
 async function runDiagnostics(){
   const out=$('#diagout');out.innerHTML='<p class="loading">Checking…</p>';const rows=[];
@@ -2534,16 +2662,16 @@ async function runInfluenceDiagnostics(c){
    <p class="small muted" style="margin-top:8px">${rows.every(r=>r[0])?'Saving and reading influences works for this client. If one you added is still missing, check its dates (the calendar shows one month at a time) and whether it was saved as a draft.':'The red line is the step that fails. '+esc(explain(rows.find(r=>!r[0])[2])||'')}</p></div>`;
 }
 async function renderWorkspace(id){
-  if(wsClient!==id){wsClient=id;wsTab='client';wsOvMember=null;wsTeamDraft=null;wsTeamDraftDirty=false;wsNative=null}
+  if(wsClient!==id){wsClient=id;wsTab='client';wsOvMember=null;wsTeamDraft=null;wsTeamDraftDirty=false;wsNative=null;wsCardDate=null;wsCardDraft=null}
   let c;try{c=normClient(await api.getClient(id))}catch(e){go('#/admin');return}
   const [influences,notes,allClients]=await Promise.all([api.listInfluences(id),api.listNotes(id).catch(e=>{console.warn(e);return null}),isTeam(c)?api.listClients().then(l=>l.map(normClient)).catch(()=>[]):Promise.resolve([])]);
   const ctx={c,influences,notes:notes||[],notesUnavailable:notes===null,allClients,reload:()=>renderWorkspace(id)};
-  const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['preview','Client preview'],['activity','Activity']];
-  app.innerHTML=`<p class="crumbs"><a href="#/admin">Clients</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}${isTeam(c)?' <span class="pill significant" style="vertical-align:middle;font-size:.8rem">Team</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:middle;font-size:.8rem">† discarnate</span>':''}</h1>
+  const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['cards','Cards'],['preview','Client preview'],['activity','Activity']];
+  app.innerHTML=`<p class="crumbs"><a href="${isTeam(c)?'#/admin/teams':'#/admin'}">${isTeam(c)?'Teams':'Clients'}</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}${isTeam(c)?' <span class="pill significant" style="vertical-align:middle;font-size:.8rem">Team</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:middle;font-size:.8rem">† discarnate</span>':''}</h1>
    <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${wsTab===k}" data-tab="${k}">${l}</button>`).join('')}</div><div id="tabbody"></div>`;
   app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{wsTab=b.dataset.tab;renderWorkspace(id)});
   const body=$('#tabbody');
-  ({client:tabClient,natal:tabNatal,calendar:tabCalendar,influences:tabInfluences,preview:tabPreview,activity:tabActivity})[wsTab](ctx,body);
+  ({client:tabClient,natal:tabNatal,calendar:tabCalendar,influences:tabInfluences,cards:tabCards,preview:tabPreview,activity:tabActivity})[wsTab](ctx,body);
 }
 /* ---------------- Client activity (astrologer side) ---------------- */
 const ONLINE_MS=3*60000; // a client counts as "on the app" if something was heard from them in the last three minutes
@@ -2552,7 +2680,7 @@ const fmtDT=d=>new Date(d).toLocaleString(undefined,{weekday:'short',month:'shor
 const fmtDur=ms=>{const m=Math.round(ms/60000);if(m<1)return 'under a minute';if(m<60)return m+' min';const h=Math.floor(m/60);return h+' h '+(m%60?(m%60)+' min':'')};
 const monthLabel=ym=>{const [y,m]=String(ym||'').split('-').map(Number);return y&&m?new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(ym||'')};
 const fmtMs=ms=>ms<1000?'':ms<60000?Math.round(ms/1000)+' s':ms<3600000?Math.round(ms/60000)+' min':fmtDur(ms);
-const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact','note opened','note reply'];
+const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact','note opened','note reply','cards opened','cards read','card reply'];
 const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;
   if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;
@@ -2561,6 +2689,7 @@ const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='copy')return `copied text${d.entry?' from “'+d.entry+'”':''}${d.chars?' ('+d.chars+' characters)':''}`;
   if(sc==='print')return 'printed the page';
   if(sc==='open entry')return `opened “${d.entry||''}”`;
+  if(sc==='cards opened')return `opened the card of the day${d.date?' ('+fmtShort(d.date)+')':''}`;if(sc==='cards read')return 'unrolled the card interpretation';if(sc==='card reply')return 'replied under the cards';if(sc==='synastry')return 'opened the shared calendar'+(d.team?' “'+d.team+'”':'');
   if(sc==='gift opened')return 'opened their gift';
   if(sc==='note opened')return `unrolled your note for ${d.date?fmtShort(d.date):'a day'}`;
   if(sc==='contact')return 'tapped the enquiries link';
@@ -2630,6 +2759,7 @@ function tabClient(ctx,body){const {c,reload}=ctx;
      <label class="f"><span>Birth time</span><input type="time" data-f="birth_time" value="${esc(t5(m.birth_time)||'')}"></label><label class="f"><span>Birth location</span><input type="text" data-f="birth_location" value="${esc(m.birth_location||'')}"></label>
      <label class="f"><span>Time zone</span><input type="text" data-f="timezone" value="${esc(m.timezone||'')}" placeholder="e.g. Europe/Paris"></label><label class="f"><span>Latitude · longitude</span><div class="row" style="gap:6px;flex-wrap:nowrap"><input type="number" step="0.0001" data-f="birth_latitude" value="${m.birth_latitude??''}" placeholder="lat"><input type="number" step="0.0001" data-f="birth_longitude" value="${m.birth_longitude??''}" placeholder="lon"></div></label></div>
      <div class="row" style="gap:14px;align-items:flex-end;margin-top:4px"><label class="chk" style="margin:0 0 8px"><input type="checkbox" data-f="discarnate" ${m.discarnate?'checked':''}>Discarnate (deceased) — kept for analysis and synastry</label><label class="f" style="margin:0;max-width:200px"><span>Passed on (optional)</span><input type="date" data-f="passed_on" value="${esc(m.passed_on||'')}"></label></div>
+     <label class="f" style="max-width:420px"><span>Signs in as <em class="muted">— the client account that may open the shared calendar</em></span><select data-f="source_client_id"><option value="">not linked — analysis only, cannot open the shared calendar</option>${(ctx.allClients||[]).filter(o=>o.id!==c.id&&!isTeam(o)).map(o=>`<option value="${o.id}" ${m.source_client_id===o.id?'selected':''}>${esc(o.name)} · ${esc(o.access_code)}</option>`).join('')}</select></label>
      <p class="row" style="gap:6px;margin:8px 0 0"><button type="button" class="btn ghost small" data-geo>Find birth place</button><button type="button" class="btn quiet small" data-rm>Remove</button><span class="small muted" data-geoout></span></p></fieldset>`;
   body.innerHTML=`<form id="cf" class="card"><h2>${team?'Team':'Client'}</h2><div class="grid2">
    ${fld(team?'Team name (what the calendar greets them with, e.g. “Noor & Sam”)':'Name','name',c.name)}${fld('Preferred language','language',c.language||'en')}
@@ -2670,8 +2800,10 @@ function tabClient(ctx,body){const {c,reload}=ctx;
     <label class="f"><span>Access starts (optional)</span><input type="date" id="access_start" value="${esc(c.access_start||'')}"></label>
     <label class="f"><span>Access ends (blank = indefinite)</span><input type="date" id="access_end" value="${esc(c.access_end||'')}"></label>
    </div>
-   <label class="f"><span>Access code</span></label>
-   <div class="row"><span class="code">${esc(c.access_code)}</span><button type="button" class="btn ghost small" id="copycode">Copy code</button><button type="button" class="btn ghost small" id="copyinv">Copy invitation</button><button type="button" class="btn quiet small" id="regen">Regenerate</button></div>
+   ${team?`<label class="f"><span>Synastry link</span></label>
+   <div class="row"><span class="code" style="letter-spacing:0;font-size:.85rem">${esc(siteUrl)}#/synastry/${esc(c.access_code)}</span><button type="button" class="btn ghost small" id="copylink">Copy link</button><button type="button" class="btn ghost small" id="copyinv">Copy invitation</button><button type="button" class="btn quiet small" id="regen">Regenerate</button></div>
+   <p class="small muted" style="margin:6px 0 0">Send this link to the natives. Each opens it and signs in with <em>their own</em> client code; the shared calendar then appears beside their own. Only natives linked above (“Signs in as”) get in — the team code itself never signs anyone in.</p>`:`<label class="f"><span>Access code</span></label>
+   <div class="row"><span class="code">${esc(c.access_code)}</span><button type="button" class="btn ghost small" id="copycode">Copy code</button><button type="button" class="btn ghost small" id="copyinv">Copy invitation</button><button type="button" class="btn quiet small" id="regen">Regenerate</button></div>`}
       <h3 style="margin-top:18px">What this client can access</h3>
    ${ENTITLEMENTS.map(([k,l,d])=>`<label class="chk" style="align-items:flex-start"><input type="checkbox" data-ent="${k}" ${ent[k]?'checked':''}><span>${l}<br><span class="small muted">${d}</span></span></label>`).join('')}
    <p style="margin-top:14px"><button type="button" class="btn" id="saveaccess">Save access settings</button>${c.status==='archived'?'<button type="button" class="btn quiet" id="delc">Delete permanently</button>':''}</p>
@@ -2687,7 +2819,7 @@ function tabClient(ctx,body){const {c,reload}=ctx;
     await api.saveClient(o);toast((team?'Team':'Client')+' saved'+note);reload()});
   if(team){const readMembers=()=>[...body.querySelectorAll('#members fieldset.member')].map(fs=>{const g=f=>fs.querySelector(`[data-f=${f}]`);const prev=team.members.find(m=>m.id===fs.dataset.m)||{};
       const num=v=>v===''||v===null||v===undefined?null:Number(v);
-      return {...prev,id:fs.dataset.m,name:g('name').value.trim(),birth_date:g('birth_date').value||null,birth_time:g('birth_time').value||null,birth_location:g('birth_location').value.trim(),timezone:g('timezone').value.trim(),birth_latitude:num(g('birth_latitude').value),birth_longitude:num(g('birth_longitude').value),discarnate:g('discarnate').checked,passed_on:g('passed_on').value||null}});
+      return {...prev,id:fs.dataset.m,name:g('name').value.trim(),source_client_id:g('source_client_id').value||null,birth_date:g('birth_date').value||null,birth_time:g('birth_time').value||null,birth_location:g('birth_location').value.trim(),timezone:g('timezone').value.trim(),birth_latitude:num(g('birth_latitude').value),birth_longitude:num(g('birth_longitude').value),discarnate:g('discarnate').checked,passed_on:g('passed_on').value||null}});
     const redrawMembers=list=>{wsTeamDraft=list;reload()};
     body.querySelectorAll('#members [data-rm]').forEach(b=>b.onclick=()=>{const fs=b.closest('fieldset');if(!confirm('Remove '+(fs.querySelector('[data-f=name]').value||'this native')+' from the team?'))return;const list=readMembers().filter(m=>m.id!==fs.dataset.m);wsTeamDraftDirty=true;redrawMembers(list)});
     body.querySelectorAll('#members [data-geo]').forEach(b=>b.onclick=()=>{const fs=b.closest('fieldset');pickLocation(fs.querySelector('[data-f=birth_location]').value,p=>{fs.querySelector('[data-f=birth_latitude]').value=p.lat;fs.querySelector('[data-f=birth_longitude]').value=p.lon;if(p.timezone)fs.querySelector('[data-f=timezone]').value=p.timezone;if(!fs.querySelector('[data-f=birth_location]').value.trim())fs.querySelector('[data-f=birth_location]').value=[p.name,p.country].filter(Boolean).join(', ');fs.querySelector('[data-geoout]').textContent=`${p.lat}°, ${p.lon}°${p.timezone?' · '+p.timezone:''} — press Save natives.`})});
@@ -2725,8 +2857,10 @@ function tabClient(ctx,body){const {c,reload}=ctx;
   const ga=$('#gift-again');if(ga)ga.onclick=guard(async()=>{const pkg=await api.openCalendar(c.access_code,true);if(!pkg.ok)throw new Error(pkg.why);const prefs={...(pkg.prefs||{})};delete prefs.gift_seen;await api.setPrefs(c.access_code,prefs);toast('The gift will open again on their next visit')});
   $('#saveaccess').onclick=guard(async()=>{const o={...c,status:$('#status').value,access_start:$('#access_start').value,access_end:$('#access_end').value,entitlements:{}};body.querySelectorAll('[data-ent]').forEach(x=>o.entitlements[x.dataset.ent]=x.checked);await api.saveClient(o);toast('Access updated');reload()});
   $('#regen').onclick=guard(async()=>{if(confirm('Regenerate the access code? The old code will stop working everywhere.')){await api.saveClient({...c,access_code:genCode()});toast('New code generated');reload()}});
-  $('#copycode').onclick=()=>copy(c.access_code,'Code copied');
-  $('#copyinv').onclick=()=>copy(`Hello ${c.name},\n\nYour astrological calendar is ready. Open ${siteUrl} , choose “Client login”, and enter your access code:\n\n${c.access_code}\n\nThe code works on any device. Please keep it private.\n\nAtelier Sonnentau`,'Invitation copied');
+  const cl=$('#copylink');if(cl)cl.onclick=()=>copy(`${siteUrl}#/synastry/${c.access_code}`,'Synastry link copied');
+  const cc=$('#copycode');if(cc)cc.onclick=()=>copy(c.access_code,'Code copied');
+  if(team){$('#copyinv').onclick=()=>copy(`Hello,\n\nYour shared astrological calendar (${c.name}) is ready. Open this link and sign in with your own access code:\n\n${siteUrl}#/synastry/${c.access_code}\n\nThe shared calendar then appears beside your own.\n\nAtelier Sonnentau`,'Invitation copied')}
+  else $('#copyinv').onclick=()=>copy(`Hello ${c.name},\n\nYour astrological calendar is ready. Open ${siteUrl} , choose “Client login”, and enter your access code:\n\n${c.access_code}\n\nThe code works on any device. Please keep it private.\n\nAtelier Sonnentau`,'Invitation copied');
   const del=$('#delc');if(del)del.onclick=guard(async()=>{if(confirm(`Permanently delete ${c.name} and every influence in their calendar? This cannot be undone.`)){await api.deleteClient(c.id);go('#/admin')}});
 }
 function tabNatal(ctx,body){const {c,reload}=ctx;
@@ -2790,10 +2924,10 @@ function tabCalendar(ctx,body){
 }
 const NOTE_REPLY_CAP=8;
 function noteThreadAdmin(nn_,c){const rs=nn_.replies||[];const last=rs[rs.length-1];const name=c.name||'the client';
-  const items=rs.map(r=>`<div class="rp ${r.from==='astrologer'?'me':'them'}"><span class="who">${r.from==='astrologer'?'You':esc(name)}</span>${esc(r.body)}</div>`).join('');
+  const items=rs.map(r=>`<div class="rp ${r.from==='astrologer'?'me':'them'}"><span class="who">${r.from==='astrologer'?'You':esc(r.by||name)}</span>${esc(r.body)}</div>`).join('');
   const awaiting=last&&last.from==='client';
   const form=rs.length>=NOTE_REPLY_CAP?'<p class="small muted" style="margin:6px 0 0">This exchange has reached its limit.</p>':(rs.length||awaiting)?`<form data-replynote="${nn_.note_date}" class="row" style="gap:6px;margin-top:6px;align-items:flex-start"><textarea rows="1" maxlength="600" placeholder="${awaiting?'Answer '+esc(name)+'…':'Add a reply…'}" style="flex:1;min-width:0;font:inherit;padding:6px 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);resize:vertical" aria-label="Reply to ${esc(name)}"></textarea><button type="submit" class="btn small">Reply</button></form>`:'';
-  return rs.length?`<div class="nthread">${awaiting?'<span class="pill significant" style="justify-self:start">reply from '+esc(name)+'</span>':''}${items}</div>${form}`:''}
+  return rs.length?`<div class="nthread">${awaiting?'<span class="pill significant" style="justify-self:start">reply from '+esc(last.by||name)+'</span>':''}${items}</div>${form}`:''}
 // Copy a suggested example period (from the split-screen Gochara) into the editor form; existing text fields are kept and the technical lines appended.
 function applyPeriod(f,per){const set=(n,v)=>{if(f.elements[n])f.elements[n].value=v};const chips=(n,keys)=>f.querySelectorAll(`input[name=${n}]`).forEach(x=>{x.checked=keys.includes(x.value)});
   set('title',per.title);set('start_date',per.start);set('end_date',per.end);set('polarity',per.polarity);set('intensity',String(per.intensity));if(f.elements.significant)f.elements.significant.checked=!!per.significant;
@@ -2803,6 +2937,109 @@ function applyPeriod(f,per){const set=(n,v)=>{if(f.elements[n])f.elements[n].val
   const tech=[`${per.start} – ${per.end} (${per.days} days) · daśā ${per.dasha}${per.sadeSati?' · '+(per.sadeSati.kind==='sade sati'?'Sade Sati, '+per.sadeSati.phase:per.sadeSati.phase):''}`,...(per.opens.length?['Opens as '+per.opens.join('; ')+'.']:[]),...per.facts.map(x=>`${GOCHARA.GRAHA.find(g=>g.key===x.key).name} ${x.hm}H from Chandra, ${x.hl}H from Lagna (${GOCHARA.RASHI_EN[x.sign]}) — ${x.good?(x.vedhaBy?'favourable but obstructed by '+x.vedhaBy:'favourable'):'unfavourable'}${x.lord?', dasha lord':''}`)].join('\n');
   const tb=f.elements.technical_basis;tb.value=(tb.value.trim()?tb.value.trimEnd()+'\n':'')+tech;
   if(per.windows.length){const pn=f.elements.private_notes;pn.value=(pn.value.trim()?pn.value.trimEnd()+'\n\n':'')+'Windows within this period:\n'+per.windows.map(w=>`${w.date}: ${w.text}`).join('\n')}}
+/* ---------------- Card of the day (an add-on): the Rider–Waite–Smith deck, the client's table, the astrologer's picker ---------------- */
+const TAROT_MAJOR=['The Fool','The Magician','The High Priestess','The Empress','The Emperor','The Hierophant','The Lovers','The Chariot','Strength','The Hermit','Wheel of Fortune','Justice','The Hanged Man','Death','Temperance','The Devil','The Tower','The Star','The Moon','The Sun','Judgement','The World'];
+const TAROT_MAJOR_FILES=['00_Fool','01_Magician','02_High_Priestess','03_Empress','04_Emperor','05_Hierophant','06_Lovers','07_Chariot','08_Strength','09_Hermit','10_Wheel_of_Fortune','11_Justice','12_Hanged_Man','13_Death','14_Temperance','15_Devil','16_Tower','17_Star','18_Moon','19_Sun','20_Judgement','21_World'];
+const TAROT_RANKS=['Ace','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Page','Knight','Queen','King'];
+const TAROT_SUITS=[['wands','Wands','Wands'],['cups','Cups','Cups'],['swords','Swords','Swords'],['pents','Pentacles','Pents']];
+const TAROT_CARDS=[...TAROT_MAJOR.map((name,i)=>({key:'major-'+String(i).padStart(2,'0'),name,group:'Major Arcana',file:'RWS_Tarot_'+TAROT_MAJOR_FILES[i]+'.jpg'})),
+  ...TAROT_SUITS.flatMap(([k,label,file])=>TAROT_RANKS.map((r,i)=>({key:`${k}-${String(i+1).padStart(2,'0')}`,name:`${r} of ${label}`,group:label,file:`${file}${String(i+1).padStart(2,'0')}.jpg`})))];
+const TAROT_BY_KEY=Object.fromEntries(TAROT_CARDS.map(c=>[c.key,c]));
+const TAROT_ORIENT=[['upright','Upright'],['reversed','Reversed'],['left','Sideways (left)'],['right','Sideways (right)']];
+// The 1909 Rider–Waite–Smith images are in the public domain; Wikimedia Commons serves them. A card may carry its own uploaded image instead.
+const tarotImageUrl=card=>`https://commons.wikimedia.org/wiki/Special:FilePath/${card.file}?width=360`;
+const tarotPlaceholder=name=>'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 520"><rect width="300" height="520" rx="18" fill="#FCF8EC" stroke="#B58A4A" stroke-width="6"/><rect x="24" y="24" width="252" height="472" rx="10" fill="none" stroke="#B58A4A" stroke-width="2"/><text x="150" y="250" font-family="Cormorant Garamond, Garamond, serif" font-size="30" font-style="italic" fill="#3F466B" text-anchor="middle">${esc(name).replace(/&/g,'&amp;')}</text><text x="150" y="290" font-family="Garamond, serif" font-size="16" fill="#6E685E" text-anchor="middle">Rider–Waite</text></svg>`);
+const tarotImg=(c,custom)=>{const card=TAROT_BY_KEY[c.key]||{name:c.name||'Card',file:''};const src=c.image||custom||(card.file?tarotImageUrl(card):tarotPlaceholder(card.name));return `<img src="${esc(src)}" alt="${esc(card.name)}" loading="eager" draggable="false" onerror="this.onerror=null;this.src='${tarotPlaceholder(card.name)}'">`};
+const TAROT_BACK_SVG='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 520"><defs><pattern id="p" width="30" height="30" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="30" height="30" fill="#3F466B"/><path d="M0 15h30M15 0v30" stroke="#4F5D86" stroke-width="1.2"/><circle cx="15" cy="15" r="3" fill="#B58A4A" opacity=".7"/></pattern></defs><rect width="300" height="520" rx="18" fill="#2F3554"/><rect x="14" y="14" width="272" height="492" rx="12" fill="url(#p)"/><rect x="30" y="30" width="240" height="460" rx="8" fill="none" stroke="#B58A4A" stroke-width="2"/><circle cx="150" cy="260" r="46" fill="#2F3554" stroke="#B58A4A" stroke-width="2"/><path d="M150 222l9 27h28l-23 17 9 27-23-17-23 17 9-27-23-17h28z" fill="#B58A4A"/></svg>`);
+const readingHash=r=>{let h=5381;const t=String(r.date)+'|'+(r.cards||[]).map(c=>c.key+':'+c.orientation).join(',')+'|'+String(r.interpretation||'')+'|'+(r.replies||[]).filter(x=>x.from==='astrologer').map(x=>x.body).join('|');for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
+const CARD_REPLY_CAP=8;
+
+/* The client's window: a face-down deck on the table that shuffles, deals the pulled cards one by one into their places,
+   then a scroll tied with a ribbon that unrolls into the astrologer's interpretation. */
+function showCards(readings,opts={}){const {back,preview}=opts;let list=(readings||[]).slice().sort((a,b)=>a.date<b.date?1:-1);if(!list.length)return;
+  let cur=list[0];const dlg=document.createElement('dialog');dlg.className='tarot';document.body.appendChild(dlg);
+  const backSrc=back||TAROT_BACK_SVG;const backImg=`<img src="${esc(backSrc)}" alt="" draggable="false">`;
+  const orientCls=o=>o==='reversed'?'rev':o==='left'?'sl':o==='right'?'sr':'';
+  const who=r=>r.from==='client'?(r.by&&opts.viewerName&&r.by!==opts.viewerName?esc(r.by):'You'):'Masha';
+  const thread=r=>{const rs=r.replies||[];const items=rs.map(x=>`<div class="rp ${x.from==='client'?'me':'them'}"><span class="who">${who(x)}</span><p>${esc(x.body)}</p></div>`).join('');
+    const form=preview?'':rs.length>=CARD_REPLY_CAP?'<p class="small muted" style="margin-top:8px">This exchange is complete.</p>':`<form class="rform"><textarea class="rtext" rows="2" maxlength="600" placeholder="${rs.length?'Reply…':'Ask for another card, or for clarity…'}" aria-label="Your reply"></textarea><div class="row between" style="margin-top:6px"><span class="small muted">Masha can read and answer this.</span><button type="submit" class="btn small">Send</button></div></form>`;
+    return (items?`<div class="rlist">${items}</div>`:'')+form};
+  const render=()=>{const d=fmtDate(cur.date);
+    dlg.innerHTML=`<div class="tt"><button type="button" class="x" aria-label="Close">×</button>
+     <p class="tdate">${esc(d)}${cur.date===todayStr()?'':' <span class="muted">· an earlier reading</span>'}</p>
+     <div class="tstage" data-stage="deck">
+      <div class="deckwrap"><button type="button" class="deck" aria-label="Reveal your reading"><span class="dc d3">${backImg}</span><span class="dc d2">${backImg}</span><span class="dc d1">${backImg}</span></button>
+       <p class="tcta">Click here to see your reading</p></div>
+      <div class="tslots">${cur.cards.map((c,i)=>`<div class="tslot" style="--i:${i}"><div class="tc ${orientCls(c.orientation)}"><div class="face back">${backImg}</div><div class="face front">${tarotImg(c)}</div></div><div class="tlabel"><span class="n">${i+1}</span>${esc((TAROT_BY_KEY[c.key]||{}).name||'')}${c.orientation==='reversed'?' · reversed':c.orientation==='left'||c.orientation==='right'?' · sideways':''}</div></div>`).join('')}</div>
+      <div class="tread hidden">
+       <p class="tcap">astrologer’s interpretation:</p>
+       <div class="scroll"><div class="sroll top"></div><div class="ssheet"><p>${esc(cur.interpretation||'')}</p><div class="sig">— Masha</div></div><div class="sroll bottom"></div><button type="button" class="ribbon" aria-label="Untie the ribbon and unroll the scroll"><span class="band"></span><span class="bow"></span></button></div>
+       <div class="thread">${thread(cur)}</div>
+      </div>
+     </div>
+     ${list.length>1?`<p class="tearlier">Earlier readings: ${list.filter(r=>r!==cur).slice(0,6).map(r=>`<button type="button" class="lnk" data-r="${esc(r.date)}">${esc(fmtShort(r.date))}</button>`).join(' · ')}</p>`:''}
+    </div>`;
+    dlg.querySelector('.x').onclick=()=>{dlg.close()};
+    dlg.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{cur=list.find(r=>r.date===b.dataset.r)||cur;render()});
+    const stage=dlg.querySelector('.tstage');const deck=dlg.querySelector('.deck');
+    deck.onclick=()=>{if(stage.dataset.stage!=='deck')return;stage.dataset.stage='shuffle';if(opts.onOpen&&!preview)opts.onOpen(cur);
+      setTimeout(()=>{stage.dataset.stage='deal';const from=deck.getBoundingClientRect();
+        dlg.querySelectorAll('.tslot').forEach((slot,i)=>{const tc=slot.querySelector('.tc');const to=tc.getBoundingClientRect();tc.style.transition='none';tc.style.transform=`translate(${from.left+from.width/2-(to.left+to.width/2)}px,${from.top+from.height/2-(to.top+to.height/2)}px) scale(.72)`;tc.style.opacity='0';
+          setTimeout(()=>{tc.style.transition='';tc.style.opacity='1';tc.style.transform='';tc.classList.add('dealt');slot.classList.add('shown')},80+i*650)});
+        const n=cur.cards.length;setTimeout(()=>{stage.dataset.stage='read';const tr=dlg.querySelector('.tread');tr.classList.remove('hidden');tr.scrollIntoView({behavior:'smooth',block:'nearest'})},80+n*650+700)},1500)};
+    const rib=dlg.querySelector('.ribbon');rib.onclick=()=>{const sc=dlg.querySelector('.scroll');if(sc.classList.contains('open'))return;sc.classList.add('untie');setTimeout(()=>sc.classList.add('open'),650);if(opts.onRead&&!preview)opts.onRead(cur)};
+    const f=dlg.querySelector('.rform');if(f)f.onsubmit=async e=>{e.preventDefault();const t=f.querySelector('.rtext').value.trim();if(!t||!opts.reply)return;const btn=f.querySelector('button');btn.disabled=true;
+      try{const rs=await opts.reply(cur,t);cur.replies=Array.isArray(rs)?rs:[...(cur.replies||[]),{from:'client',body:t,at:new Date().toISOString()}];const th=dlg.querySelector('.thread');th.innerHTML=thread(cur);bindThread();toast('Sent')}catch(err){btn.disabled=false;toast('Could not send — please try again')}};
+    const bindThread=()=>{const f2=dlg.querySelector('.rform');if(f2)f2.onsubmit=f.onsubmit};
+    };
+  render();dlg.addEventListener('close',()=>{dlg.remove();if(opts.onClose)opts.onClose()});dlg.showModal();return dlg}
+
+/* The astrologer's Cards tab: pull the cards for a date, set each one's orientation and order, write the interpretation, answer replies. */
+async function tabCards(ctx,body){const {c,reload}=ctx;const ent={...ENT_DEFAULT,...(c.entitlements||{})};
+  let readings=[];let unavailable=false;try{readings=await api.listReadings(c.id)}catch(e){unavailable=true}
+  let backSetting=null;try{backSetting=await api.getSetting('tarot_back')}catch(e){}
+  const editing=wsCardDate&&readings.find(r=>r.reading_date===wsCardDate);
+  const draft=wsCardDraft||{reading_date:editing?editing.reading_date:todayStr(),cards:editing?editing.cards.map(x=>({...x})):[],interpretation:editing?editing.interpretation:''};
+  wsCardDraft=draft;
+  const opt=o=>`<select data-f="orientation">${TAROT_ORIENT.map(([k,l])=>`<option value="${k}" ${o===k?'selected':''}>${l}</option>`).join('')}</select>`;
+  const pulled=draft.cards.map((x,i)=>{const card=TAROT_BY_KEY[x.key]||{name:x.key};return `<li class="pulled" data-i="${i}"><span class="pn">${i+1}</span><span class="pimg ${x.orientation==='reversed'?'rev':x.orientation==='left'?'sl':x.orientation==='right'?'sr':''}">${tarotImg(x)}</span><div class="pbody"><strong>${esc(card.name)}</strong>${x.image?' <span class="small muted">· own image</span>':''}<div class="row" style="gap:6px;margin-top:4px">${opt(x.orientation)}<button type="button" class="btn quiet small" data-up ${i===0?'disabled':''}>↑</button><button type="button" class="btn quiet small" data-down ${i===draft.cards.length-1?'disabled':''}>↓</button><label class="btn quiet small" style="cursor:pointer">Own image<input type="file" accept="image/*" data-img style="display:none"></label>${x.image?'<button type="button" class="btn quiet small" data-noimg>Deck image</button>':''}<button type="button" class="btn quiet small" data-rm>Remove</button></div></div></li>`}).join('');
+  body.innerHTML=`<div class="card"><div class="row between" style="gap:8px;flex-wrap:wrap"><h2 style="margin:0">Card of the day</h2>${ent.tarot?'<span class="pill supportive">add-on is on for this client</span>':'<span class="pill draft">add-on is off — readings are kept but not shown</span>'}</div>
+   <p class="small muted">${ent.tarot?'The client sees a “Card of the day” button; it opens a table where the deck shuffles, deals the cards you pulled in this order and orientation, and unrolls your interpretation from a scroll. They can reply under it to ask for more cards.':'Turn on “Card of the day” under What this client can access (Client &amp; access) to show readings to this client.'}</p>
+   ${unavailable?'<p class="note small">Card readings need the latest supabase-setup.sql to be run once in the Supabase SQL Editor.</p>':`
+   <div class="grid2" style="align-items:end"><label class="f"><span>Date of the reading</span><input type="date" id="cr-date" value="${esc(draft.reading_date)}"></label>
+    <label class="f"><span>Add a card <em class="muted">— in the order you pulled them</em></span><div class="row" style="gap:6px;flex-wrap:nowrap"><select id="cr-pick" style="flex:1;min-width:0">${['Major Arcana','Wands','Cups','Swords','Pentacles'].map(g=>`<optgroup label="${g}">${TAROT_CARDS.filter(x=>x.group===g).map(x=>`<option value="${x.key}">${esc(x.name)}</option>`).join('')}</optgroup>`).join('')}</select><button type="button" class="btn small" id="cr-add">Add</button></div></label></div>
+   <ul class="plain pulledlist">${pulled||'<li class="small muted">No cards pulled yet.</li>'}</ul>
+   <label class="f"><span>Your interpretation <em class="muted">— unrolls from the scroll</em></span><textarea id="cr-text" style="min-height:120px">${esc(draft.interpretation)}</textarea></label>
+   <p class="row" style="gap:6px"><button type="button" class="btn small" id="cr-save">${editing?'Update reading':'Save reading'}</button><button type="button" class="btn ghost small" id="cr-preview">Preview the table</button>${editing?'<button type="button" class="btn quiet small" id="cr-new">Start a new reading</button>':''}<span class="small muted" id="cr-status">${editing?'Editing the reading for '+fmtDate(editing.reading_date)+'.':'Shown to the client from the chosen date on.'}</span></p>
+   ${readings.length?`<h3 style="margin-top:16px">Readings (${readings.length})</h3><ul class="list">${readings.slice().sort((a,b)=>a.reading_date<b.reading_date?1:-1).map(r=>{const rs=r.replies||[];const last=rs[rs.length-1];const awaiting=last&&last.from==='client';return `<li style="align-items:flex-start"><div style="flex:1;min-width:0"><strong>${esc(fmtDate(r.reading_date))}</strong>${r.reading_date>todayStr()?' <span class="pill draft">upcoming</span>':''} <span class="small muted">· ${r.cards.map(x=>(TAROT_BY_KEY[x.key]||{}).name+(x.orientation!=='upright'?' ('+x.orientation+')':'')).join(', ')}</span><div class="small muted">${esc(String(r.interpretation).slice(0,140))}${String(r.interpretation).length>140?'…':''}</div>
+      ${rs.length?`<div class="nthread">${awaiting?'<span class="pill significant" style="justify-self:start">reply from '+esc(last.by||c.name||'the client')+'</span>':''}${rs.map(x=>`<div class="rp ${x.from==='astrologer'?'me':'them'}"><span class="who">${x.from==='astrologer'?'You':esc(x.by||c.name||'client')}</span>${esc(x.body)}</div>`).join('')}</div>${rs.length>=CARD_REPLY_CAP?'<p class="small muted" style="margin:6px 0 0">This exchange has reached its limit.</p>':`<form data-cardreply="${r.reading_date}" class="row" style="gap:6px;margin-top:6px;align-items:flex-start"><textarea rows="1" maxlength="600" placeholder="${awaiting?'Answer…':'Add a reply…'}" style="flex:1;min-width:0;font:inherit;padding:6px 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);resize:vertical"></textarea><button type="submit" class="btn small">Reply</button></form>`}`:''}
+      </div><div class="row"><button type="button" class="btn ghost small" data-editr="${r.reading_date}">Edit</button><button type="button" class="btn quiet small" data-delr="${r.reading_date}">Remove</button></div></li>`}).join('')}</ul>`:''}
+   <details style="margin-top:16px"><summary>Deck back image</summary><p class="small muted" style="margin:8px 0">The face-down deck on the client’s table. Upload your own image to replace the default back (it is shown to every client with the add-on).</p>
+    <div class="row" style="gap:10px;align-items:center"><img src="${esc(backSetting&&backSetting.data||TAROT_BACK_SVG)}" alt="" style="width:60px;border-radius:6px;border:1px solid var(--line)"><label class="btn ghost small" style="cursor:pointer">Upload image<input type="file" id="cr-back" accept="image/*" style="display:none"></label>${backSetting&&backSetting.data?'<button type="button" class="btn quiet small" id="cr-backclear">Use the default back</button>':''}</div></details>`}
+  </div>`;
+  if(unavailable)return;
+  const keep=()=>{draft.reading_date=$('#cr-date',body).value||todayStr();draft.interpretation=$('#cr-text',body).value;body.querySelectorAll('li.pulled').forEach(li=>{draft.cards[Number(li.dataset.i)].orientation=li.querySelector('[data-f=orientation]').value})};
+  const redraw=()=>tabCards(ctx,body); // callers keep() first, then change the draft, then redraw
+  $('#cr-add',body).onclick=()=>{keep();draft.cards.push({key:$('#cr-pick',body).value,orientation:'upright'});redraw()};
+  $('#cr-date',body).onchange=()=>{keep();const r=readings.find(x=>x.reading_date===draft.reading_date);if(r&&!editing){wsCardDate=r.reading_date;wsCardDraft=null;tabCards(ctx,body)}};
+  body.querySelectorAll('li.pulled').forEach(li=>{const i=Number(li.dataset.i);
+    li.querySelector('[data-rm]').onclick=()=>{keep();draft.cards.splice(i,1);redraw()};
+    li.querySelector('[data-up]').onclick=()=>{keep();[draft.cards[i-1],draft.cards[i]]=[draft.cards[i],draft.cards[i-1]];redraw()};
+    li.querySelector('[data-down]').onclick=()=>{keep();[draft.cards[i+1],draft.cards[i]]=[draft.cards[i],draft.cards[i+1]];redraw()};
+    li.querySelector('[data-img]').onchange=guard(async e=>{const f=e.target.files[0];if(!f)return;keep();draft.cards[i].image=await shrinkImage(f,360);redraw()});
+    const ni=li.querySelector('[data-noimg]');if(ni)ni.onclick=()=>{keep();delete draft.cards[i].image;redraw()}});
+  $('#cr-save',body).onclick=guard(async()=>{keep();if(!draft.cards.length){alert('Add at least one card.');return}await api.saveReading({client_id:c.id,reading_date:draft.reading_date,cards:draft.cards,interpretation:draft.interpretation.trim()});toast('Reading saved'+(ent.tarot?' — the client can open it from '+fmtShort(draft.reading_date):' (not shown until the add-on is on)'));wsCardDate=draft.reading_date;wsCardDraft=null;tabCards(ctx,body)});
+  $('#cr-preview',body).onclick=()=>{keep();if(!draft.cards.length){alert('Add at least one card first.');return}showCards([{date:draft.reading_date,cards:draft.cards,interpretation:draft.interpretation,replies:[]}],{back:backSetting&&backSetting.data,preview:true})};
+  const nw=$('#cr-new',body);if(nw)nw.onclick=()=>{wsCardDate=null;wsCardDraft=null;tabCards(ctx,body)};
+  body.querySelectorAll('[data-editr]').forEach(b=>b.onclick=()=>{wsCardDate=b.dataset.editr;wsCardDraft=null;tabCards(ctx,body);window.scrollTo({top:0,behavior:'smooth'})});
+  body.querySelectorAll('[data-delr]').forEach(b=>b.onclick=guard(async()=>{if(confirm('Remove the reading for '+fmtDate(b.dataset.delr)+'?')){await api.deleteReading(c.id,b.dataset.delr);toast('Reading removed');if(wsCardDate===b.dataset.delr){wsCardDate=null;wsCardDraft=null}tabCards(ctx,body)}}));
+  body.querySelectorAll('form[data-cardreply]').forEach(f=>f.onsubmit=guard(async e=>{e.preventDefault();const d=f.dataset.cardreply;const t=f.querySelector('textarea').value.trim();if(!t)return;const r=readings.find(x=>x.reading_date===d);const rs=[...(r&&r.replies||[]),{from:'astrologer',body:t.slice(0,600),at:new Date().toISOString()}];await api.saveReadingReplies(c.id,d,rs);toast('Reply sent — '+(c.name||'the client')+' will see a “new” mark');tabCards(ctx,body)}));
+  $('#cr-back',body).onchange=guard(async e=>{const f=e.target.files[0];if(!f)return;const data=await shrinkImage(f,420);await api.setSetting('tarot_back',{data});toast('Deck back saved');tabCards(ctx,body)});
+  const bc=$('#cr-backclear',body);if(bc)bc.onclick=guard(async()=>{await api.setSetting('tarot_back',{data:null});toast('Default back restored');tabCards(ctx,body)});
+}
+// Downscale an uploaded image to a small JPEG data URL (long side ≤ max px) so it fits comfortably in the database.
+function shrinkImage(file,max){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,max/Math.max(img.width,img.height));const cv=document.createElement('canvas');cv.width=Math.round(img.width*s);cv.height=Math.round(img.height*s);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(url);res(cv.toDataURL('image/jpeg',.82))};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('Could not read that image.'))};img.src=url})}
+
 const mergedInterpretation=i=>[i.client_interpretation,i.prediction].map(x=>String(x||'').trim()).filter(Boolean).join('\n\n');
 function blankInfluence(clientId){return {id:uuid(),client_id:clientId,parent_id:null,title:'',start_date:todayStr(),start_time:'',end_date:todayStr(),end_time:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
   polarity:'supportive',significant:false,intensity:'',category:'',secondary_categories:[],client_interpretation:'',observation_prompt:'',reflection_prompt:'',recommended_actions:'',avoidances:'',prediction:'',remedial_note:'',disclaimer:'none',custom_disclaimer:'',
