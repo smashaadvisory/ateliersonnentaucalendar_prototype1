@@ -381,6 +381,8 @@ legend{font-family:var(--serif);font-size:1.15rem;padding:0 8px;color:var(--prim
 .kundli .hnum{font-size:2.5px;fill:var(--muted);opacity:.75;pointer-events:none}
 .kundli .pl{fill:var(--text);cursor:pointer;font-weight:500;paint-order:stroke;stroke:var(--surface);stroke-width:.9;stroke-linejoin:round}
 .kundli .pl:hover{fill:var(--primary)}
+.kundli .fl{font-weight:700}.kundli .fl.r{fill:var(--primary)}.kundli .fl.c{fill:#A0651A}.kundli .fl.ex{fill:#2F7A52}.kundli .fl.db{fill:#A23B3B}.kundli .fl.own{fill:#6A5A9A}
+.kkey b.fl{font-weight:700;margin-right:3px}.kkey b.r{color:var(--primary)}.kkey b.c{color:#A0651A}.kkey b.ex{color:#2F7A52}.kkey b.db{color:#A23B3B}.kkey b.own{color:#6A5A9A}
 .kundli .p-sel{fill:var(--primary);font-weight:700}
 .kundli .p-mark{fill:var(--significant);font-weight:600;text-decoration:underline}
 .kundli .p-contact{fill:var(--sensitive);font-weight:700;text-decoration:underline double}
@@ -503,6 +505,26 @@ dialog.tarot::backdrop{background:rgba(20,22,36,.75)}
 .tarot .tearlier .lnk{color:#D9C7A2;background:none;border:0;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:560px){.tarot .tslots{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px 8px}.tarot .tc{width:106px;height:174px}.tarot .deck{width:112px;height:184px}.tarot .tt{padding:20px 12px 32px}}
 @media(prefers-reduced-motion:reduce){.tarot .deck{animation:none}.tarot .tc{transition-duration:.3s}}
+/* reading for today: a rolled scroll tied with a bow, which unties and unrolls */
+.dscroll{position:relative;max-width:560px;margin:6px auto 4px}
+.dscroll .roll{height:20px;border-radius:10px;margin:0 -6px;background:linear-gradient(180deg,#FFFDF6,#EEE6D2 60%,#D9CDB1);box-shadow:0 5px 12px rgba(60,45,20,.18);position:relative;z-index:2;transition:height .5s,border-radius .5s}
+.dscroll:not(.open) .roll.top{height:46px;border-radius:23px;background:linear-gradient(180deg,#FFFDF6 0%,#F3ECD9 35%,#E2D7BB 70%,#CFC2A3 100%)}
+.dscroll:not(.open) .roll.bottom{display:none}
+.dscroll .roll.bottom{transform:translateY(-3px)}
+.dscroll .sheet{margin:0 4px;background:linear-gradient(180deg,#FDF9EE,#F8F2E2);border-left:1px solid var(--line);border-right:1px solid var(--line);max-height:0;overflow:hidden;padding:0 26px;transition:max-height 1.5s cubic-bezier(.3,.6,.3,1),padding .6s;box-shadow:inset 0 0 40px rgba(181,138,74,.10)}
+.dscroll.open .sheet{max-height:2400px;padding:22px 26px 20px}
+.dscroll .sheet .date{font-family:var(--sans);font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.dscroll .sheet p.body{margin:0;font-size:1.06rem;line-height:1.62;white-space:pre-line}
+.dscroll .sheet .sig{margin-top:12px;font-size:.84rem;color:var(--muted);font-style:italic}
+.dscroll .tie{position:absolute;left:50%;top:-9px;transform:translateX(-50%);width:120px;height:64px;border:0;background:transparent;padding:0;cursor:pointer;z-index:4;transition:opacity .5s,transform .7s}
+.dscroll .tie .band{position:absolute;left:52px;width:16px;top:9px;height:46px;border-radius:3px;background:linear-gradient(90deg,#8E2F2F,#B8423E 45%,#8E2F2F);box-shadow:0 2px 6px rgba(60,20,20,.3)}
+.dscroll .tie svg{position:absolute;left:0;top:0;width:120px;height:64px;filter:drop-shadow(0 3px 5px rgba(60,20,20,.3))}
+.dscroll .tie:hover svg{transform:scale(1.04)}
+.dscroll .hint{text-align:center;font-family:var(--sans);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:22px 0 0}
+.dscroll.untie .tie{opacity:0;transform:translate(-50%,46px) rotate(10deg);pointer-events:none}
+.dscroll.open .hint,.dscroll.untie .hint{display:none}
+@media(max-width:560px){.dscroll .sheet{padding:0 18px}.dscroll.open .sheet{padding:18px 18px 16px}}
+@media(prefers-reduced-motion:reduce){.dscroll .sheet{transition-duration:.2s}}
 /* the client's "Card of the day" button */
 .cardsbtn{position:relative;display:inline-flex;align-items:center;gap:8px}
 .cardsbtn .nb{position:absolute;top:-6px;right:-6px;width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--bg);animation:npulse 2s ease-out infinite}
@@ -899,8 +921,13 @@ const H_NORTH={ // house polygons in a 100×100 box; c = label anchor, dir = sta
   10:{pts:'100,50 75,75 50,50 75,25',c:[76,50],dir:'mid',s:[57,50]},11:{pts:'100,50 75,25 100,0',c:[92,25],dir:'mid',s:[80,25]},12:{pts:'100,0 75,25 50,0',c:[75,5],dir:'down',s:[75,20]}};
 const S_CELL=[[0,1],[0,2],[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],[2,0],[1,0],[0,0]]; // sign 0..11 → [row,col] (Pisces top-left, clockwise)
 const NODE=k=>k==='rahu'||k==='ketu';
-function planetLabel(p,compact){const g=`${p.ab} ${Math.floor(p.deg)}°${p.retro&&!NODE(p.key)?'ᴿ':''}`;
-  const flags=(p.dignity==='exalted'?'↑':p.dignity==='debilitated'?'↓':p.dignity==='own sign'||p.dignity==='moolatrikona'?'⌂':'')+(p.combust?'☉':'');return compact?g:g+(flags?' '+flags:'')}
+// A planet's label in a kundli: abbreviation and degree, then its state marks — always shown, however crowded the house:
+// R retrograde · C combust · ▲ exalted · ▼ debilitated · ⌂ own sign or mūlatrikoṇa
+function planetMarks(p){const m=[];if(p.retro&&!NODE(p.key))m.push(['r','R']);if(p.combust)m.push(['c','C']);
+  if(p.dignity==='exalted')m.push(['ex','▲']);else if(p.dignity==='debilitated')m.push(['db','▼']);else if(p.dignity==='own sign'||p.dignity==='moolatrikona')m.push(['own','⌂']);return m}
+function planetLabel(p,compact){const marks=planetMarks(p);const title=[p.en||p.name,p.retro&&!NODE(p.key)?'retrograde':'',p.combust?'combust':'',p.dignity||''].filter(Boolean).join(' · ');
+  return `<title>${esc(title)}</title>${p.ab} ${Math.floor(p.deg)}°${marks.map(([c,t],i)=>`<tspan class="fl ${c}" dx="${i?0.5:0.9}" font-size="${c==='r'||c==='c'?'0.78em':'0.72em'}">${t}</tspan>`).join('')}`}
+const KUNDLI_KEY='<span class="kkey"><b class="fl r">R</b> retrograde</span><span class="kkey"><b class="fl c">C</b> combust</span><span class="kkey"><b class="fl ex">▲</b> exalted</span><span class="kkey"><b class="fl db">▼</b> debilitated</span><span class="kkey"><b class="fl own">⌂</b> own sign / mūlatrikoṇa</span>';
 function houseModel(planets,refSign){const houses={};for(let h=1;h<=12;h++)houses[h]={sign:(refSign+h-1)%12,planets:[]};for(const p of planets)houses[G.houseFrom(p.sign,refSign)].planets.push(p);return houses}
 function svgOpen(cls){return `<svg viewBox="-1 -1 102 102" class="kundli ${cls||''}" role="img" font-family="inherit" text-rendering="geometricPrecision">`}
 function hl(sign,hi){const c=[];if(hi.selSign===sign)c.push('h-sel');if(hi.occupied&&hi.occupied.includes(sign))c.push('h-occ');if(hi.drishti&&hi.drishti.some(d=>d.sign===sign))c.push('h-dr');if(hi.target&&hi.target.includes(sign))c.push('h-tg');return c.join(' ')}
@@ -1694,7 +1721,7 @@ function mount(container,client,opts={}){
      <div class="g-charts ${st.mobileView} ${st.view!=='charts'?'hidden':''}">
       <figure class="g-fig natal"><figcaption><span class="seg small"><button type="button" data-natalref="lagna" aria-pressed="${S.natalRef==='lagna'}" ${natalAsc?'':'disabled'}>Lagna</button><button type="button" data-natalref="moon" aria-pressed="${S.natalRef==='moon'}">Rasi (Chandra)</button></span><div class="cap">Natal · ${client.name?esc(client.name):''} <span class="muted">${natalAsc?'Lagna '+G.RASHI[natalLagnaSign]+' '+G.fmtDeg(natalAsc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[natalMoon.sign]} ${G.fmtDeg(natalMoon.deg)}</span></div></figcaption>${render(natalModel,{style:S.style,highlight:hi.natal,cls:'natal',centreLabel:S.natalRef==='moon'?'Rasi':'Lagna'})}</figure>
       <figure class="g-fig transit"><figcaption><span class="seg small"><button type="button" data-ref="lagna" aria-pressed="${S.ref==='lagna'}" ${natalAsc?'':'disabled'}>from Lagna</button><button type="button" data-ref="moon" aria-pressed="${S.ref==='moon'}">from Chandra</button></span><div class="cap">Gochara · ${z.date} ${z.time} <span class="muted">${refWord} — 1st bhava ${G.RASHI[c.ref]}${client.name?' for '+esc(client.name):''}</span></div></figcaption>${render(trModel,{style:S.style,highlight:hi.transit,cls:'transit',centreLabel:'Gochara'})}</figure>
-      <div class="g-legend small muted"><span><i class="sw occ"></i> occupied by the selected graha</span><span><i class="sw dr"></i> receives its drishti</span><span><i class="sw tg"></i> natal graha under transit</span><span><i class="sw sel"></i> selected bhava</span><span><u>marked</u> natal graha affected · <u style="text-decoration-style:double">contact</u> within ${S.orb}°</span></div>
+      <div class="g-legend small muted">${KUNDLI_KEY}</div><div class="g-legend small muted"><span><i class="sw occ"></i> occupied by the selected graha</span><span><i class="sw dr"></i> receives its drishti</span><span><i class="sw tg"></i> natal graha under transit</span><span><i class="sw sel"></i> selected bhava</span><span><u>marked</u> natal graha affected · <u style="text-decoration-style:double">contact</u> within ${S.orb}°</span></div>
       <div class="g-mobile seg"><button type="button" data-view="natal" aria-pressed="${st.mobileView==='natal'}">Natal</button><button type="button" data-view="both" aria-pressed="${st.mobileView==='both'}">Both</button><button type="button" data-view="transit" aria-pressed="${st.mobileView==='transit'}">Transit</button></div>
      </div>
      <div class="g-dasha small">${dstr}</div>
@@ -1828,7 +1855,7 @@ function synastry(container,members,opts={}){
   function chartsPanel(){const [i,j]=st.pair;const A=ok[i],B=ok[j];
     const fig=(m,extra)=>`<figure class="g-fig"><figcaption><div class="cap">${who(m)} <span class="muted">${m.asc?'Lagna '+G.RASHI[m.lagnaSign]+' '+G.fmtDeg(m.asc.sidereal%30):'Lagna unavailable'} · Chandra ${G.RASHI[m.moon.sign]} ${G.fmtDeg(m.moon.deg)}${m.override?' · manual positions':''}</span></div></figcaption>${render({refSign:m.lagnaSign,planets:m.chart.planets},{style:S.style,cls:'natal',centreLabel:'Lagna'})}${extra||''}</figure>`;
     const overlay=(X,Y)=>`<figure class="g-fig"><figcaption><div class="cap">${esc(Y.name)}’s planets in ${esc(X.name)}’s bhavas <span class="muted">(${esc(X.name)}’s Lagna frame)</span></div></figcaption>${render({refSign:X.lagnaSign,planets:Y.chart.planets},{style:S.style,cls:'transit',centreLabel:esc(Y.name).slice(0,8)})}</figure>`;
-    return `<div class="syn-charts"><div class="g-charts" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${ok.map(m=>fig(m)).join('')}</div>
+    return `<div class="syn-charts"><div class="g-charts" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${ok.map(m=>fig(m)).join('')}<div class="g-legend small muted">${KUNDLI_KEY}</div></div>
      <h4 style="margin:14px 0 6px">Overlays — ${esc(A.name)} · ${esc(B.name)}${pairList().length>1?' <span class="small muted">(choose the pair under Relations)</span>':''}</h4>
      <div class="g-charts">${overlay(A,B)}${overlay(B,A)}</div></div>`}
   // ----- transits on everyone at the chosen moment
@@ -1968,7 +1995,7 @@ const ENTITLEMENTS=[
   ['remedial','Remedial work (purchased add-on)','Remedial notes and the “Remedies and observances” category appear only when this is on.'],
   ['export','Calendar export','Lets the client download an .ics file for their own calendar app.'],
   ['intentions','Intentions','Lets the client choose a current intention to bring related periods forward.'],
-  ['tarot','Card of the day (purchased add-on)','Shows a “Card of the day” button: the cards you pulled, dealt on a table, with your interpretation on a scroll. Set up on the Cards tab.']
+  ['tarot','Card readings (purchased add-on)','Shows a “Today’s cards” button: the cards you pulled, dealt on a table, with your interpretation on a scroll. Set up on the Cards tab.']
 ];
 const ENT_DEFAULT={remedial:false,predictions:true,export:true,intentions:true,tarot:false};
 const ALARM_WORDS=[/\bwill definitely\b/i,/\bmust\b/i,/\bdanger(ous)?\b/i,/\bdisaster\b/i,/\bno choice\b/i,/\bguarantee[ds]?\b/i,/\bfailure to\b/i,/\bbad day\b/i,/\bhave to\b/i,/\bnever\b/i,/\bcatastroph/i,/\bwill (happen|cause|bring)\b/i,/\burgent(ly)?\b/i,/\bimmediately\b/i,/\bdo not leave\b/i];
@@ -2147,6 +2174,9 @@ const api={
   async saveReading(r){return chk(await sb.from('card_readings').upsert({client_id:r.client_id,reading_date:r.reading_date,cards:r.cards||[],interpretation:r.interpretation||'',updated_at:new Date().toISOString()}).select().single())},
   async deleteReading(clientId,date){chk(await sb.from('card_readings').delete().eq('client_id',clientId).eq('reading_date',date))},
   async saveReadingReplies(clientId,date,replies){return chk(await sb.from('card_readings').update({replies}).eq('client_id',clientId).eq('reading_date',date).select().single())},
+  async listDaily(clientId){return chk(await sb.from('daily_readings').select('client_id,reading_date,body,updated_at').eq('client_id',clientId).order('reading_date',{ascending:false}))},
+  async saveDaily(r){return chk(await sb.from('daily_readings').upsert({client_id:r.client_id,reading_date:r.reading_date,body:r.body||'',updated_at:new Date().toISOString()}).select().single())},
+  async deleteDaily(clientId,date){chk(await sb.from('daily_readings').delete().eq('client_id',clientId).eq('reading_date',date))},
   async replyCard(code,date,body,memberCode){return chk(await sb.rpc('client_card_reply',{p_code:code,p_date:date,p_body:body,p_member_code:memberCode||null}))},
   async saveNote(n){return chk(await sb.from('day_notes').upsert({client_id:n.client_id,note_date:n.note_date,heading:n.heading||'',body:n.body||'',updated_at:new Date().toISOString()}).select().single())},
   async deleteNote(clientId,date){chk(await sb.from('day_notes').delete().eq('client_id',clientId).eq('note_date',date))},
@@ -2276,6 +2306,10 @@ function renderClientLogin(msg){
 }
 function clientSignOut(){ACT.stop('signed out');localStorage.removeItem(CODE_KEY);localStorage.removeItem(TEAM_KEY);localStorage.removeItem(PENDING_TEAM_KEY);go('#/')}
 const teamLink=()=>{try{return JSON.parse(localStorage.getItem(TEAM_KEY)||'null')}catch(e){return null}};
+// The greeting row with the "Card of the day" button (shown only when the add-on is on and a reading exists) — used by the client's page and by the astrologer's preview.
+const hasCardReadings=pkg=>Array.isArray(pkg.cards)&&pkg.cards.length>0;
+const cardsUnseen=pkg=>{const seen=(pkg.prefs&&pkg.prefs.cards_seen)||{};return hasCardReadings(pkg)&&pkg.cards.some(r=>seen[r.date]!==readingHash(r))};
+const greetingRow=pkg=>`<div class="row between" style="margin-bottom:14px;gap:10px;flex-wrap:wrap"><h1 style="margin:0">Hello, ${esc(pkg.name)}</h1>${hasCardReadings(pkg)?`<button type="button" class="btn cardsbtn" id="cardsbtn">${icon('star','#fff',13)} Today’s cards${cardsUnseen(pkg)?'<span class="nb" aria-label="new"></span>':''}</button>`:''}</div>`;
 /* The shared (synastry) calendar, reached through its link. The native signs in with their OWN code; the team's code only names the calendar. */
 async function renderSynastry(teamCode){
   const code=localStorage.getItem(CODE_KEY);
@@ -2346,18 +2380,17 @@ async function renderCalendar(){
     w.innerHTML=`<div><p class="wk">Welcome,</p><h1>${esc(pkg.name)}</h1><div class="orn" aria-hidden="true">${icon('star','var(--gold)',16)}</div></div>`;
     document.body.appendChild(w);w.addEventListener('animationend',()=>w.remove());setTimeout(()=>w.remove(),3200);
   }
-  const hasCards=Array.isArray(pkg.cards)&&pkg.cards.length>0;
-  const cardsNew=()=>{const seen=(pkg.prefs&&pkg.prefs.cards_seen)||{};return hasCards&&pkg.cards.some(r=>seen[r.date]!==readingHash(r))};
-  app.innerHTML=`<div class="row between" style="margin-bottom:14px;gap:10px;flex-wrap:wrap"><h1 style="margin:0">Hello, ${esc(pkg.name)}</h1>${hasCards?`<button type="button" class="btn cardsbtn" id="cardsbtn">${icon('star','#fff',13)} Card of the day${cardsNew()?'<span class="nb" aria-label="new"></span>':''}</button>`:''}</div><div id="calroot"></div><p class="cal-contact"><a class="btn ghost" href="${esc(contact.href)}" target="_blank" rel="noopener" id="contactbtn">${esc(contact.label)} →</a></p>`;
+  const hasCards=hasCardReadings(pkg);const cardsNew=()=>cardsUnseen(pkg);
+  app.innerHTML=`${greetingRow(pkg)}<div id="calroot"></div><p class="cal-contact"><a class="btn ghost" href="${esc(contact.href)}" target="_blank" rel="noopener" id="contactbtn">${esc(contact.label)} →</a></p>`;
   const cbtn=$('#cardsbtn');if(cbtn)cbtn.onclick=()=>{const markSeen=r=>{pkg.prefs=pkg.prefs||{};pkg.prefs.cards_seen={...(pkg.prefs.cards_seen||{}),[r.date]:readingHash(r)};api.setPrefs(code,pkg.prefs).catch(()=>{});const nb=cbtn.querySelector('.nb');if(nb&&!cardsNew())nb.remove()};
     showCards(pkg.cards,{back:pkg.tarot_back,viewerName:pkg.name,onOpen:r=>{ACT.action('cards opened',{date:r.date,cards:r.cards.length});markSeen(r)},onRead:r=>ACT.action('cards read',{date:r.date}),reply:async(r,t)=>{const rs=await api.replyCard(code,r.date,t);ACT.action('card reply',{date:r.date});if(Array.isArray(rs)){const hit=pkg.cards.find(x=>x.date===r.date);if(hit)hit.replies=rs;markSeen(hit||r)}return rs}})};
   ACT.start(code);
   const cb=$('#contactbtn');if(cb)cb.addEventListener('click',()=>ACT.action('contact',{label:contact.label}));
   drawCalendar(pkg,$('#calroot'),{code});
-  let last=JSON.stringify([pkg.influences,pkg.notes,pkg.cards]);
+  let last=JSON.stringify([pkg.influences,pkg.notes,pkg.cards,pkg.readings]);
   const refresh=async()=>{if(!$('#calroot')||localStorage.getItem(CODE_KEY)!==code){stopRefresh();return}
     try{const fresh=await api.openCalendar(code);if(!fresh.ok){stopRefresh();localStorage.removeItem(CODE_KEY);renderClientLogin(fresh.why);return}
-      const now=JSON.stringify([fresh.influences,fresh.notes,fresh.cards]);if(now!==last){last=now;fresh.prefs=pkg.prefs;const cardsChanged=JSON.stringify(fresh.cards)!==JSON.stringify(pkg.cards);pkg=fresh;applyCustomCategories(pkg.categories||[]);if(cardsChanged){renderCalendar();return}drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
+      const now=JSON.stringify([fresh.influences,fresh.notes,fresh.cards,fresh.readings]);if(now!==last){last=now;fresh.prefs=pkg.prefs;const cardsChanged=JSON.stringify(fresh.cards)!==JSON.stringify(pkg.cards);pkg=fresh;applyCustomCategories(pkg.categories||[]);if(cardsChanged){renderCalendar();return}drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
   stopRefresh();refreshTimer=setInterval(refresh,60000);refreshOnShow=()=>{if(document.visibilityState==='visible')refresh()};document.addEventListener('visibilitychange',refreshOnShow);
 }
 function monthHint(list,y,m,onJump){
@@ -2393,6 +2426,10 @@ function drawCalendar(pkg,root,opts={}){
   const unreadNotes=()=>(pkg.notes||[]).filter(nn_=>prefs.notes_seen[nn_.date]!==noteHash(nn_));
   const markNoteSeen=nn_=>{if(prefs.notes_seen[nn_.date]===noteHash(nn_))return;prefs.notes_seen[nn_.date]=noteHash(nn_);savePrefs();refreshNoteBadges()};
   const refreshNoteBadges=()=>{const u=unreadNotes();const b=$('#nbadge',root);if(b)b.innerHTML=u.length?`<span class="nbadge"><i></i>${u.length} new</span>`:'';root.querySelectorAll('.nlist li[data-note]').forEach(li=>li.classList.toggle('unread',u.some(x=>x.date===li.dataset.note)))};
+  // the astrologer's written reading for the client's own today
+  const todayReading=(pkg.readings||[]).find(r=>r.date===todayStr()&&String(r.body||'').trim())||null;
+  const readingKey=r=>{let h=5381;const t=r.date+'|'+r.body;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
+  const readingNew=()=>!!todayReading&&prefs.reading_seen!==readingKey(todayReading);
   const visible=(pkg.influences||[]).filter(i=>{
     if(prefs.mode==='essential'&&!(i.significant||i.intensity>=4))return false;
     if(prefs.mode==='supportive'&&i.polarity!=='supportive')return false;
@@ -2443,6 +2480,12 @@ function drawCalendar(pkg,root,opts={}){
    </section>
    <aside id="daypanel" aria-label="Day detail"></aside>
    <section class="morecol" aria-label="Options and notes">
+    ${todayReading?`<div class="card fold" id="readingbox">
+     <details><summary><span class="ft">Reading for today</span><span id="rbadge">${readingNew()?'<span class="nbadge"><i></i>new</span>':''}</span><span class="fx" aria-hidden="true"></span></summary>
+      <div class="fb"><div class="dscroll"><div class="roll top"></div><div class="sheet"><p class="date">${esc(fmtDate(todayReading.date))}</p><p class="body">${esc(todayReading.body)}</p><div class="sig">— Masha</div></div><div class="roll bottom"></div>
+       <button type="button" class="tie" aria-label="Untie the bow and unroll your reading"><span class="band"></span><svg viewBox="0 0 120 64" aria-hidden="true"><path d="M60 30C42 6 14 6 11 22c-3 18 28 24 49 8z" fill="#B8423E"/><path d="M60 30c18-24 46-24 49-8 3 18-28 24-49 8z" fill="#B8423E"/><path d="M60 30C46 16 26 14 20 22c10-2 26 2 40 8z" fill="#8E2F2F" opacity=".55"/><path d="M60 30c14-14 34-16 40-8-10-2-26 2-40 8z" fill="#8E2F2F" opacity=".55"/><path d="M56 33L45 61l10-6 5-18z" fill="#A53936"/><path d="M64 33l11 28-10-6-5-18z" fill="#A53936"/><rect x="52" y="22" width="16" height="16" rx="5" fill="#C9504B"/></svg></button>
+       <p class="hint">untie to read</p></div></div>
+     </details></div>`:''}
     <div class="card fold">
      <details ${filtersOn?'open':''}><summary><span class="ft">Display options</span>${filtersOn?`<span class="fs">${esc(filterDesc)}</span>`:''}<span class="fx" aria-hidden="true"></span></summary>
       <div class="fb">
@@ -2491,6 +2534,11 @@ function drawCalendar(pkg,root,opts={}){
   root.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calState.month+=Number(b.dataset.nav);if(calState.month<0){calState.month=11;calState.year--}if(calState.month>11){calState.month=0;calState.year++}redraw()});
   root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);log('day',{date:calState.selected,entries:visible.filter(i=>i.start_date<=calState.selected&&calState.selected<=i.end_date).map(i=>i.title).slice(0,6)});if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
   root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();log('display options',{mode:prefs.mode});redraw()});
+  const rbox=$('#readingbox',root);if(rbox){const sc=rbox.querySelector('.dscroll');const det=rbox.querySelector('details');
+    rbox.querySelector('.tie').onclick=()=>{if(sc.classList.contains('open'))return;sc.classList.add('untie');setTimeout(()=>sc.classList.add('open'),600);
+      if(readingNew()){prefs.reading_seen=readingKey(todayReading);savePrefs();const rb=$('#rbadge',root);if(rb)rb.innerHTML=''}
+      if(opts.code&&!opts.preview)ACT.action('reading opened',{date:todayReading.date})};
+    det.addEventListener('toggle',()=>{if(!det.open)sc.classList.remove('open','untie')})} // closing the dropdown rolls it back up and re-ties it
   root.querySelectorAll('[data-combo]').forEach(b=>b.onclick=()=>{prefs.combo=b.dataset.combo;savePrefs();log('display options',{view:b.textContent.trim()});redraw()});
   const intent=$('#intent',root);if(intent)intent.onchange=e=>{prefs.intention=e.target.value;savePrefs();log('display options',{intention:prefs.intention||'none'});redraw()};
   root.querySelectorAll('[data-cat]').forEach(c=>c.onchange=()=>{prefs.hidden=[...root.querySelectorAll('[data-cat]:not(:checked)')].map(x=>x.dataset.cat);savePrefs();log('display options',{hidden:prefs.hidden.map(k=>CAT[k]||k)});redraw()});
@@ -2593,7 +2641,7 @@ function openChangePassword(){
 }
 
 /* ---------------- Admin ---------------- */
-let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null, wsOvMember=null, wsTeamDraft=null, wsTeamDraftDirty=false, wsNative=null, wsCardDate=null, wsCardDraft=null;
+let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null, wsOvMember=null, wsTeamDraft=null, wsTeamDraftDirty=false, wsNative=null, wsCardDate=null, wsCardDraft=null, wsReadDate=null;
 async function renderAdmin(path){
   const session=await api.adminSession();
   if(!session){go('#/astrologer');return}
@@ -2662,16 +2710,16 @@ async function runInfluenceDiagnostics(c){
    <p class="small muted" style="margin-top:8px">${rows.every(r=>r[0])?'Saving and reading influences works for this client. If one you added is still missing, check its dates (the calendar shows one month at a time) and whether it was saved as a draft.':'The red line is the step that fails. '+esc(explain(rows.find(r=>!r[0])[2])||'')}</p></div>`;
 }
 async function renderWorkspace(id){
-  if(wsClient!==id){wsClient=id;wsTab='client';wsOvMember=null;wsTeamDraft=null;wsTeamDraftDirty=false;wsNative=null;wsCardDate=null;wsCardDraft=null}
+  if(wsClient!==id){wsClient=id;wsTab='client';wsOvMember=null;wsTeamDraft=null;wsTeamDraftDirty=false;wsNative=null;wsCardDate=null;wsCardDraft=null;wsReadDate=null}
   let c;try{c=normClient(await api.getClient(id))}catch(e){go('#/admin');return}
   const [influences,notes,allClients]=await Promise.all([api.listInfluences(id),api.listNotes(id).catch(e=>{console.warn(e);return null}),isTeam(c)?api.listClients().then(l=>l.map(normClient)).catch(()=>[]):Promise.resolve([])]);
   const ctx={c,influences,notes:notes||[],notesUnavailable:notes===null,allClients,reload:()=>renderWorkspace(id)};
-  const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['cards','Cards'],['preview','Client preview'],['activity','Activity']];
+  const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['reading','Reading for today'],['cards','Cards'],['preview','Client preview'],['activity','Activity']];
   app.innerHTML=`<p class="crumbs"><a href="${isTeam(c)?'#/admin/teams':'#/admin'}">${isTeam(c)?'Teams':'Clients'}</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}${isTeam(c)?' <span class="pill significant" style="vertical-align:middle;font-size:.8rem">Team</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:middle;font-size:.8rem">† discarnate</span>':''}</h1>
    <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${wsTab===k}" data-tab="${k}">${l}</button>`).join('')}</div><div id="tabbody"></div>`;
   app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{wsTab=b.dataset.tab;renderWorkspace(id)});
   const body=$('#tabbody');
-  ({client:tabClient,natal:tabNatal,calendar:tabCalendar,influences:tabInfluences,cards:tabCards,preview:tabPreview,activity:tabActivity})[wsTab](ctx,body);
+  ({client:tabClient,natal:tabNatal,calendar:tabCalendar,influences:tabInfluences,reading:tabReading,cards:tabCards,preview:tabPreview,activity:tabActivity})[wsTab](ctx,body);
 }
 /* ---------------- Client activity (astrologer side) ---------------- */
 const ONLINE_MS=3*60000; // a client counts as "on the app" if something was heard from them in the last three minutes
@@ -2680,7 +2728,7 @@ const fmtDT=d=>new Date(d).toLocaleString(undefined,{weekday:'short',month:'shor
 const fmtDur=ms=>{const m=Math.round(ms/60000);if(m<1)return 'under a minute';if(m<60)return m+' min';const h=Math.floor(m/60);return h+' h '+(m%60?(m%60)+' min':'')};
 const monthLabel=ym=>{const [y,m]=String(ym||'').split('-').map(Number);return y&&m?new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(ym||'')};
 const fmtMs=ms=>ms<1000?'':ms<60000?Math.round(ms/1000)+' s':ms<3600000?Math.round(ms/60000)+' min':fmtDur(ms);
-const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact','note opened','note reply','cards opened','cards read','card reply'];
+const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact','note opened','note reply','cards opened','cards read','card reply','reading opened'];
 const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;
   if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;
@@ -2689,7 +2737,7 @@ const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='copy')return `copied text${d.entry?' from “'+d.entry+'”':''}${d.chars?' ('+d.chars+' characters)':''}`;
   if(sc==='print')return 'printed the page';
   if(sc==='open entry')return `opened “${d.entry||''}”`;
-  if(sc==='cards opened')return `opened the card of the day${d.date?' ('+fmtShort(d.date)+')':''}`;if(sc==='cards read')return 'unrolled the card interpretation';if(sc==='card reply')return 'replied under the cards';if(sc==='synastry')return 'opened the shared calendar'+(d.team?' “'+d.team+'”':'');
+  if(sc==='reading opened')return 'unrolled the reading for today';if(sc==='cards opened')return `opened their card reading${d.date?' ('+fmtShort(d.date)+')':''}`;if(sc==='cards read')return 'unrolled the card interpretation';if(sc==='card reply')return 'replied under the cards';if(sc==='synastry')return 'opened the shared calendar'+(d.team?' “'+d.team+'”':'');
   if(sc==='gift opened')return 'opened their gift';
   if(sc==='note opened')return `unrolled your note for ${d.date?fmtShort(d.date):'a day'}`;
   if(sc==='contact')return 'tapped the enquiries link';
@@ -3003,8 +3051,8 @@ async function tabCards(ctx,body){const {c,reload}=ctx;const ent={...ENT_DEFAULT
   wsCardDraft=draft;
   const opt=o=>`<select data-f="orientation">${TAROT_ORIENT.map(([k,l])=>`<option value="${k}" ${o===k?'selected':''}>${l}</option>`).join('')}</select>`;
   const pulled=draft.cards.map((x,i)=>{const card=TAROT_BY_KEY[x.key]||{name:x.key};return `<li class="pulled" data-i="${i}"><span class="pn">${i+1}</span><span class="pimg ${x.orientation==='reversed'?'rev':x.orientation==='left'?'sl':x.orientation==='right'?'sr':''}">${tarotImg(x)}</span><div class="pbody"><strong>${esc(card.name)}</strong>${x.image?' <span class="small muted">· own image</span>':''}<div class="row" style="gap:6px;margin-top:4px">${opt(x.orientation)}<button type="button" class="btn quiet small" data-up ${i===0?'disabled':''}>↑</button><button type="button" class="btn quiet small" data-down ${i===draft.cards.length-1?'disabled':''}>↓</button><label class="btn quiet small" style="cursor:pointer">Own image<input type="file" accept="image/*" data-img style="display:none"></label>${x.image?'<button type="button" class="btn quiet small" data-noimg>Deck image</button>':''}<button type="button" class="btn quiet small" data-rm>Remove</button></div></div></li>`}).join('');
-  body.innerHTML=`<div class="card"><div class="row between" style="gap:8px;flex-wrap:wrap"><h2 style="margin:0">Card of the day</h2>${ent.tarot?'<span class="pill supportive">add-on is on for this client</span>':'<span class="pill draft">add-on is off — readings are kept but not shown</span>'}</div>
-   <p class="small muted">${ent.tarot?'The client sees a “Card of the day” button; it opens a table where the deck shuffles, deals the cards you pulled in this order and orientation, and unrolls your interpretation from a scroll. They can reply under it to ask for more cards.':'Turn on “Card of the day” under What this client can access (Client &amp; access) to show readings to this client.'}</p>
+  body.innerHTML=`<div class="card"><div class="row between" style="gap:8px;flex-wrap:wrap"><h2 style="margin:0">Card readings</h2>${ent.tarot?'<span class="pill supportive">add-on is on for this client</span>':'<span class="pill draft">add-on is off — readings are kept but not shown</span>'}</div>
+   <p class="small muted">${ent.tarot?'The client sees a “Today’s cards” button; it opens a table where the deck shuffles, deals the cards you pulled in this order and orientation, and unrolls your interpretation from a scroll. They can reply under it to ask for more cards.':'Turn on “Card readings” under What this client can access (Client &amp; access) to show readings to this client.'}</p>
    ${unavailable?'<p class="note small">Card readings need the latest supabase-setup.sql to be run once in the Supabase SQL Editor.</p>':`
    <div class="grid2" style="align-items:end"><label class="f"><span>Date of the reading</span><input type="date" id="cr-date" value="${esc(draft.reading_date)}"></label>
     <label class="f"><span>Add a card <em class="muted">— in the order you pulled them</em></span><div class="row" style="gap:6px;flex-wrap:nowrap"><select id="cr-pick" style="flex:1;min-width:0">${['Major Arcana','Wands','Cups','Swords','Pentacles'].map(g=>`<optgroup label="${g}">${TAROT_CARDS.filter(x=>x.group===g).map(x=>`<option value="${x.key}">${esc(x.name)}</option>`).join('')}</optgroup>`).join('')}</select><button type="button" class="btn small" id="cr-add">Add</button></div></label></div>
@@ -3040,6 +3088,28 @@ async function tabCards(ctx,body){const {c,reload}=ctx;const ent={...ENT_DEFAULT
 // Downscale an uploaded image to a small JPEG data URL (long side ≤ max px) so it fits comfortably in the database.
 function shrinkImage(file,max){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,max/Math.max(img.width,img.height));const cv=document.createElement('canvas');cv.width=Math.round(img.width*s);cv.height=Math.round(img.height*s);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(url);res(cv.toDataURL('image/jpeg',.82))};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('Could not read that image.'))};img.src=url})}
 
+/* The astrologer's "Reading for today" tab: write the reading for a date; the client unrolls it from a tied scroll on that day. */
+async function tabReading(ctx,body){const {c}=ctx;let list=[];let unavailable=false;try{list=await api.listDaily(c.id)}catch(e){unavailable=true}
+  const d=wsReadDate||todayStr();const cur=list.find(r=>r.reading_date===d);const today=todayStr();
+  body.innerHTML=`<div class="card"><h2 style="margin:0 0 4px">Reading for today</h2>
+   <p class="small muted">A written reading for one day. On that day ${esc(c.name||'the client')} sees a “Reading for today” dropdown beneath the calendar; opening it shows a rolled scroll tied with a bow, which they untie to unroll your words. Readings dated ahead wait for their day; yesterday’s disappears.</p>
+   ${unavailable?'<p class="note small">This needs the latest supabase-setup.sql to be run once in the Supabase SQL Editor.</p>':`
+   <div class="row" style="gap:10px;align-items:flex-end"><label class="f" style="margin:0;max-width:220px"><span>Day</span><input type="date" id="rd-date" value="${esc(d)}"></label><button type="button" class="btn quiet small" id="rd-today" ${d===today?'disabled':''}>Today</button><span class="small muted" id="rd-state">${cur?'A reading is saved for this day — you are editing it.':d===today?'Nothing written for today yet.':'Nothing written for this day yet.'}</span></div>
+   <label class="f"><span>The reading</span><textarea id="rd-body" style="min-height:220px;font-size:1.05rem;line-height:1.55" placeholder="Write today’s reading…">${esc(cur?cur.body:'')}</textarea></label>
+   <p class="row" style="gap:6px"><button type="button" class="btn small" id="rd-save">${cur?'Update reading':'Save reading'}</button><button type="button" class="btn ghost small" id="rd-preview">Preview the scroll</button>${cur?'<button type="button" class="btn quiet small" id="rd-del">Remove</button>':''}</p>
+   <div id="rd-pv"></div>
+   ${list.length?`<h3 style="margin-top:16px">Readings (${list.length})</h3><ul class="list">${list.map(r=>`<li><div style="flex:1;min-width:0"><strong>${esc(fmtDate(r.reading_date))}</strong>${r.reading_date===today?' <span class="pill supportive">today</span>':r.reading_date>today?' <span class="pill draft">upcoming</span>':''}<div class="small muted">${esc(String(r.body).slice(0,160))}${String(r.body).length>160?'…':''}</div></div><button type="button" class="btn ghost small" data-rd="${r.reading_date}">Edit</button></li>`).join('')}</ul>`:''}`}
+  </div>`;
+  if(unavailable)return;
+  const go_=x=>{wsReadDate=x;tabReading(ctx,body)};
+  $('#rd-date',body).onchange=e=>go_(e.target.value||today);$('#rd-today',body).onclick=()=>go_(today);
+  body.querySelectorAll('[data-rd]').forEach(b=>b.onclick=()=>{go_(b.dataset.rd);window.scrollTo({top:0,behavior:'smooth'})});
+  $('#rd-save',body).onclick=guard(async()=>{const t=$('#rd-body',body).value.trim();if(!t){alert('Write the reading first.');return}await api.saveDaily({client_id:c.id,reading_date:d,body:t});toast(d===today?'Reading saved — it is on their calendar now':'Reading saved for '+fmtShort(d));tabReading(ctx,body)});
+  const del=$('#rd-del',body);if(del)del.onclick=guard(async()=>{if(confirm('Remove the reading for '+fmtDate(d)+'?')){await api.deleteDaily(c.id,d);toast('Reading removed');tabReading(ctx,body)}});
+  $('#rd-preview',body).onclick=()=>{const t=$('#rd-body',body).value.trim();if(!t){alert('Write the reading first.');return}const pv=$('#rd-pv',body);
+    pv.innerHTML=`<div class="dscroll" style="margin:14px auto 6px"><div class="roll top"></div><div class="sheet"><p class="date">${esc(fmtDate(d))}</p><p class="body">${esc(t)}</p><div class="sig">— Masha</div></div><div class="roll bottom"></div><button type="button" class="tie" aria-label="Untie"><span class="band"></span><svg viewBox="0 0 120 64" aria-hidden="true"><path d="M60 30C42 6 14 6 11 22c-3 18 28 24 49 8z" fill="#B8423E"/><path d="M60 30c18-24 46-24 49-8 3 18-28 24-49 8z" fill="#B8423E"/><path d="M56 33L45 61l10-6 5-18z" fill="#A53936"/><path d="M64 33l11 28-10-6-5-18z" fill="#A53936"/><rect x="52" y="22" width="16" height="16" rx="5" fill="#C9504B"/></svg></button><p class="hint">untie to read</p></div>`;
+    const sc=pv.querySelector('.dscroll');pv.querySelector('.tie').onclick=()=>{sc.classList.add('untie');setTimeout(()=>sc.classList.add('open'),600)};pv.scrollIntoView({behavior:'smooth',block:'nearest'})};
+}
 const mergedInterpretation=i=>[i.client_interpretation,i.prediction].map(x=>String(x||'').trim()).filter(Boolean).join('\n\n');
 function blankInfluence(clientId){return {id:uuid(),client_id:clientId,parent_id:null,title:'',start_date:todayStr(),start_time:'',end_date:todayStr(),end_time:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
   polarity:'supportive',significant:false,intensity:'',category:'',secondary_categories:[],client_interpretation:'',observation_prompt:'',reflection_prompt:'',recommended_actions:'',avoidances:'',prediction:'',remedial_note:'',disclaimer:'none',custom_disclaimer:'',
@@ -3083,7 +3153,10 @@ async function tabPreview({c},body){
   body.innerHTML=`<p class="loading">Loading preview…</p>`;
   const pkg=await api.openCalendar(c.access_code,true);
   if(!pkg.ok){body.innerHTML=`<p class="warn">${esc(pkg.why)}</p>`;return}
-  body.innerHTML='<div id="pv"></div>';drawCalendar(pkg,$('#pv',body),{preview:true,code:c.access_code});
+  const ent={...ENT_DEFAULT,...(c.entitlements||{})};
+  body.innerHTML=`<p class="small muted" style="margin:0 0 10px">What ${esc(c.name||'the client')} sees, as of now.${ent.tarot&&!hasCardReadings(pkg)?' The Card readings add-on is on, but there is no reading dated today or earlier yet — add one on the Cards tab.':''}${!ent.tarot&&!isTeam(c)?' (Card readings are off for this client.)':''}${hasCardReadings(pkg)&&cardsUnseen(pkg)?' The glowing dot on “Today’s cards” means they have not opened the latest reading yet.':''}</p>${greetingRow(pkg)}<div id="pv"></div>`;
+  const cbtn=$('#cardsbtn',body);if(cbtn)cbtn.onclick=()=>showCards(pkg.cards,{back:pkg.tarot_back,preview:true,viewerName:pkg.name});
+  drawCalendar(pkg,$('#pv',body),{preview:true,code:c.access_code});
 }
 
 /* ---------------- Fill an influence from an AI answer written in the prompt's template ---------------- */
