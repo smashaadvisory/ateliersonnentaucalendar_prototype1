@@ -422,7 +422,8 @@ legend{font-family:var(--serif);font-size:1.15rem;padding:0 8px;color:var(--prim
 .rsrc blockquote{margin:4px 0 0;padding:6px 12px;border-left:3px solid var(--caution);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.93rem;line-height:1.5}
 .g-ai{border-top:1px dashed var(--line-strong);margin-top:12px;padding-top:10px}
 .g-natal summary{font-family:var(--serif);font-size:1.15rem}.g-natal{margin-bottom:12px}
-.ast-wrap{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:8px}
+.ast-wrap{display:none;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:8px}
+@media(max-width:720px){.g-natal .nt-full{display:none}.g-natal .ast-wrap{display:block}}
 .ast{width:100%;border-collapse:collapse;font-size:1.12rem;line-height:1.25}.ast th{text-align:left;font-weight:700;padding:6px 6px 10px;color:var(--text);text-transform:none;letter-spacing:0;font-size:1.08rem;font-family:var(--serif)}.ast td{padding:7px 6px;vertical-align:middle;white-space:nowrap}.ast td b{font-weight:700}.ast td.st{font-size:.95rem;color:var(--text);min-width:40px}.ast .fl{font-weight:700}.ast .fl.ex{color:#2F7A52}.ast .fl.db{color:#A23B3B}
 @media(max-width:560px){.ast{font-size:1rem}.ast td,.ast th{padding:6px 3px}.ast-wrap{padding:8px 6px}}
 .ai-out{background:var(--surface-2);border-radius:10px;padding:10px 14px;margin-top:10px}
@@ -511,6 +512,7 @@ dialog.tarot::backdrop{background:rgba(20,22,36,.75)}
 @media(max-width:560px){.tarot .tslots{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px 8px}.tarot .tc{width:106px;height:174px}.tarot .deck{width:112px;height:184px}.tarot .tt{padding:20px 12px 32px}}
 @media(prefers-reduced-motion:reduce){.tarot .deck{animation:none}.tarot .tc{transition-duration:.3s}}
 /* reading for today: a rolled scroll tied with a bow, which unties and unrolls */
+.fb.pred .date{font-family:var(--sans);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}.fb.pred p{margin:0 0 10px;font-size:1.04rem;line-height:1.6}.fb.pred p:last-child{margin-bottom:0}.fb.pred strong{font-weight:600;color:var(--primary)}
 .dscroll{position:relative;max-width:560px;margin:6px auto 4px}
 .dscroll .roll{height:20px;border-radius:10px;margin:0 -6px;background:linear-gradient(180deg,#FFFDF6,#EEE6D2 60%,#D9CDB1);box-shadow:0 5px 12px rgba(60,45,20,.18);position:relative;z-index:2;transition:height .5s,border-radius .5s}
 .dscroll:not(.open) .roll.top{height:46px;border-radius:23px;background:linear-gradient(180deg,#FFFDF6 0%,#F3ECD9 35%,#E2D7BB 70%,#CFC2A3 100%)}
@@ -1331,9 +1333,40 @@ const GT={
        'In the 12th: loss and release, foreign or hidden places, sleep and dreams vivid; the finest house for meditation and letting go.']}};
 
 /* ---------- A client-safe paragraph for one day, read from the transits on that native's chart (the astrologer edits it before it is shown). ---------- */
+/* ---------- Daily prediction, written the way a daily horoscope reads — overall tone, then work, money, relationships and health — from the transits on this chart.
+   The sentences are drawn from the house readings above (a synthesis in the manner of Barbara Pijan Lama, K. S. Charak and Bepin Behari) and the classical gochara verdicts. ---------- */
+/* ---------- A client-safe paragraph for one day, read from the transits on that native's chart (the astrologer edits it before it is shown). ---------- */
+/* ---------- Daily prediction, written the way a daily horoscope reads — overall tone, then work, money, relationships and health — from the transits on this chart.
+   The sentences are drawn from the house readings above (a synthesis in the manner of Barbara Pijan Lama, K. S. Charak and Bepin Behari) and the classical gochara verdicts. ---------- */
+function dailyPrediction(client,dateStr){const S=loadSettings();const m=natalBundle(client,S);if(m.error)return '';
+  const tz=client.timezone||BROWSER_TZ;const at=G.zonedToUtc(dateStr,'12:00',tz);const tr=G.chart(at,{nodeMode:S.nodeMode,outer:false});
+  const phrase=(key,hm)=>GT[key]?GT[key].h[hm-1].replace(/^(In the \d+\w\w|Over the natal Moon)[^:]*:\s*/,'').split(/[.]/)[0].trim():'';
+  const SOFT=[[/medical or occult crisis/g,'a health worry or an unexplained unease'],[/fear without object/g,'a vague unease'],[/servants/g,'helpers'],[/conflict with partner or spouse/g,'friction with a partner'],[/legal sparring/g,'disputes'],[/the native is visible/g,'you are seen'],[/the native['’]s/g,'your'],[/the native/g,'you'],[/inheritance tangled/g,'shared money needing care']];
+  const clean=t=>SOFT.reduce((x,[r,w])=>x.replace(r,w),t).replace(/\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|the Moon|natal)['’]?s?\b/g,'').replace(/\s{2,}/g,' ').replace(/\s+([,;])/g,'$1').trim();
+  const low=t=>t?t[0].toLowerCase()+t.slice(1):'';const cap=t=>t?t[0].toUpperCase()+t.slice(1):'';
+  const W={saturn:3,jupiter:3,rahu:2,ketu:2,mars:2,sun:1.5,venus:1.5,mercury:1,moon:1};const F=[];
+  for(const p of tr.planets){if(!W[p.key])continue;const hm=G.houseFrom(p.sign,m.moon.sign),hl=G.houseFrom(p.sign,m.lagnaSign);const mv=G.moonTransit(p.key,hm,tr.planets,m.moon.sign);
+    const good=mv.good===true&&!mv.vedhaBy;const bad=mv.good===false;const contact=m.chart.planets.some(n=>Math.abs(G.norm(p.lon-n.lon+180)-180)<=1.5);
+    F.push({key:p.key,hm,hl,good,bad,v:W[p.key]*(good?1:bad?-1:.3)*(contact?1.4:1)})}
+  const moonF=F.find(f=>f.key==='moon');const slow=F.filter(f=>f.key!=='moon');slow.sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));
+  const DOM={work:[6,10,3],money:[2,11,8],relationships:[7,5,11,4],health:[1,6,8,12]};
+  const forDomain=(houses)=>{const hits=slow.filter(f=>houses.includes(f.hm));if(!hits.length)return null;const g=hits.filter(f=>f.good),b=hits.filter(f=>f.bad);const pick=(g.length&&!b.length)?g[0]:(b.length&&!g.length)?b[0]:hits[0];return {f:pick,mixed:g.length&&b.length}};
+  const MOOD={1:'a day that turns on your own mood and energy',2:'a day that leans towards home, food, family and what things cost',3:'a brisk day of messages, errands and short exchanges',4:'a quieter day in which home and comfort matter more than ambition',5:'a day with room for pleasure, children, romance or a creative hour',6:'a working day of tasks, routines and the odd friction',7:'a day shaped by other people and what they ask of you',8:'a day best kept simple, with feelings running deeper than events',9:'a day that opens outward, towards learning, travel or a wider view',10:'a day for the work in front of you, where effort is noticed',11:'a sociable day of friends, groups and small gains',12:'a low-key day for solitude, sleep and finishing rather than starting'};
+  const tone=(()=>{const sc=slow.reduce((t,f)=>t+f.v,0);return sc>=3?'Overall the day favours you: move on what matters and let the small things wait.':sc<=-3?'Overall the day asks for patience: keep commitments light and let it pass without forcing anything.':'Overall the day is even: take the openings it offers and do not press the rest.'})();
+  const para=[];para.push(`Today is ${MOOD[moonF?moonF.hm:1]}${moonF&&moonF.bad?', and it may feel heavier than it looks':moonF&&moonF.good?', and your mood is on your side':''}. ${tone}`);
+  const line=(label,houses,fallback)=>{const r=forDomain(houses);if(!r){para.push(`${label}: ${fallback}`);return}const ph=low(clean(phrase(r.f.key,r.f.hm)));
+    const open=r.f.good?'The signs are supportive — ':r.f.bad?'Take care here — ':'A mixed picture — ';para.push(`${label}: ${open}${ph}${/[.!?]$/.test(ph)?'':'.'}${r.mixed?' Not everything points the same way, so weigh offers before accepting them.':''}`)};
+  line('Work',DOM.work,'nothing presses; steady routine serves you best.');
+  line('Money',DOM.money,'an ordinary day; avoid new commitments made in a hurry.');
+  line('Relationships',DOM.relationships,'calm; say the kind thing you have been meaning to say.');
+  line('Health',DOM.health,'steady; keep your usual rhythm of food and sleep.');
+  const best=slow.find(f=>f.good),worst=slow.find(f=>f.bad);
+  const clause=f=>low(clean(phrase(f.key,f.hm)).split(/[;,]/)[0].trim());
+  para.push(`Advice: ${best?'lean into what is working — '+clause(best):'keep to what you already do well'}; ${worst?'tread lightly where the day is harder — '+clause(worst):'there is nothing in particular to avoid'}.`);
+  return para.map(x=>x.replace(/\s{2,}/g,' ').replace(/\s+([,;.])/g,'$1')).join('\n')}
 function dailyText(client,dateStr){const S=loadSettings();const m=natalBundle(client,S);if(m.error)return '';
   const tz=client.timezone||BROWSER_TZ;const at=G.zonedToUtc(dateStr,'12:00',tz);const tr=G.chart(at,{nodeMode:S.nodeMode,outer:false});
-  const phrase=(key,hm)=>GT[key]?GT[key].h[hm-1].replace(/^(In the \d+\w\w|Over the natal Moon):\s*/,'').split(/[.]/)[0].trim():'';
+  const phrase=(key,hm)=>GT[key]?GT[key].h[hm-1].replace(/^(In the \d+\w\w|Over the natal Moon)[^:]*:\s*/,'').split(/[.]/)[0].trim():'';
   const clean=t=>t.replace(/\bthe native['’]s\b/g,'your').replace(/\bthe native\b/g,'you').replace(/\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|the Moon|natal)['’]?s?\b/g,'').replace(/\s{2,}/g,' ').replace(/\s+([,;])/g,'$1').trim();
   const cap=t=>t?t[0].toUpperCase()+t.slice(1):'';const sent=t=>{t=cap(clean(t));return t?(/[.!?]$/.test(t)?t:t+'.'):''};
   const W={saturn:3,jupiter:3,rahu:2,ketu:2,mars:2,sun:1.5,venus:1.5,mercury:1};const facts=[];
@@ -1494,7 +1527,9 @@ function mount(container,client,opts={}){
     for(const p of natalChart.planets){const ab={sun:'Sun',moon:'Mon',mars:'Mar',mercury:'Mer',jupiter:'Jup',venus:'Ven',saturn:'Sat',rahu:'Rah',ketu:'Ket',uranus:'Ura',neptune:'Nep',pluto:'Plu'}[p.key]||p.en.slice(0,3);
       const st=[p.retro?'(R)':'',p.combust?'C':''].filter(Boolean).join(' ');const dg=p.dignity==='exalted'?'▲':p.dignity==='debilitated'?'▼':'';
       rows.push(`<tr><td><b>${ab}</b></td><td class="st">${st}${dg?` <span class="fl ${p.dignity==='exalted'?'ex':'db'}">${dg}</span>`:''}</td><td>${AS_SIGN[p.sign]}</td><td>${asDeg(p.deg)}</td><td>${asNak(p.nakName,p.pada)}</td></tr>`)}
-    return `<details class="g-natal" open><summary>Natal planets</summary><div class="ast-wrap"><table class="ast"><thead><tr><th>Planets</th><th></th><th>Sign</th><th>Degree</th><th>Naks</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+    const full=[];if(natalAsc){const d=G.describe(natalAsc.sidereal);full.push(`<tr><td><strong>Lagna</strong><div class="small muted">Ascendant</div></td><td></td><td>${G.RASHI_EN[d.sign]}<div class="small muted">${G.RASHI[d.sign]}</div></td><td>${G.fmtDeg(d.deg)}</td><td>${d.nakName} (${d.pada})</td><td>1</td><td>${G.RASHI_EN[d.navamsa]}${d.vargottama?' <span class="pill significant">Vargottama</span>':''}</td></tr>`)}
+    for(const p of natalChart.planets){const fl=flagsOf(p);full.push(`<tr><td><strong>${p.en}</strong><div class="small muted">${p.name}</div></td><td class="small">${fl.filter(f=>f==='Combust'||f==='Retrograde').map(f=>f==='Combust'?'C':'(R)').join(' ')}</td><td>${G.RASHI_EN[p.sign]}<div class="small muted">${G.RASHI[p.sign]}</div></td><td>${G.fmtDeg(p.deg)}</td><td>${p.nakName} (${p.pada})</td><td>${p.houseLagna}<div class="small muted">${p.houseMoon} from Chandra</div></td><td>${G.RASHI_EN[p.navamsa]}${fl.filter(f=>f!=='Combust'&&f!=='Retrograde').map(f=>` <span class="pill ${f==='Debilitated'?'caution':'significant'}">${f}</span>`).join('')}</td></tr>`)}
+    return `<details class="g-natal" open><summary>Natal planets</summary><div class="g-planets nt-full" style="margin-top:8px"><table><thead><tr><th>Planet</th><th></th><th>Sign</th><th>Degree</th><th>Nakshatra (pada)</th><th>House</th><th>Navamsa · state</th></tr></thead><tbody>${full.join('')}</tbody></table></div><div class="ast-wrap"><table class="ast"><thead><tr><th>Planets</th><th></th><th>Sign</th><th>Degree</th><th>Naks</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
      <p class="small muted" style="margin:8px 0 0">${OV?`<strong>Manual positions in use</strong> (${esc(OV.source||'entered on Client &amp; access')}${OV.saved?', '+esc(String(OV.saved).slice(0,10)):''}) — grahas not entered are calculated. `:''}Birth ${z.date} ${z.time} ${esc(natal.tz)} = ${natal.instant.toISOString().replace('T',' ').slice(0,16)} UTC · ${natal.lat!==null?`${natal.lat}°, ${natal.lon}°`:'no coordinates'} · Lahiri ${G.fmtDeg(natalChart.ayan)} · ${S.nodeMode} nodes · (R) retrograde · C combust · ▲ exalted · ▼ debilitated</p></details>`}
 
   /* ---------- Gochara report: each transiting graha mapped onto this native's bhavas, with classical readings ---------- */
@@ -1581,13 +1616,13 @@ function mount(container,client,opts={}){
       const polarity=score>=3?'supportive':score<=-3?'caution':'mixed';const intensity=Math.max(1,Math.min(5,2+Math.round(Math.abs(score)/3)));
       const significant=opens.some(e=>e.kind==='dasha'||(e.kind==='ingress'&&(e.key==='jupiter'||e.key==='saturn'||lords.includes(e.key))));
       const top=facts.slice(0,2);const fx=f=>`${gname(f.key)} ${f.good?(f.vedhaBy?'obstructed':'favourable'):'unfavourable'} in the ${ord(f.hm)}`;
-      const lead=GT[top[0].key]?GT[top[0].key].h[top[0].hm-1].replace(/^(In the \d+\w\w|Over the natal Moon):\s*/,'').split(/[;.]/)[0]:'';
+      const lead=GT[top[0].key]?GT[top[0].key].h[top[0].hm-1].replace(/^(In the \d+\w\w|Over the natal Moon)[^:]*:\s*/,'').split(/[;.]/)[0]:'';
       // categories from the bhavas the strongest movements occupy (from the Lagna); mixed periods split them by verdict
       const catsOf=f=>HOUSE_CATS[f.hl]||['general'];const good=facts.filter(f=>f.good&&!f.vedhaBy),bad=facts.filter(f=>!f.good);
       const primary=catsOf(top[0])[0];const secondary=[...new Set(facts.slice(1,3).flatMap(catsOf))].filter(k=>k!==primary).slice(0,3);
       const supportive_for=polarity==='mixed'?[...new Set(good.flatMap(catsOf))].slice(0,4):[],difficult_for=polarity==='mixed'?[...new Set(bad.flatMap(catsOf))].filter(k=>!supportive_for.includes(k)).slice(0,4):[];
       // a client-safe title and a first draft of the interpretation, from the house readings of the strongest movements (no graha names)
-      const phrase=f=>GT[f.key]?GT[f.key].h[f.hm-1].replace(/^(In the \d+\w\w|Over the natal Moon):\s*/,'').split(/[.]/)[0].trim():'';
+      const phrase=f=>GT[f.key]?GT[f.key].h[f.hm-1].replace(/^(In the \d+\w\w|Over the natal Moon)[^:]*:\s*/,'').split(/[.]/)[0].trim():'';
       const cap=t=>t?t[0].toUpperCase()+t.slice(1):'';const stripName=t=>t.replace(/\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)['’]s?\b/g,'').replace(/\s{2,}/g,' ');
       const clientTitle=polarity==='supportive'?`A supportive stretch for ${catLabel(primary).toLowerCase()}`:polarity==='caution'?`A careful stretch for ${catLabel(primary).toLowerCase()}`:`${catLabel(supportive_for[0]||primary)} supported; ${catLabel(difficult_for[0]||secondary[0]||'other matters').toLowerCase()} needs care`;
       const interp=[...facts.slice(0,3).map(f=>stripName(phrase(f))).filter(Boolean).map(t=>cap(t)+'.')].join(' ');
@@ -2000,7 +2035,7 @@ function synastry(container,members,opts={}){
       opts.onAdd({local:loc,tz:tz(),text,natives:ok.map(m=>m.client.id).filter(Boolean)})}}
   draw();return {destroy(){el.innerHTML=''},setInstant(d){st.instant=d;draw()}}}
 
-return {mount,synastry,natalBundle,dailyText,renderNorthIndianChart,renderSouthIndianChart,render,natalFor};
+return {mount,synastry,natalBundle,dailyText,dailyPrediction,renderNorthIndianChart,renderSouthIndianChart,render,natalFor};
 })();
 
 </script>
@@ -2233,6 +2268,9 @@ const api={
   async saveReading(r){return chk(await sb.from('card_readings').upsert({client_id:r.client_id,reading_date:r.reading_date,cards:r.cards||[],interpretation:r.interpretation||'',updated_at:new Date().toISOString()}).select().single())},
   async deleteReading(clientId,date){chk(await sb.from('card_readings').delete().eq('client_id',clientId).eq('reading_date',date))},
   async saveReadingReplies(clientId,date,replies){return chk(await sb.from('card_readings').update({replies}).eq('client_id',clientId).eq('reading_date',date).select().single())},
+  async listPredictions(clientId){return chk(await sb.from('daily_predictions').select('client_id,pred_date,body,manual,updated_at').eq('client_id',clientId).order('pred_date'))},
+  async savePrediction(r){return chk(await sb.from('daily_predictions').upsert({client_id:r.client_id,pred_date:r.pred_date,body:r.body||'',manual:!!r.manual,updated_at:new Date().toISOString()}).select().single())},
+  async deletePrediction(clientId,date){chk(await sb.from('daily_predictions').delete().eq('client_id',clientId).eq('pred_date',date))},
   async listDaily(clientId){return chk(await sb.from('daily_readings').select('client_id,reading_date,body,updated_at').eq('client_id',clientId).order('reading_date',{ascending:false}))},
   async saveDaily(r){return chk(await sb.from('daily_readings').upsert({client_id:r.client_id,reading_date:r.reading_date,body:r.body||'',updated_at:new Date().toISOString()}).select().single())},
   async deleteDaily(clientId,date){chk(await sb.from('daily_readings').delete().eq('client_id',clientId).eq('reading_date',date))},
@@ -2446,10 +2484,10 @@ async function renderCalendar(){
   ACT.start(code);
   const cb=$('#contactbtn');if(cb)cb.addEventListener('click',()=>ACT.action('contact',{label:contact.label}));
   drawCalendar(pkg,$('#calroot'),{code});
-  let last=JSON.stringify([pkg.influences,pkg.notes,pkg.cards,pkg.readings]);
+  let last=JSON.stringify([pkg.influences,pkg.notes,pkg.cards,pkg.readings,pkg.predictions]);
   const refresh=async()=>{if(!$('#calroot')||localStorage.getItem(CODE_KEY)!==code){stopRefresh();return}
     try{const fresh=await api.openCalendar(code);if(!fresh.ok){stopRefresh();localStorage.removeItem(CODE_KEY);renderClientLogin(fresh.why);return}
-      const now=JSON.stringify([fresh.influences,fresh.notes,fresh.cards,fresh.readings]);if(now!==last){last=now;fresh.prefs=pkg.prefs;const cardsChanged=JSON.stringify(fresh.cards)!==JSON.stringify(pkg.cards);pkg=fresh;applyCustomCategories(pkg.categories||[]);if(cardsChanged){renderCalendar();return}drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
+      const now=JSON.stringify([fresh.influences,fresh.notes,fresh.cards,fresh.readings,fresh.predictions]);if(now!==last){last=now;fresh.prefs=pkg.prefs;const cardsChanged=JSON.stringify(fresh.cards)!==JSON.stringify(pkg.cards);pkg=fresh;applyCustomCategories(pkg.categories||[]);if(cardsChanged){renderCalendar();return}drawCalendar(pkg,$('#calroot'),{code});toast('Your calendar has been updated')}}catch(e){}};
   stopRefresh();refreshTimer=setInterval(refresh,60000);refreshOnShow=()=>{if(document.visibilityState==='visible')refresh()};document.addEventListener('visibilitychange',refreshOnShow);
 }
 function monthHint(list,y,m,onJump){
@@ -2487,6 +2525,9 @@ function drawCalendar(pkg,root,opts={}){
   const refreshNoteBadges=()=>{const u=unreadNotes();const b=$('#nbadge',root);if(b)b.innerHTML=u.length?`<span class="nbadge"><i></i>${u.length} new</span>`:'';root.querySelectorAll('.nlist li[data-note]').forEach(li=>li.classList.toggle('unread',u.some(x=>x.date===li.dataset.note)))};
   // the astrologer's written reading for the client's own today
   const todayReading=(pkg.readings||[]).find(r=>r.date===todayStr()&&String(r.body||'').trim())||null;
+  const todayPred=(pkg.predictions||[]).find(r=>r.date===todayStr()&&String(r.body||'').trim())||null;
+  const predKey=r=>{let h=5381;const t=r.date+'|'+r.body;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
+  const predNew=()=>!!todayPred&&prefs.pred_seen!==predKey(todayPred);
   const readingKey=r=>{let h=5381;const t=r.date+'|'+r.body;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
   const readingNew=()=>!!todayReading&&prefs.reading_seen!==readingKey(todayReading);
   const visible=(pkg.influences||[]).filter(i=>{
@@ -2540,6 +2581,10 @@ function drawCalendar(pkg,root,opts={}){
    </section>
    <aside id="daypanel" aria-label="Day detail"></aside>
    <section class="morecol" aria-label="Options and notes">
+    ${todayPred?`<div class="card fold" id="predbox">
+     <details><summary><span class="ft">Today’s prediction</span><span id="pbadge">${predNew()?'<span class="nbadge"><i></i>new</span>':''}</span><span class="fx" aria-hidden="true"></span></summary>
+      <div class="fb pred"><p class="date">${esc(fmtDate(todayPred.date))}</p>${todayPred.body.split('\n').filter(Boolean).map(l=>{const m=l.match(/^(Work|Money|Relationships|Health|Advice):\s*(.*)$/);return m?`<p><strong>${m[1]}.</strong> ${esc(m[2])}</p>`:`<p>${esc(l)}</p>`}).join('')}</div>
+     </details></div>`:''}
     ${todayReading?`<div class="card fold" id="readingbox">
      <details><summary><span class="ft">Reading for today</span><span id="rbadge">${readingNew()?'<span class="nbadge"><i></i>new</span>':''}</span><span class="fx" aria-hidden="true"></span></summary>
       <div class="fb"><div class="dscroll"><div class="roll top"></div><div class="sheet"><p class="date">${esc(fmtDate(todayReading.date))}</p><p class="body">${esc(todayReading.body)}</p><div class="sig">— Masha</div></div><div class="roll bottom"></div>
@@ -2586,6 +2631,7 @@ function drawCalendar(pkg,root,opts={}){
   root.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calState.month+=Number(b.dataset.nav);if(calState.month<0){calState.month=11;calState.year--}if(calState.month>11){calState.month=0;calState.year++}redraw()});
   root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);log('day',{date:calState.selected,entries:visible.filter(i=>i.start_date<=calState.selected&&calState.selected<=i.end_date).map(i=>i.title).slice(0,6)});if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
   root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();log('display options',{mode:prefs.mode});redraw()});
+  const pbox=$('#predbox',root);if(pbox){const det=pbox.querySelector('details');det.addEventListener('toggle',()=>{if(!det.open)return;if(predNew()){prefs.pred_seen=predKey(todayPred);savePrefs();const pb=$('#pbadge',root);if(pb)pb.innerHTML=''}if(opts.code&&!opts.preview)ACT.action('prediction opened',{date:todayPred.date})})}
   const rbox=$('#readingbox',root);if(rbox){const sc=rbox.querySelector('.dscroll');const det=rbox.querySelector('details');
     rbox.querySelector('.tie').onclick=()=>{if(sc.classList.contains('open'))return;sc.classList.add('untie');setTimeout(()=>sc.classList.add('open'),600);
       if(readingNew()){prefs.reading_seen=readingKey(todayReading);savePrefs();const rb=$('#rbadge',root);if(rb)rb.innerHTML=''}
@@ -2694,7 +2740,7 @@ function openChangePassword(){
 }
 
 /* ---------------- Admin ---------------- */
-let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null, wsOvMember=null, wsTeamDraft=null, wsTeamDraftDirty=false, wsNative=null, wsCardDate=null, wsCardDraft=null, wsReadDate=null;
+let wsTab='client', wsClient=null, wsCal={year:new Date().getFullYear(),month:new Date().getMonth()}, wsCalOpen=null, wsNoteDate=null, wsOvMember=null, wsTeamDraft=null, wsTeamDraftDirty=false, wsNative=null, wsCardDate=null, wsCardDraft=null, wsReadDate=null, wsPredDate=null;
 async function renderAdmin(path){
   const session=await api.adminSession();
   if(!session){go('#/astrologer');return}
@@ -2763,16 +2809,16 @@ async function runInfluenceDiagnostics(c){
    <p class="small muted" style="margin-top:8px">${rows.every(r=>r[0])?'Saving and reading influences works for this client. If one you added is still missing, check its dates (the calendar shows one month at a time) and whether it was saved as a draft.':'The red line is the step that fails. '+esc(explain(rows.find(r=>!r[0])[2])||'')}</p></div>`;
 }
 async function renderWorkspace(id){
-  if(wsClient!==id){wsClient=id;wsTab='client';wsOvMember=null;wsTeamDraft=null;wsTeamDraftDirty=false;wsNative=null;wsCardDate=null;wsCardDraft=null;wsReadDate=null}
+  if(wsClient!==id){wsClient=id;wsTab='client';wsOvMember=null;wsTeamDraft=null;wsTeamDraftDirty=false;wsNative=null;wsCardDate=null;wsCardDraft=null;wsReadDate=null;wsPredDate=null}
   let c;try{c=normClient(await api.getClient(id))}catch(e){go('#/admin');return}
   const [influences,notes,allClients]=await Promise.all([api.listInfluences(id),api.listNotes(id).catch(e=>{console.warn(e);return null}),isTeam(c)?api.listClients().then(l=>l.map(normClient)).catch(()=>[]):Promise.resolve([])]);
   const ctx={c,influences,notes:notes||[],notesUnavailable:notes===null,allClients,reload:()=>renderWorkspace(id)};
-  const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['reading','Reading for today'],['cards','Cards'],['preview','Client preview'],['activity','Activity']];
+  const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['reading','Reading for today'],['predict','Daily prediction'],['cards','Cards'],['preview','Client preview'],['activity','Activity']];
   app.innerHTML=`<p class="crumbs"><a href="${isTeam(c)?'#/admin/teams':'#/admin'}">${isTeam(c)?'Teams':'Clients'}</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}${isTeam(c)?' <span class="pill significant" style="vertical-align:middle;font-size:.8rem">Team</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:middle;font-size:.8rem">† discarnate</span>':''}</h1>
    <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${wsTab===k}" data-tab="${k}">${l}</button>`).join('')}</div><div id="tabbody"></div>`;
   app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{wsTab=b.dataset.tab;renderWorkspace(id)});
   const body=$('#tabbody');
-  ({client:tabClient,natal:tabNatal,calendar:tabCalendar,influences:tabInfluences,reading:tabReading,cards:tabCards,preview:tabPreview,activity:tabActivity})[wsTab](ctx,body);
+  ({client:tabClient,natal:tabNatal,calendar:tabCalendar,influences:tabInfluences,reading:tabReading,predict:tabPredict,cards:tabCards,preview:tabPreview,activity:tabActivity})[wsTab](ctx,body);
 }
 /* ---------------- Client activity (astrologer side) ---------------- */
 const ONLINE_MS=3*60000; // a client counts as "on the app" if something was heard from them in the last three minutes
@@ -2781,7 +2827,7 @@ const fmtDT=d=>new Date(d).toLocaleString(undefined,{weekday:'short',month:'shor
 const fmtDur=ms=>{const m=Math.round(ms/60000);if(m<1)return 'under a minute';if(m<60)return m+' min';const h=Math.floor(m/60);return h+' h '+(m%60?(m%60)+' min':'')};
 const monthLabel=ym=>{const [y,m]=String(ym||'').split('-').map(Number);return y&&m?new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(ym||'')};
 const fmtMs=ms=>ms<1000?'':ms<60000?Math.round(ms/1000)+' s':ms<3600000?Math.round(ms/60000)+' min':fmtDur(ms);
-const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact','note opened','note reply','cards opened','cards read','card reply','reading opened'];
+const ACTION_SCREENS=['export','copy','print','entries','open entry','gift opened','contact','note opened','note reply','cards opened','cards read','card reply','reading opened','prediction opened'];
 const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='month')return `${monthLabel(d.month)}${d.entries!==undefined?' ('+d.entries+' entr'+(d.entries===1?'y':'ies')+' shown)':''}`;
   if(sc==='day')return `${d.date?fmtShort(d.date):'a day'}${d.entries&&d.entries.length?': '+d.entries.join(', '):' (nothing that day)'}`;
@@ -2790,7 +2836,7 @@ const screenText=d=>{if(!d)return '';const sc=d.screen||'calendar';
   if(sc==='copy')return `copied text${d.entry?' from “'+d.entry+'”':''}${d.chars?' ('+d.chars+' characters)':''}`;
   if(sc==='print')return 'printed the page';
   if(sc==='open entry')return `opened “${d.entry||''}”`;
-  if(sc==='reading opened')return 'unrolled the reading for today';if(sc==='cards opened')return `opened their card reading${d.date?' ('+fmtShort(d.date)+')':''}`;if(sc==='cards read')return 'unrolled the card interpretation';if(sc==='card reply')return 'replied under the cards';if(sc==='synastry')return 'opened the shared calendar'+(d.team?' “'+d.team+'”':'');
+  if(sc==='reading opened')return 'unrolled the reading for today';if(sc==='prediction opened')return 'opened today’s prediction';if(sc==='cards opened')return `opened their card reading${d.date?' ('+fmtShort(d.date)+')':''}`;if(sc==='cards read')return 'unrolled the card interpretation';if(sc==='card reply')return 'replied under the cards';if(sc==='synastry')return 'opened the shared calendar'+(d.team?' “'+d.team+'”':'');
   if(sc==='gift opened')return 'opened their gift';
   if(sc==='note opened')return `unrolled your note for ${d.date?fmtShort(d.date):'a day'}`;
   if(sc==='contact')return 'tapped the enquiries link';
@@ -3141,6 +3187,34 @@ async function tabCards(ctx,body){const {c,reload}=ctx;const ent={...ENT_DEFAULT
 // Downscale an uploaded image to a small JPEG data URL (long side ≤ max px) so it fits comfortably in the database.
 function shrinkImage(file,max){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,max/Math.max(img.width,img.height));const cv=document.createElement('canvas');cv.width=Math.round(img.width*s);cv.height=Math.round(img.height*s);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(url);res(cv.toDataURL('image/jpeg',.82))};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('Could not read that image.'))};img.src=url})}
 
+/* The astrologer's "Daily prediction" tab: generated from each day's transits, kept three weeks ahead, editable per day, shown to the client when switched on. */
+async function tabPredict(ctx,body){const {c}=ctx;const on=!!(c.jyotish&&c.jyotish.daily_prediction);const team=isTeam(c);const natives=team?teamOf(c).members.map(m=>memberClient(c,m)).filter(m=>m.birth_date):[c];const canGen=natives.length>0&&natives.every(n=>n.birth_date);
+  let list=[];let unavailable=false;try{list=await api.listPredictions(c.id)}catch(e){unavailable=true}
+  const gen=date=>{try{return natives.map(n=>{const t=GUI.dailyPrediction(n,date);return t?(team?n.name+'\n'+t:t):''}).filter(Boolean).join('\n\n')}catch(e){return ''}};
+  const today=todayStr();const dates=[];for(let k=0;k<21;k++){const dt=new Date();dt.setDate(dt.getDate()+k);dates.push(ymd(dt))}
+  // keep the three weeks ahead current: generated days are refreshed, edited days are left alone, old days dropped
+  if(on&&canGen&&!unavailable){let changed=false;for(const d of dates){const row=list.find(r=>r.pred_date===d);if(row&&row.manual)continue;const t=gen(d);if(!t)continue;if(!row||row.body!==t){await api.savePrediction({client_id:c.id,pred_date:d,body:t,manual:false});changed=true}}
+    for(const r of list)if(r.pred_date<today){await api.deletePrediction(c.id,r.pred_date);changed=true}
+    if(changed)list=await api.listPredictions(c.id)}
+  const d=wsPredDate||today;const cur=list.find(r=>r.pred_date===d);const text=cur?cur.body:(canGen?gen(d):'');
+  body.innerHTML=`<div class="card"><div class="row between" style="gap:8px;flex-wrap:wrap"><h2 style="margin:0">Daily prediction</h2>${on?'<span class="pill supportive">shown to the client</span>':'<span class="pill draft">not shown</span>'}</div>
+   <p class="small muted">Written automatically for every day from the transits on ${team?'each native’s':'this'} chart, in the manner of a daily horoscope — the day’s tone, then work, money, relationships and health, and a line of advice — using the same house readings as the Gochara insight (after Pijan Lama, Charak and Behari) and the classical verdicts from the Moon. The next three weeks are kept ready and refreshed each time you open this tab. Edit any day and your words replace the generated ones for that day.</p>
+   ${unavailable?'<p class="note small">This needs the latest supabase-setup.sql to be run once in the Supabase SQL Editor.</p>':`
+   <label class="chk"><input type="checkbox" id="pd-on" ${on?'checked':''}>Show the daily prediction to ${esc(c.name||'the client')} <span class="small muted">(a “Today’s prediction” card under their calendar)</span></label>
+   ${canGen?'':'<p class="small" style="color:var(--sensitive)">Birth details are needed first (Client &amp; access).</p>'}
+   <div class="row" style="gap:10px;align-items:flex-end;margin-top:10px"><label class="f" style="margin:0;max-width:220px"><span>Day</span><input type="date" id="pd-date" value="${esc(d)}" min="${today}"></label><button type="button" class="btn quiet small" id="pd-today" ${d===today?'disabled':''}>Today</button><span class="small muted">${cur?(cur.manual?'Your edited text for this day.':'Generated for this day.'):'Preview for this day.'}</span></div>
+   <label class="f"><span>The prediction</span><textarea id="pd-body" style="min-height:240px;font-size:1.02rem;line-height:1.55">${esc(text)}</textarea></label>
+   <p class="row" style="gap:6px"><button type="button" class="btn small" id="pd-save">Save my edit for this day</button>${cur&&cur.manual?'<button type="button" class="btn ghost small" id="pd-regen">Back to the generated text</button>':''}</p>
+   ${list.length?`<h3 style="margin-top:16px">The days ahead (${list.length})</h3><ul class="list">${list.map(r=>`<li><div style="flex:1;min-width:0"><strong>${esc(fmtDate(r.pred_date))}</strong>${r.pred_date===today?' <span class="pill supportive">today</span>':''}${r.manual?' <span class="pill significant">edited</span>':''}<div class="small muted">${esc(String(r.body).split('\n')[0].slice(0,170))}…</div></div><button type="button" class="btn ghost small" data-pd="${r.pred_date}">Open</button></li>`).join('')}</ul>`:''}`}
+  </div>`;
+  if(unavailable)return;
+  const go_=x=>{wsPredDate=x;tabPredict(ctx,body)};
+  $('#pd-on',body).onchange=guard(async e=>{await api.saveClient({...c,jyotish:{...(c.jyotish||{}),daily_prediction:e.target.checked}});c.jyotish={...(c.jyotish||{}),daily_prediction:e.target.checked};toast(e.target.checked?'Daily prediction on — the next three weeks are being prepared':'Daily prediction off');tabPredict(ctx,body)});
+  $('#pd-date',body).onchange=e=>go_(e.target.value||today);$('#pd-today',body).onclick=()=>go_(today);
+  body.querySelectorAll('[data-pd]').forEach(b=>b.onclick=()=>{go_(b.dataset.pd);window.scrollTo({top:0,behavior:'smooth'})});
+  $('#pd-save',body).onclick=guard(async()=>{const t=$('#pd-body',body).value.trim();if(!t){alert('Write the prediction first.');return}await api.savePrediction({client_id:c.id,pred_date:d,body:t,manual:true});toast('Saved — your text is used for '+fmtShort(d));tabPredict(ctx,body)});
+  const rg=$('#pd-regen',body);if(rg)rg.onclick=guard(async()=>{await api.savePrediction({client_id:c.id,pred_date:d,body:gen(d),manual:false});toast('Generated text restored');tabPredict(ctx,body)});
+}
 /* The astrologer's "Reading for today" tab: write the reading for a date; the client unrolls it from a tied scroll on that day. */
 async function tabReading(ctx,body){const {c,reload}=ctx;let list=[];let unavailable=false;try{list=await api.listDaily(c.id)}catch(e){unavailable=true}
   const d=wsReadDate||todayStr();const cur=list.find(r=>r.reading_date===d);const today=todayStr();
