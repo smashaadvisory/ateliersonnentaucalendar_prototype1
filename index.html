@@ -515,26 +515,37 @@ dialog.tarot::backdrop{background:rgba(20,22,36,.75)}
 .fb.pred .pluck{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--line)}.fb.pred .pluck div{display:contents}.fb.pred .pluck dt{font-family:var(--sans);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);padding-top:4px;white-space:nowrap}.fb.pred .pluck dd{margin:0;font-size:1rem;line-height:1.5}
 .fb.pred .prate{margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--line)}.fb.pred .prate .ph{font-family:var(--sans);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}.fb.pred .pr{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:1rem}.fb.pred .stars{color:var(--gold);letter-spacing:.12em;font-size:1rem}.fb.pred .stars i{font-style:normal;color:var(--line-strong)}
 .fb.pred .date{font-family:var(--sans);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}.fb.pred p{margin:0 0 10px;font-size:1.04rem;line-height:1.6}.fb.pred p:last-child{margin-bottom:0}.fb.pred strong{font-weight:600;color:var(--primary)}
-.dscroll{position:relative;max-width:560px;margin:6px auto 4px}
-.dscroll .roll{height:20px;border-radius:10px;margin:0 -6px;background:linear-gradient(180deg,#FFFDF6,#EEE6D2 60%,#D9CDB1);box-shadow:0 5px 12px rgba(60,45,20,.18);position:relative;z-index:2;transition:height .5s,border-radius .5s}
-.dscroll:not(.open) .roll.top{height:46px;border-radius:23px;background:linear-gradient(180deg,#FFFDF6 0%,#F3ECD9 35%,#E2D7BB 70%,#CFC2A3 100%)}
-.dscroll:not(.open) .roll.bottom{display:none}
-.dscroll .roll.bottom{transform:translateY(-3px)}
-.dscroll .sheet{margin:0 4px;background:linear-gradient(180deg,#FDF9EE,#F8F2E2);border-left:1px solid var(--line);border-right:1px solid var(--line);max-height:0;overflow:hidden;padding:0 26px;transition:max-height 1.5s cubic-bezier(.3,.6,.3,1),padding .6s;box-shadow:inset 0 0 40px rgba(181,138,74,.10)}
-.dscroll.open .sheet{max-height:2400px;padding:22px 26px 20px}
-.dscroll .sheet .date{font-family:var(--sans);font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
-.dscroll .sheet p.body{margin:0;font-size:1.06rem;line-height:1.62;white-space:pre-line}
-.dscroll .srule{height:1px;background:var(--line-strong);margin:20px 30% 18px;opacity:.7}.dscroll .spred .pbody{margin:0 0 10px;font-size:1.04rem;line-height:1.62;white-space:pre-line}.dscroll .spred .pluck{margin:12px 0 0;font-size:.98rem}.dscroll .spred .pluck span{font-family:var(--sans);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-right:6px}
-.dscroll .sheet .sig{margin-top:12px;font-size:.84rem;color:var(--muted);font-style:italic}
-.dscroll .tie{position:absolute;left:50%;top:-9px;transform:translateX(-50%);width:120px;height:64px;border:0;background:transparent;padding:0;cursor:pointer;z-index:4;transition:opacity .5s,transform .7s}
-.dscroll .tie .band{position:absolute;left:52px;width:16px;top:9px;height:46px;border-radius:3px;background:linear-gradient(90deg,#8E2F2F,#B8423E 45%,#8E2F2F);box-shadow:0 2px 6px rgba(60,20,20,.3)}
-.dscroll .tie svg{position:absolute;left:0;top:0;width:120px;height:64px;filter:drop-shadow(0 3px 5px rgba(60,20,20,.3))}
+.dscroll{position:relative;max-width:600px;margin:8px auto 4px;--wood1:#5A3A22;--wood2:#3B2414;--wood3:#8A5E3B;--parch:#F2E8D0;--parch2:#E7DABA;--ink:#2E2618}
+/* the wooden roller at the top, turned finials either side, with the wound paper between them */
+.dscroll .rod{position:relative;display:flex;align-items:center;height:44px;z-index:3}
+.dscroll .rod .fin{flex:none;width:38px;height:44px;filter:drop-shadow(0 3px 3px rgba(40,25,10,.35))}
+.dscroll .rod .fin.r{transform:scaleX(-1)}
+.dscroll .rod .core{flex:1;height:34px;border-radius:5px;background:linear-gradient(180deg,#FBF6E8 0%,var(--parch) 30%,#DCCDAA 72%,#C8B78F 100%);border-left:7px solid var(--wood2);border-right:7px solid var(--wood2);box-shadow:inset 0 -3px 5px rgba(80,60,30,.18),0 4px 8px rgba(60,40,15,.22)}
+/* the parchment itself: aged, with an engraved double frame */
+.dscroll .sheetwrap{margin:-4px 45px 0;overflow:hidden;max-height:0;transition:max-height 2.2s cubic-bezier(.35,.55,.3,1);position:relative;z-index:1}
+
+.dscroll .sheet{position:relative;background:radial-gradient(ellipse at 50% 40%,#F7F0DC 0%,var(--parch) 55%,var(--parch2) 100%);color:var(--ink);padding:30px 34px 28px;box-shadow:inset 6px 0 10px -6px rgba(90,65,30,.35),inset -6px 0 10px -6px rgba(90,65,30,.35)}
+.dscroll .sheet::before{content:"";position:absolute;inset:12px;border:3px double rgba(92,70,40,.42);pointer-events:none}
+.dscroll .sheet::after{content:"";position:absolute;left:12px;right:12px;top:12px;height:0;pointer-events:none}
+.dscroll .sheet .date{font-family:var(--sans);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:#7A6648;margin:0 0 10px;text-align:center}
+.dscroll .sheet p.body{margin:0;font-size:1.06rem;line-height:1.66;white-space:pre-line}
+.dscroll .sheet .sig{margin-top:12px;font-size:.86rem;color:#6E5D44;font-style:italic;text-align:right}
+/* the rolled bundle at the foot, which travels down and turns as the paper is let out */
+.dscroll .bundle{position:relative;margin:-2px 38px 0;height:36px;border-radius:18px;z-index:2;background:linear-gradient(180deg,#FBF6E8 0%,var(--parch) 28%,#D9C9A4 70%,#BFAE86 100%);background-size:100% 100%;box-shadow:0 6px 12px rgba(60,40,15,.25),inset 0 2px 2px rgba(255,255,255,.6)}
+.dscroll .bundle::after{content:"";position:absolute;left:10%;right:10%;top:50%;height:1px;background:rgba(120,95,55,.25)}
+.dscroll.open .bundle{animation:bundleturn 2.2s cubic-bezier(.35,.55,.3,1) both}
+@keyframes bundleturn{0%{transform:rotateX(0) scaleY(1)}35%{transform:rotateX(25deg) scaleY(.96)}70%{transform:rotateX(-15deg) scaleY(.92)}100%{transform:rotateX(0) scaleY(.88)}}
+/* the bow that holds it closed */
+.dscroll .tie{position:absolute;left:50%;top:14px;transform:translateX(-50%);width:120px;height:64px;border:0;background:transparent;padding:0;cursor:pointer;z-index:5;transition:opacity .5s,transform .7s}
+.dscroll .tie .band{position:absolute;left:52px;width:16px;top:4px;height:60px;border-radius:3px;background:linear-gradient(90deg,#8E2F2F,#B8423E 45%,#8E2F2F);box-shadow:0 2px 6px rgba(60,20,20,.3)}
+.dscroll .tie svg{position:absolute;left:0;top:2px;width:120px;height:64px;filter:drop-shadow(0 3px 5px rgba(60,20,20,.3))}
 .dscroll .tie:hover svg{transform:scale(1.04)}
-.dscroll .hint{text-align:center;font-family:var(--sans);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:22px 0 0}
-.dscroll.untie .tie{opacity:0;transform:translate(-50%,46px) rotate(10deg);pointer-events:none}
+.dscroll .hint{text-align:center;font-family:var(--sans);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:16px 0 0}
+.dscroll.untie .tie{opacity:0;transform:translate(-50%,60px) rotate(10deg);pointer-events:none}
 .dscroll.open .hint,.dscroll.untie .hint{display:none}
-@media(max-width:560px){.dscroll .sheet{padding:0 18px}.dscroll.open .sheet{padding:18px 18px 16px}}
-@media(prefers-reduced-motion:reduce){.dscroll .sheet{transition-duration:.2s}}
+@media(max-width:560px){.dscroll .rod .fin{width:22px}.dscroll .rod .core{border-left-width:5px;border-right-width:5px}.dscroll .sheetwrap{margin:-4px 24px 0}.dscroll .bundle{margin:-2px 20px 0}.dscroll .sheet{padding:22px 16px 20px}.dscroll .sheet::before{inset:7px}.fold .fb:has(.dscroll){padding-left:10px;padding-right:10px}}
+@media(prefers-reduced-motion:reduce){.dscroll .sheetwrap{transition-duration:.2s}.dscroll.open .bundle{animation:none}}
+.dscroll .srule{height:1px;background:var(--line-strong);margin:20px 30% 18px;opacity:.7}.dscroll .spred .pbody{margin:0 0 10px;font-size:1.04rem;line-height:1.62;white-space:pre-line}.dscroll .pluck{margin:14px 0 0;text-align:center;font-size:.98rem}.dscroll .pluck span{font-family:var(--sans);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-right:6px}
 /* the client's "Card of the day" button */
 .cardsbtn{position:relative;display:inline-flex;align-items:center;gap:8px}
 .cardsbtn .nb{position:absolute;top:-6px;right:-6px;width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--bg);animation:npulse 2s ease-out infinite}
@@ -1361,11 +1372,13 @@ const PD_LINES={
   energy:[['Your energy is strong today, well suited to anything that asks for stamina or nerve.','You have more physical vigour than usual—a good day to begin something demanding.'],['Your energy may outrun your patience today, so take particular care when driving, exercising or disagreeing.','Irritation comes easily today, your own included; a moment’s restraint will save a good deal of repair.']]};
 const PD_LUCK={sun:1,moon:2,jupiter:3,rahu:4,mercury:5,venus:6,ketu:7,saturn:8,mars:9};
 const PD_WEEKDAY=['sun','moon','mars','mercury','jupiter','venus','saturn'];
-function dailyPrediction(client,dateStr){const S=loadSettings();const m=natalBundle(client,S);if(m.error)return '';
-  const tz=client.timezone||BROWSER_TZ;const at=G.zonedToUtc(dateStr,'12:00',tz);const tr=G.chart(at,{nodeMode:S.nodeMode,outer:false});
-  const V={};for(const p of tr.planets){const hm=G.houseFrom(p.sign,m.moon.sign);const mv=G.moonTransit(p.key,hm,tr.planets,m.moon.sign);const contact=m.chart.planets.some(n=>Math.abs(G.norm(p.lon-n.lon+180)-180)<=1.5);V[p.key]={hm,good:mv.good===true&&!mv.vedhaBy,bad:mv.good===false,contact}}
+// the compact natal data the prediction needs: the Moon's sign and the planets' longitudes (nothing else about the native)
+function predNatal(client){const m=natalBundle(client,loadSettings());if(m.error)return null;return {name:client.name||'',moon:m.moon.sign,lons:m.chart.planets.map(p=>Math.round(p.lon*100)/100)}}
+function dailyPrediction(client,dateStr){const n=predNatal(client);return n?dailyPredictionFrom(n,dateStr,client.timezone||BROWSER_TZ):''}
+function dailyPredictionFrom(nat,dateStr,tz){const S=loadSettings();tz=tz||BROWSER_TZ;const at=G.zonedToUtc(dateStr,'12:00',tz);const tr=G.chart(at,{nodeMode:S.nodeMode,outer:false});
+  const V={};for(const p of tr.planets){const hm=G.houseFrom(p.sign,nat.moon);const mv=G.moonTransit(p.key,hm,tr.planets,nat.moon);const contact=nat.lons.some(l=>Math.abs(G.norm(p.lon-l+180)-180)<=1.5);V[p.key]={hm,good:mv.good===true&&!mv.vedhaBy,bad:mv.good===false,contact}}
   const sc=k=>V[k]?(V[k].good?1:V[k].bad?-1:0)*(V[k].contact?1.4:1):0;const mh=V.moon.hm,mg=V.moon.good;
-  const seed=Math.abs([...(dateStr+(client.name||''))].reduce((h,c)=>((h<<5)-h+c.charCodeAt(0))|0,11));const pick=(arr,i)=>arr[(seed+i*7)%arr.length];
+  const seed=Math.abs([...(dateStr+(nat.name||''))].reduce((h,c)=>((h<<5)-h+c.charCodeAt(0))|0,11));const pick=(arr,i)=>arr[(seed+i*7)%arr.length];
   const say=(area,score,i)=>pick(PD_LINES[area][score>=0?0:1],i);
   const moonIn=hs=>hs.includes(mh)?(mg?1:-1):0;
   const out=[PD_OPEN[mh][mg?0:1],
@@ -2049,7 +2062,7 @@ function synastry(container,members,opts={}){
       opts.onAdd({local:loc,tz:tz(),text,natives:ok.map(m=>m.client.id).filter(Boolean)})}}
   draw();return {destroy(){el.innerHTML=''},setInstant(d){st.instant=d;draw()}}}
 
-return {mount,synastry,natalBundle,dailyText,dailyPrediction,renderNorthIndianChart,renderSouthIndianChart,render,natalFor};
+return {mount,synastry,natalBundle,dailyText,dailyPrediction,dailyPredictionFrom,predNatal,renderNorthIndianChart,renderSouthIndianChart,render,natalFor};
 })();
 
 </script>
@@ -2247,6 +2260,9 @@ const memberClient=(c,m)=>({id:m.id,name:m.name||'Native',birth_date:m.birth_dat
 const infNatives=i=>(i&&i.jyotish&&Array.isArray(i.jyotish.natives))?i.jyotish.natives:(Array.isArray(i&&i.natives)?i.natives:[]);
 const nativesLabel=(i,members)=>{const ids=infNatives(i);if(!members.length)return '';if(!ids.length||ids.length===members.length)return members.length===2?members.map(m=>m.name).join(' & '):'Everyone';return ids.map(id=>(members.find(m=>m.id===id)||{}).name||'?').join(' & ')};
 const saveTeam=(c,team)=>api.saveClient({...c,jyotish:{...(c.jyotish||{}),team}});
+// the prediction is written in the client's own browser each day from this compact data (Moon sign and planet longitudes only)
+const predNatalFor=c=>{const list=isTeam(c)?teamOf(c).members.filter(m=>!m.discarnate&&m.birth_date).map(m=>memberClient(c,m)):[c];return list.map(n=>{try{return GUI.predNatal(n)}catch(e){return null}}).filter(Boolean)};
+async function syncPredNatal(c){if(!(c.jyotish&&c.jyotish.daily_prediction))return;const v=predNatalFor(c);if(JSON.stringify(v)!==JSON.stringify(c.jyotish.pred_natal||null)){c.jyotish={...c.jyotish,pred_natal:v};try{await api.saveClient({...c})}catch(e){}}}
 const nativesFromNames=(names,members)=>{if(!names||!names.length||!members.length)return null;const norm=x=>String(x||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'');const hits=members.filter(m=>names.some(n=>{const a=norm(n),b=norm(m.name);return a&&b&&(a===b||b.startsWith(a)||a.startsWith(b))})).map(m=>m.id);if(names.some(n=>/^(everyone|all|both|together)$/i.test(n.trim())))return members.map(m=>m.id);return hits.length?hits:null};
 function cleanInfluence(i){const o={...i};delete o.created_at;delete o.updated_at;for(const k of ['start_time','end_time','parent_id'])o[k]=nn(o[k]);o.jyotish=o.jyotish||{};o.source_reference=o.source_reference||{};o.secondary_categories=o.secondary_categories||[];o.supportive_for=o.supportive_for||[];o.difficult_for=o.difficult_for||[];if(o.end_date<o.start_date)o.end_date=o.start_date;return o}
 const api={
@@ -2539,7 +2555,8 @@ function drawCalendar(pkg,root,opts={}){
   const refreshNoteBadges=()=>{const u=unreadNotes();const b=$('#nbadge',root);if(b)b.innerHTML=u.length?`<span class="nbadge"><i></i>${u.length} new</span>`:'';root.querySelectorAll('.nlist li[data-note]').forEach(li=>li.classList.toggle('unread',u.some(x=>x.date===li.dataset.note)))};
   // the astrologer's written reading for the client's own today
   const todayReading=ent.daily_reading===false?null:(pkg.readings||[]).find(r=>r.date===todayStr()&&String(r.body||'').trim())||null;
-  const todayPred=(pkg.predictions||[]).find(r=>r.date===todayStr()&&String(r.body||'').trim())||null;
+  const todayPred=(pkg.predictions||[]).find(r=>r.date===todayStr()&&String(r.body||'').trim())||(()=>{const nat=Array.isArray(pkg.pred_natal)?pkg.pred_natal:[];if(!nat.length)return null;
+    try{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;const many=nat.length>1;const body=nat.map(n=>{const t=GUI.dailyPredictionFrom(n,todayStr(),tz);return t?(many?n.name+'\n'+t:t):''}).filter(Boolean).join('\n\n');return body?{date:todayStr(),body,auto:true}:null}catch(e){return null}})();
   const predKey=r=>{let h=5381;const t=r.date+'|'+r.body;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
   const predNew=()=>!!todayPred&&prefs.pred_seen!==predKey(todayPred);
   const readingKey=r=>{let h=5381;const t=r.date+'|'+r.body;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
@@ -2641,10 +2658,10 @@ function drawCalendar(pkg,root,opts={}){
   root.querySelectorAll('.day').forEach(b=>b.onclick=()=>{calState.selected=b.dataset.d;root.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x.dataset.d===calState.selected));drawDay(pkg,visible,calState.selected,root);log('day',{date:calState.selected,entries:visible.filter(i=>i.start_date<=calState.selected&&calState.selected<=i.end_date).map(i=>i.title).slice(0,6)});if(window.innerWidth<880)$('#daypanel',root).scrollIntoView({behavior:'smooth',block:'start'})});
   root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{prefs.mode=b.dataset.mode;savePrefs();log('display options',{mode:prefs.mode});redraw()});
   const rbox=$('#readingbox',root);if(rbox){const sc=rbox.querySelector('.dscroll');const det=rbox.querySelector('details');
-    rbox.querySelector('.tie').onclick=()=>{if(sc.classList.contains('open'))return;sc.classList.add('untie');setTimeout(()=>sc.classList.add('open'),600);
+    rbox.querySelector('.tie').onclick=()=>{if(sc.classList.contains('open'))return;unrollScroll(sc);
       if(dailyNew()){if(todayReading)prefs.reading_seen=readingKey(todayReading);if(todayPred)prefs.pred_seen=predKey(todayPred);savePrefs();const rb=$('#rbadge',root);if(rb)rb.innerHTML=''}
       if(opts.code&&!opts.preview)ACT.action('reading opened',{date:todayStr(),parts:[todayReading?'reading':'',todayPred?'prediction':''].filter(Boolean)})};
-    det.addEventListener('toggle',()=>{if(!det.open)sc.classList.remove('open','untie')})} // closing the dropdown rolls it back up and re-ties it
+    det.addEventListener('toggle',()=>{if(!det.open){sc.classList.remove('open','untie');const w=sc.querySelector('.sheetwrap');if(w)w.style.maxHeight=''}})} // closing the dropdown rolls it back up and re-ties it
   const gear=$('#gear',root),setdlg=$('#setdlg',root);if(gear&&setdlg){gear.onclick=()=>{calState.settingsOpen=true;setdlg.showModal();log('display options',{opened:true})};setdlg.addEventListener('close',()=>{calState.settingsOpen=false});$('#setclose',root).onclick=()=>setdlg.close();setdlg.addEventListener('click',e=>{if(e.target===setdlg)setdlg.close()});if(calState.settingsOpen&&!setdlg.open)setdlg.showModal()}
   root.querySelectorAll('[data-combo]').forEach(b=>b.onclick=()=>{prefs.combo=b.dataset.combo;savePrefs();log('display options',{view:b.textContent.trim()});redraw()});
   const intent=$('#intent',root);if(intent)intent.onchange=e=>{prefs.intention=e.target.value;savePrefs();log('display options',{intention:prefs.intention||'none'});redraw()};
@@ -2820,6 +2837,7 @@ async function renderWorkspace(id){
   if(wsClient!==id){wsClient=id;wsTab='client';wsOvMember=null;wsTeamDraft=null;wsTeamDraftDirty=false;wsNative=null;wsCardDate=null;wsCardDraft=null;wsReadDate=null;wsPredDate=null}
   let c;try{c=normClient(await api.getClient(id))}catch(e){go('#/admin');return}
   const [influences,notes,allClients]=await Promise.all([api.listInfluences(id),api.listNotes(id).catch(e=>{console.warn(e);return null}),isTeam(c)?api.listClients().then(l=>l.map(normClient)).catch(()=>[]):Promise.resolve([])]);
+  await syncPredNatal(c);
   const ctx={c,influences,notes:notes||[],notesUnavailable:notes===null,allClients,reload:()=>renderWorkspace(id)};
   const tabs=[['client','Client & access'],['natal','Gochara'],['calendar','Calendar'],['influences','Influences'],['reading','Reading for today'],['cards','Cards'],['preview','Client preview'],['activity','Activity']];
   app.innerHTML=`<p class="crumbs"><a href="${isTeam(c)?'#/admin/teams':'#/admin'}">${isTeam(c)?'Teams':'Clients'}</a> › Workspace</p><h1 style="margin:0">${esc(c.name||'Unnamed')}${isTeam(c)?' <span class="pill significant" style="vertical-align:middle;font-size:.8rem">Team</span>':''}${c.jyotish&&c.jyotish.discarnate&&c.jyotish.discarnate.on?' <span class="pill draft" style="vertical-align:middle;font-size:.8rem">† discarnate</span>':''}</h1>
@@ -3201,10 +3219,10 @@ async function tabDaily(ctx,body){const {c}=ctx;const ent={...ENT_DEFAULT,...(c.
   const showReading=ent.daily_reading!==false,showPred=!!(c.jyotish&&c.jyotish.daily_prediction);
   const team=isTeam(c);const natives=team?teamOf(c).members.map(m=>memberClient(c,m)).filter(m=>m.birth_date&&!(m.jyotish&&m.jyotish.discarnate)):[c];const canGen=natives.length>0&&natives.every(n=>n.birth_date);
   const gen=date=>{try{return natives.map(n=>{const t=GUI.dailyPrediction(n,date);return t?(team?n.name+'\n'+t:t):''}).filter(Boolean).join('\n\n')}catch(e){return ''}};
-  let readings=[],preds=[],unavailable=false;try{[readings,preds]=await Promise.all([api.listDaily(c.id),api.listPredictions(c.id)])}catch(e){unavailable=true}
+  let readings=[],preds=[],unavailable=false,predStore=true;try{readings=await api.listDaily(c.id)}catch(e){unavailable=true}try{preds=await api.listPredictions(c.id)}catch(e){predStore=false}
   const today=todayStr();
   // keep the three weeks ahead of the prediction current: generated days refreshed, edited days left alone, past days dropped
-  if(showPred&&canGen&&!unavailable){let changed=false;for(let k=0;k<21;k++){const dt=new Date();dt.setDate(dt.getDate()+k);const ds=ymd(dt);const row=preds.find(r=>r.pred_date===ds);if(row&&row.manual)continue;const t=gen(ds);if(!t)continue;if(!row||row.body!==t){await api.savePrediction({client_id:c.id,pred_date:ds,body:t,manual:false});changed=true}}
+  if(showPred&&canGen&&predStore){let changed=false;for(let k=0;k<21;k++){const dt=new Date();dt.setDate(dt.getDate()+k);const ds=ymd(dt);const row=preds.find(r=>r.pred_date===ds);if(row&&row.manual)continue;const t=gen(ds);if(!t)continue;if(!row||row.body!==t){await api.savePrediction({client_id:c.id,pred_date:ds,body:t,manual:false});changed=true}}
     for(const r of preds)if(r.pred_date<today){await api.deletePrediction(c.id,r.pred_date);changed=true}
     if(changed)preds=await api.listPredictions(c.id)}
   const d=wsReadDate||today;const rd=readings.find(r=>r.reading_date===d);const pd=preds.find(r=>r.pred_date===d);const predText=pd?pd.body:(canGen?gen(d):'');
@@ -3218,7 +3236,8 @@ async function tabDaily(ctx,body){const {c}=ctx;const ent={...ENT_DEFAULT,...(c.
    <label class="f"><span>Your reading</span><textarea id="dl-body" style="min-height:180px;font-size:1.05rem;line-height:1.55" placeholder="Write the reading for this day…">${esc(rd?rd.body:'')}</textarea></label>
    <p class="row" style="gap:6px"><button type="button" class="btn small" id="dl-save">${rd?'Update reading':'Save reading'}</button>${rd?'<button type="button" class="btn quiet small" id="dl-del">Remove</button>':''}</p>
    <label class="f"><span>Prediction ${pd&&pd.manual?'<em class="muted">— your edit</em>':'<em class="muted">— written automatically</em>'}</span>${canGen?`<textarea id="dl-pred" style="min-height:200px;font-size:1.02rem;line-height:1.55">${esc(predText)}</textarea>`:'<p class="small" style="color:var(--sensitive);margin:4px 0">Birth details are needed first (Client &amp; access).</p>'}</label>
-   ${canGen?`<p class="row" style="gap:6px"><button type="button" class="btn ghost small" id="dl-psave">Save my edit</button>${pd&&pd.manual?'<button type="button" class="btn quiet small" id="dl-pregen">Back to the automatic text</button>':''}</p>`:''}
+   ${canGen&&!predStore?'<p class="small" style="color:var(--sensitive);margin:0 0 6px">Edits to the prediction need the latest supabase-setup.sql run once; the automatic text is still shown to the client.</p>':''}
+   ${canGen&&predStore?`<p class="row" style="gap:6px"><button type="button" class="btn ghost small" id="dl-psave">Save my edit</button>${pd&&pd.manual?'<button type="button" class="btn quiet small" id="dl-pregen">Back to the automatic text</button>':''}</p>`:''}
    <p class="row" style="gap:6px;margin-top:14px"><button type="button" class="btn ghost small" id="dl-preview">Preview what the client sees</button></p><div id="dl-pv"></div>
    ${days.length?`<h3 style="margin-top:16px">Days you have written</h3><ul class="list">${days.map(x=>{const r=readings.find(y=>y.reading_date===x),p=preds.find(y=>y.pred_date===x);return `<li><div style="flex:1;min-width:0"><strong>${esc(fmtDate(x))}</strong>${x===today?' <span class="pill supportive">today</span>':' <span class="pill draft">upcoming</span>'}${r?' <span class="pill significant">reading</span>':''}${p&&p.manual?' <span class="pill significant">edited prediction</span>':''}<div class="small muted">${esc(String(r?r.body:p.body).slice(0,150))}…</div></div><button type="button" class="btn ghost small" data-dl="${x}">Open</button></li>`}).join('')}</ul>`:''}`}
   </div>`;
@@ -3227,25 +3246,28 @@ async function tabDaily(ctx,body){const {c}=ctx;const ent={...ENT_DEFAULT,...(c.
   $('#dl-date',body).onchange=e=>go_(e.target.value||today);$('#dl-today',body).onclick=()=>go_(today);
   body.querySelectorAll('[data-dl]').forEach(b=>b.onclick=()=>{go_(b.dataset.dl);window.scrollTo({top:0,behavior:'smooth'})});
   $('#dl-r',body).onchange=guard(async e=>{c.entitlements={...ENT_DEFAULT,...(c.entitlements||{}),daily_reading:e.target.checked};await api.saveClient({...c});toast(e.target.checked?'Your written reading is shown':'Your written reading is hidden');tabDaily(ctx,body)});
-  $('#dl-p',body).onchange=guard(async e=>{c.jyotish={...(c.jyotish||{}),daily_prediction:e.target.checked};await api.saveClient({...c});toast(e.target.checked?'The prediction is shown — the next three weeks are prepared':'The prediction is hidden');tabDaily(ctx,body)});
+  $('#dl-p',body).onchange=guard(async e=>{c.jyotish={...(c.jyotish||{}),daily_prediction:e.target.checked,pred_natal:e.target.checked?predNatalFor(c):(c.jyotish||{}).pred_natal||null};await api.saveClient({...c});toast(e.target.checked?'The prediction is shown — the next three weeks are prepared':'The prediction is hidden');tabDaily(ctx,body)});
   $('#dl-save',body).onclick=guard(async()=>{const t=$('#dl-body',body).value.trim();if(!t){alert('Write the reading first.');return}await api.saveDaily({client_id:c.id,reading_date:d,body:t});toast('Reading saved for '+fmtShort(d));tabDaily(ctx,body)});
   const del=$('#dl-del',body);if(del)del.onclick=guard(async()=>{if(confirm('Remove your reading for '+fmtDate(d)+'?')){await api.deleteDaily(c.id,d);toast('Reading removed');tabDaily(ctx,body)}});
   const ps=$('#dl-psave',body);if(ps)ps.onclick=guard(async()=>{const t=$('#dl-pred',body).value.trim();if(!t){alert('The prediction is empty.');return}await api.savePrediction({client_id:c.id,pred_date:d,body:t,manual:true});toast('Your edit is used for '+fmtShort(d));tabDaily(ctx,body)});
   const pr=$('#dl-pregen',body);if(pr)pr.onclick=guard(async()=>{await api.savePrediction({client_id:c.id,pred_date:d,body:gen(d),manual:false});toast('Automatic text restored');tabDaily(ctx,body)});
   $('#dl-preview',body).onclick=()=>{const r=($('#dl-body',body).value||'').trim(),p=($('#dl-pred',body)?$('#dl-pred',body).value:'').trim();const pv=$('#dl-pv',body);
     const html=dailyScrollHtml(d,showReading?r:'',showPred?p:'');if(!html){pv.innerHTML='<p class="small muted">Nothing would be shown for this day — write a reading or switch the prediction on.</p>';return}
-    pv.innerHTML=`<div style="max-width:620px;margin:10px auto">${html}</div>`;const sc=pv.querySelector('.dscroll');pv.querySelector('.tie').onclick=()=>{sc.classList.add('untie');setTimeout(()=>sc.classList.add('open'),600)};pv.scrollIntoView({behavior:'smooth',block:'nearest'})};
+    pv.innerHTML=`<div style="max-width:620px;margin:10px auto">${html}</div>`;const sc=pv.querySelector('.dscroll');pv.querySelector('.tie').onclick=()=>{unrollScroll(sc)};pv.scrollIntoView({behavior:'smooth',block:'nearest'})};
 }
+// Untie the bow, then let the paper out at an even pace: the opening is timed to the real length of the text.
+function unrollScroll(sc){if(!sc||sc.classList.contains('open'))return;sc.classList.add('untie');const w=sc.querySelector('.sheetwrap');setTimeout(()=>{if(w){const h=w.firstElementChild.scrollHeight;w.style.transitionDuration=Math.min(3.2,Math.max(1.4,h/320)).toFixed(2)+'s';w.style.maxHeight=h+'px';const b=sc.querySelector('.bundle');if(b)b.style.animationDuration=w.style.transitionDuration;setTimeout(()=>{w.style.maxHeight='none'},Math.min(3200,Math.max(1400,h/320*1000))+100)}sc.classList.add('open')},600)}
 // The scroll the client unrolls: the written reading, then (if any) the prediction beneath a rule. Empty string when there is nothing to show.
 function dailyScrollHtml(date,reading,prediction){if(!reading&&!prediction)return '';
-  const pred=prediction?predictionHtml(prediction):'';
-  return `<div class="dscroll"><div class="roll top"></div><div class="sheet"><p class="date">${esc(fmtDate(date))}</p>${reading?`<p class="body">${esc(reading)}</p><div class="sig">— Masha</div>`:''}${reading&&pred?'<div class="srule" aria-hidden="true"></div>':''}${pred?`<div class="spred">${pred}</div>`:''}</div><div class="roll bottom"></div>
+  const pred=prediction?predictionParts(prediction):{text:'',luck:''};
+  return `<div class="dscroll"><div class="rod"><svg class="fin l" viewBox="0 0 38 44" aria-hidden="true"><defs><linearGradient id="wdL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8A5E3B"/><stop offset=".45" stop-color="#5A3A22"/><stop offset="1" stop-color="#2E1B0E"/></linearGradient></defs><rect x="30" y="3" width="8" height="38" rx="2" fill="url(#wdL)"/><rect x="24" y="12" width="7" height="20" rx="2" fill="url(#wdL)"/><ellipse cx="16" cy="22" rx="9" ry="12" fill="url(#wdL)"/><rect x="5" y="18" width="5" height="8" rx="1.5" fill="url(#wdL)"/><ellipse cx="4.5" cy="22" rx="4.5" ry="6" fill="url(#wdL)"/></svg><div class="core"></div><svg class="fin r" viewBox="0 0 38 44" aria-hidden="true"><defs><linearGradient id="wdR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8A5E3B"/><stop offset=".45" stop-color="#5A3A22"/><stop offset="1" stop-color="#2E1B0E"/></linearGradient></defs><rect x="30" y="3" width="8" height="38" rx="2" fill="url(#wdR)"/><rect x="24" y="12" width="7" height="20" rx="2" fill="url(#wdR)"/><ellipse cx="16" cy="22" rx="9" ry="12" fill="url(#wdR)"/><rect x="5" y="18" width="5" height="8" rx="1.5" fill="url(#wdR)"/><ellipse cx="4.5" cy="22" rx="4.5" ry="6" fill="url(#wdR)"/></svg></div><div class="sheetwrap"><div class="sheet"><p class="date">${esc(fmtDate(date))}</p><div class="spred">${reading?`<p class="pbody">${esc(reading)}</p>`:''}${pred.text}</div><div class="sig">— Masha</div>${pred.luck}</div></div><div class="bundle"></div>
    <button type="button" class="tie" aria-label="Untie the bow and unroll your reading"><span class="band"></span><svg viewBox="0 0 120 64" aria-hidden="true"><path d="M60 30C42 6 14 6 11 22c-3 18 28 24 49 8z" fill="#B8423E"/><path d="M60 30c18-24 46-24 49-8 3 18-28 24-49 8z" fill="#B8423E"/><path d="M60 30C46 16 26 14 20 22c10-2 26 2 40 8z" fill="#8E2F2F" opacity=".55"/><path d="M60 30c14-14 34-16 40-8-10-2-26 2-40 8z" fill="#8E2F2F" opacity=".55"/><path d="M56 33L45 61l10-6 5-18z" fill="#A53936"/><path d="M64 33l11 28-10-6-5-18z" fill="#A53936"/><rect x="52" y="22" width="16" height="16" rx="5" fill="#C9504B"/></svg></button>
    <p class="hint">untie to read</p></div>`}
 // The prediction's text as paragraphs, with its lucky number set apart.
-function predictionHtml(text){const lines=String(text||'').split('\n').map(x=>x.trim()).filter(Boolean);const out=[];const luck=[];
+// The prediction's paragraphs and its lucky number, kept apart so the number can close the scroll after the signature.
+function predictionParts(text){const lines=String(text||'').split('\n').map(x=>x.trim()).filter(Boolean);const out=[];const luck=[];
   for(const l of lines){const m=l.match(/^(?:Today[’']s )?(Lucky number|Lucky colou?r|Remedy):\s*(.*)$/i);if(m)luck.push([/number/i.test(m[1])?'Today’s lucky number':m[1],m[2]]);else if(/^Today[’']s rating:/i.test(l))continue;else out.push(`<p class="pbody">${esc(l)}</p>`)}
-  return out.join('')+(luck.length?`<p class="pluck">${luck.map(([k,v])=>`<span>${esc(k)}</span> ${esc(v)}`).join(' · ')}</p>`:'')}
+  return {text:out.join(''),luck:luck.length?`<p class="pluck">${luck.map(([k,v])=>`<span>${esc(k)}</span> ${esc(v)}`).join(' · ')}</p>`:''}}
 const mergedInterpretation=i=>[i.client_interpretation,i.prediction].map(x=>String(x||'').trim()).filter(Boolean).join('\n\n');
 function blankInfluence(clientId){return {id:uuid(),client_id:clientId,parent_id:null,title:'',start_date:todayStr(),start_time:'',end_date:todayStr(),end_time:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
   polarity:'supportive',significant:false,intensity:'',category:'',secondary_categories:[],client_interpretation:'',observation_prompt:'',reflection_prompt:'',recommended_actions:'',avoidances:'',prediction:'',remedial_note:'',disclaimer:'none',custom_disclaimer:'',
