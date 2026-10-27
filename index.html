@@ -512,6 +512,8 @@ dialog.tarot::backdrop{background:rgba(20,22,36,.75)}
 @media(max-width:560px){.tarot .tslots{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px 8px}.tarot .tc{width:106px;height:174px}.tarot .deck{width:112px;height:184px}.tarot .tt{padding:20px 12px 32px}}
 @media(prefers-reduced-motion:reduce){.tarot .deck{animation:none}.tarot .tc{transition-duration:.3s}}
 /* reading for today: a rolled scroll tied with a bow, which unties and unrolls */
+.fb.pred .pluck{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--line)}.fb.pred .pluck div{display:contents}.fb.pred .pluck dt{font-family:var(--sans);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);padding-top:4px;white-space:nowrap}.fb.pred .pluck dd{margin:0;font-size:1rem;line-height:1.5}
+.fb.pred .prate{margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--line)}.fb.pred .prate .ph{font-family:var(--sans);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}.fb.pred .pr{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:1rem}.fb.pred .stars{color:var(--gold);letter-spacing:.12em;font-size:1rem}.fb.pred .stars i{font-style:normal;color:var(--line-strong)}
 .fb.pred .date{font-family:var(--sans);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}.fb.pred p{margin:0 0 10px;font-size:1.04rem;line-height:1.6}.fb.pred p:last-child{margin-bottom:0}.fb.pred strong{font-weight:600;color:var(--primary)}
 .dscroll{position:relative;max-width:560px;margin:6px auto 4px}
 .dscroll .roll{height:20px;border-radius:10px;margin:0 -6px;background:linear-gradient(180deg,#FFFDF6,#EEE6D2 60%,#D9CDB1);box-shadow:0 5px 12px rgba(60,45,20,.18);position:relative;z-index:2;transition:height .5s,border-radius .5s}
@@ -1332,38 +1334,49 @@ const GT={
        'In the 11th: gains that arrive sideways, friends few but true, wishes fulfilled strangely.',
        'In the 12th: loss and release, foreign or hidden places, sleep and dreams vivid; the finest house for meditation and letting go.']}};
 
-/* ---------- A client-safe paragraph for one day, read from the transits on that native's chart (the astrologer edits it before it is shown). ---------- */
-/* ---------- Daily prediction, written the way a daily horoscope reads — overall tone, then work, money, relationships and health — from the transits on this chart.
-   The sentences are drawn from the house readings above (a synthesis in the manner of Barbara Pijan Lama, K. S. Charak and Bepin Behari) and the classical gochara verdicts. ---------- */
-/* ---------- A client-safe paragraph for one day, read from the transits on that native's chart (the astrologer edits it before it is shown). ---------- */
-/* ---------- Daily prediction, written the way a daily horoscope reads — overall tone, then work, money, relationships and health — from the transits on this chart.
-   The sentences are drawn from the house readings above (a synthesis in the manner of Barbara Pijan Lama, K. S. Charak and Bepin Behari) and the classical gochara verdicts. ---------- */
+/* ---------- Daily prediction, laid out like AstroSage's: one paragraph moving through temperament, money, home, love, work, the
+   errands of the day and partnership, then the day's lucky number. The day is read from the natal Moon (classical gochara verdicts);
+   no astrological terms appear in the text. ---------- */
+const PD_OPEN={
+  1:['The day begins with you at its centre—your moods are unusually legible today, to others and, more usefully, to yourself.','Your temperament may run a little ahead of your judgement today; I would let a feeling settle before acting on it, as one lets tea steep.'],
+  2:['There is an ease to the day of the domestic, well-fed variety—the sort of comfort that makes generosity come naturally.','Words are weightier than usual today, and a remark meant lightly may not be received that way; choose them as you would choose a gift.'],
+  3:['A brisk, articulate day: your thoughts arrive already half-formed, and those around you seem inclined to follow them.','Your attention may scatter across too many small errands; the cure, I suspect, is to finish one before beginning another.'],
+  4:['A quieter register suits the day—the private and the familiar offer more than any public stage could.','There is an undertow of unease at home today—nothing dramatic, but it rewards attention rather than avoidance.'],
+  5:['Something playful is afoot: ideas come easily, and pleasure, for once, does not need to justify itself.','The mind drifts towards speculation today—intellectual, romantic or financial—and it would be wise to indulge the first two rather more freely than the third.'],
+  6:['You are, today, rather difficult to defeat; obstacles that loomed yesterday look manageable, even a little dull.','Small frictions may multiply today; they are better dispatched promptly than left to accrue interest.'],
+  7:['The day is shaped by others—happily so; company sharpens you, and one conversation may clarify more than a week of solitary thought.','Others set the tempo today, not always to your liking; diplomacy will cost you less than insistence.'],
+  8:['The day is better for depth than for display; what you notice quietly may prove more valuable than anything said aloud.','The day asks for a certain caution—plans may shift without warning, and it is wiser to bend with them than to brace against them.'],
+  9:['A day with a wider horizon: counsel, study and the long view are all favoured, and luck seems, for once, to be paying attention.','Fortune seems to dawdle today; requests made now may be answered later, and patience is, for once, the more strategic virtue.'],
+  10:['Your work is likely to speak well of you today—effort is visible, and visibility, in this instance, is an asset.','There may be more expected of you than credit given today; I would let the work speak for itself and save the speech for later.'],
+  11:['A day of quiet returns—small gains, good news, the warmth of people who are glad of you; it is a good moment to ask.','Gains may arrive in a roundabout way today, so I would not count them until they are safely in hand.'],
+  12:['A good day for withdrawal of the restorative kind—solitude, sleep and the tidying of loose ends will do more for you than any appointment.','Energy ebbs today, and expenses have a way of finding you; this is a day better spent concluding than beginning.']};
+const PD_LINES={
+  money:[['Financially the day looks sound—perhaps sounder by evening than by morning.','Money matters incline in your favour, and a modest gain is not out of the question.'],['In money matters prudence is the better part of valour; I would defer any large commitment until the terms are clearer.','I would hold off on lending or larger purchases today—the figures may not be quite what they appear.']],
+  home:[['At home, a little coordination goes a long way, and shared tasks may even prove pleasant.','Domestic matters settle agreeably, and pending household business is likely to be dispatched with something like grace.'],['At home, patience will serve you better than a point well made.','Family may ask more of you than you had planned to give; give it graciously, and keep a little in reserve.']],
+  love:[['In matters of the heart, a gesture—yours or another’s—may land with unusual tenderness.','Affection comes easily today, and it would be a pity not to say what you feel.'],['In love, expectation may outpace what the day can deliver; a little forbearance will keep things sweet.','Romantic feeling may run stronger than circumstance allows—say less, and mean it.']],
+  work:[['At work your judgement is likely to be noticed and, I suspect, appreciated.','Professionally, steady effort pays its dividends, and long-stalled matters may finally move.'],['At work it may be wise to let a superior have the last word, even where you suspect they are wrong.','Professional progress may be slow today; this is a day for diligence rather than display.']],
+  errands:[['Messages and short journeys are favoured, and a call from afar may bring something useful.','Correspondence goes well today—an overdue reply may finally arrive.'],['If you are travelling, check your documents twice; small oversights are the day’s particular hazard.','Read twice before you send—misunderstanding is more likely today than malice.']],
+  partner:[['With a partner, the day leaves ample room for ease and closeness.','Partnership feels companionable today—a good moment to plan something together.'],['With a partner, small irritations may loom larger than they deserve; a sense of proportion, and of humour, will help.','Partnership may ask for more listening than usual; I would err on the side of generosity.']],
+  energy:[['Your energy is high, and anything that wants courage or stamina is well timed.','Physically you are on good form—an excellent day to begin something strenuous.'],['Energy may outrun good sense today, so take care when driving, exercising or arguing.','Tempers are short in the air today, yours included; I would keep the sharper retorts in their sheath.']]};
+const PD_LUCK={sun:1,moon:2,jupiter:3,rahu:4,mercury:5,venus:6,ketu:7,saturn:8,mars:9};
+const PD_WEEKDAY=['sun','moon','mars','mercury','jupiter','venus','saturn'];
 function dailyPrediction(client,dateStr){const S=loadSettings();const m=natalBundle(client,S);if(m.error)return '';
   const tz=client.timezone||BROWSER_TZ;const at=G.zonedToUtc(dateStr,'12:00',tz);const tr=G.chart(at,{nodeMode:S.nodeMode,outer:false});
-  const phrase=(key,hm)=>GT[key]?GT[key].h[hm-1].replace(/^(In the \d+\w\w|Over the natal Moon)[^:]*:\s*/,'').split(/[.]/)[0].trim():'';
-  const SOFT=[[/medical or occult crisis/g,'a health worry or an unexplained unease'],[/fear without object/g,'a vague unease'],[/servants/g,'helpers'],[/conflict with partner or spouse/g,'friction with a partner'],[/legal sparring/g,'disputes'],[/the native is visible/g,'you are seen'],[/the native['’]s/g,'your'],[/the native/g,'you'],[/inheritance tangled/g,'shared money needing care']];
-  const clean=t=>SOFT.reduce((x,[r,w])=>x.replace(r,w),t).replace(/\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|the Moon|natal)['’]?s?\b/g,'').replace(/\s{2,}/g,' ').replace(/\s+([,;])/g,'$1').trim();
-  const low=t=>t?t[0].toLowerCase()+t.slice(1):'';const cap=t=>t?t[0].toUpperCase()+t.slice(1):'';
-  const W={saturn:3,jupiter:3,rahu:2,ketu:2,mars:2,sun:1.5,venus:1.5,mercury:1,moon:1};const F=[];
-  for(const p of tr.planets){if(!W[p.key])continue;const hm=G.houseFrom(p.sign,m.moon.sign),hl=G.houseFrom(p.sign,m.lagnaSign);const mv=G.moonTransit(p.key,hm,tr.planets,m.moon.sign);
-    const good=mv.good===true&&!mv.vedhaBy;const bad=mv.good===false;const contact=m.chart.planets.some(n=>Math.abs(G.norm(p.lon-n.lon+180)-180)<=1.5);
-    F.push({key:p.key,hm,hl,good,bad,v:W[p.key]*(good?1:bad?-1:.3)*(contact?1.4:1)})}
-  const moonF=F.find(f=>f.key==='moon');const slow=F.filter(f=>f.key!=='moon');slow.sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));
-  const DOM={work:[6,10,3],money:[2,11,8],relationships:[7,5,11,4],health:[1,6,8,12]};
-  const forDomain=(houses)=>{const hits=slow.filter(f=>houses.includes(f.hm));if(!hits.length)return null;const g=hits.filter(f=>f.good),b=hits.filter(f=>f.bad);const pick=(g.length&&!b.length)?g[0]:(b.length&&!g.length)?b[0]:hits[0];return {f:pick,mixed:g.length&&b.length}};
-  const MOOD={1:'a day that turns on your own mood and energy',2:'a day that leans towards home, food, family and what things cost',3:'a brisk day of messages, errands and short exchanges',4:'a quieter day in which home and comfort matter more than ambition',5:'a day with room for pleasure, children, romance or a creative hour',6:'a working day of tasks, routines and the odd friction',7:'a day shaped by other people and what they ask of you',8:'a day best kept simple, with feelings running deeper than events',9:'a day that opens outward, towards learning, travel or a wider view',10:'a day for the work in front of you, where effort is noticed',11:'a sociable day of friends, groups and small gains',12:'a low-key day for solitude, sleep and finishing rather than starting'};
-  const tone=(()=>{const sc=slow.reduce((t,f)=>t+f.v,0);return sc>=3?'Overall the day favours you: move on what matters and let the small things wait.':sc<=-3?'Overall the day asks for patience: keep commitments light and let it pass without forcing anything.':'Overall the day is even: take the openings it offers and do not press the rest.'})();
-  const para=[];para.push(`Today is ${MOOD[moonF?moonF.hm:1]}${moonF&&moonF.bad?', and it may feel heavier than it looks':moonF&&moonF.good?', and your mood is on your side':''}. ${tone}`);
-  const line=(label,houses,fallback)=>{const r=forDomain(houses);if(!r){para.push(`${label}: ${fallback}`);return}const ph=low(clean(phrase(r.f.key,r.f.hm)));
-    const open=r.f.good?'The signs are supportive — ':r.f.bad?'Take care here — ':'A mixed picture — ';para.push(`${label}: ${open}${ph}${/[.!?]$/.test(ph)?'':'.'}${r.mixed?' Not everything points the same way, so weigh offers before accepting them.':''}`)};
-  line('Work',DOM.work,'nothing presses; steady routine serves you best.');
-  line('Money',DOM.money,'an ordinary day; avoid new commitments made in a hurry.');
-  line('Relationships',DOM.relationships,'calm; say the kind thing you have been meaning to say.');
-  line('Health',DOM.health,'steady; keep your usual rhythm of food and sleep.');
-  const best=slow.find(f=>f.good),worst=slow.find(f=>f.bad);
-  const clause=f=>low(clean(phrase(f.key,f.hm)).split(/[;,]/)[0].trim());
-  para.push(`Advice: ${best?'lean into what is working — '+clause(best):'keep to what you already do well'}; ${worst?'tread lightly where the day is harder — '+clause(worst):'there is nothing in particular to avoid'}.`);
-  return para.map(x=>x.replace(/\s{2,}/g,' ').replace(/\s+([,;.])/g,'$1')).join('\n')}
+  const V={};for(const p of tr.planets){const hm=G.houseFrom(p.sign,m.moon.sign);const mv=G.moonTransit(p.key,hm,tr.planets,m.moon.sign);const contact=m.chart.planets.some(n=>Math.abs(G.norm(p.lon-n.lon+180)-180)<=1.5);V[p.key]={hm,good:mv.good===true&&!mv.vedhaBy,bad:mv.good===false,contact}}
+  const sc=k=>V[k]?(V[k].good?1:V[k].bad?-1:0)*(V[k].contact?1.4:1):0;const mh=V.moon.hm,mg=V.moon.good;
+  const seed=Math.abs([...(dateStr+(client.name||''))].reduce((h,c)=>((h<<5)-h+c.charCodeAt(0))|0,11));const pick=(arr,i)=>arr[(seed+i*7)%arr.length];
+  const say=(area,score,i)=>pick(PD_LINES[area][score>=0?0:1],i);
+  const moonIn=hs=>hs.includes(mh)?(mg?1:-1):0;
+  const out=[PD_OPEN[mh][mg?0:1],
+    say('money',sc('jupiter')+sc('venus')*.5+moonIn([2,11]),1),
+    say('home',moonIn([4,2])+sc('jupiter')*.5,2),
+    say('love',sc('venus')+moonIn([5,7])*.5,3),
+    say('work',sc('sun')+sc('saturn')+sc('mercury')*.5+moonIn([10]),4)];
+  if(V.mars.bad||V.mars.contact)out.push(say('energy',sc('mars'),5));else out.push(say('errands',sc('mercury')+(V.rahu.bad&&[1,8,12].includes(V.rahu.hm)?-1:0),5));
+  out.push(say('partner',sc('venus')+sc('jupiter')*.5-(V.mars.hm===7?1:0),6));
+  const W={saturn:3,jupiter:3,rahu:2,ketu:2,mars:2,sun:1.5,venus:1.5,mercury:1,moon:1};
+  const best=Object.keys(W).sort((a,b)=>sc(b)*W[b]-sc(a)*W[a])[0];const lucky=sc(best)>0?best:PD_WEEKDAY[new Date(dateStr+'T12:00:00').getDay()];
+  return out.join(' ')+'\n\nToday’s lucky number: '+PD_LUCK[lucky]}
 function dailyText(client,dateStr){const S=loadSettings();const m=natalBundle(client,S);if(m.error)return '';
   const tz=client.timezone||BROWSER_TZ;const at=G.zonedToUtc(dateStr,'12:00',tz);const tr=G.chart(at,{nodeMode:S.nodeMode,outer:false});
   const phrase=(key,hm)=>GT[key]?GT[key].h[hm-1].replace(/^(In the \d+\w\w|Over the natal Moon)[^:]*:\s*/,'').split(/[.]/)[0].trim():'';
@@ -1726,7 +1739,7 @@ Begin with a brief overall forecast, then divide the three weeks into short, non
 
 Separate favourable and unfavourable windows explicitly. Do not classify everything as Mixed. For genuinely mixed influences, distinguish when opportunities arise and when caution is warranted. Explain what to pursue, what may manifest and what should wait. Avoid repetitive interpretations.
 
-Write in Maya’s exact literary idiolect, using the attached writing sample. Maintain her analytical syntax, measured speculation, subtle wit and educated vocabulary. Flattery should be discreet, tailored to the native’s chart and expressed through observations of their strengths and judgment. Avoid exaggerated praise, generic AI language and unnecessary negativity. Discuss difficult interpersonal influences tactfully.
+Match the voice of the attached writing sample: analytical syntax, measured speculation, subtle wit and educated vocabulary. Never mention the writing sample, its author or this instruction in the output. Flattery should be discreet, tailored to the native’s chart and expressed through observations of their strengths and judgment. Avoid exaggerated praise, generic AI language and unnecessary negativity. Discuss difficult interpersonal influences tactfully.
 
 Each entry must include:
 
@@ -2527,6 +2540,9 @@ function drawCalendar(pkg,root,opts={}){
   const todayReading=(pkg.readings||[]).find(r=>r.date===todayStr()&&String(r.body||'').trim())||null;
   const todayPred=(pkg.predictions||[]).find(r=>r.date===todayStr()&&String(r.body||'').trim())||null;
   const predKey=r=>{let h=5381;const t=r.date+'|'+r.body;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
+  const predHtml=r=>{const lines=String(r.body||'').split('\n').map(x=>x.trim()).filter(Boolean);const luck=[],paras=[];let ratings=null;
+    for(const l of lines){let m;if((m=l.match(/^(?:Today[’']s )?(Lucky number|Lucky colou?r|Remedy):\s*(.*)$/i)))luck.push([/number/i.test(m[1])?'Today’s lucky number':m[1],m[2]]);else if((m=l.match(/^Today[’']s rating:\s*(.*)$/i)))ratings=m[1].split(/\s*,\s*/).map(x=>{const k=x.match(/^(.*?)\s+(\d)\s*\/\s*5$/);return k?[k[1],Number(k[2])]:null}).filter(Boolean);else{const w=l.match(/^(Work|Money|Relationships|Health|Advice):\s*(.*)$/);paras.push(w?`<p><strong>${w[1]}.</strong> ${esc(w[2])}</p>`:`<p>${esc(l)}</p>`)}}
+    return `<p class="date">${esc(fmtDate(r.date))}</p>${paras.join('')}${luck.length?`<dl class="pluck">${luck.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:''}${ratings&&ratings.length?`<div class="prate"><p class="ph">Today’s rating</p>${ratings.map(([k,n])=>`<div class="pr"><span>${esc(k)}</span><span class="stars" aria-label="${n} out of 5">${'★'.repeat(n)}<i>${'★'.repeat(5-n)}</i></span></div>`).join('')}</div>`:''}`};
   const predNew=()=>!!todayPred&&prefs.pred_seen!==predKey(todayPred);
   const readingKey=r=>{let h=5381;const t=r.date+'|'+r.body;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return String(h)};
   const readingNew=()=>!!todayReading&&prefs.reading_seen!==readingKey(todayReading);
@@ -2583,7 +2599,7 @@ function drawCalendar(pkg,root,opts={}){
    <section class="morecol" aria-label="Options and notes">
     ${todayPred?`<div class="card fold" id="predbox">
      <details><summary><span class="ft">Today’s prediction</span><span id="pbadge">${predNew()?'<span class="nbadge"><i></i>new</span>':''}</span><span class="fx" aria-hidden="true"></span></summary>
-      <div class="fb pred"><p class="date">${esc(fmtDate(todayPred.date))}</p>${todayPred.body.split('\n').filter(Boolean).map(l=>{const m=l.match(/^(Work|Money|Relationships|Health|Advice):\s*(.*)$/);return m?`<p><strong>${m[1]}.</strong> ${esc(m[2])}</p>`:`<p>${esc(l)}</p>`}).join('')}</div>
+      <div class="fb pred">${predHtml(todayPred)}</div>
      </details></div>`:''}
     ${todayReading?`<div class="card fold" id="readingbox">
      <details><summary><span class="ft">Reading for today</span><span id="rbadge">${readingNew()?'<span class="nbadge"><i></i>new</span>':''}</span><span class="fx" aria-hidden="true"></span></summary>
@@ -3198,7 +3214,7 @@ async function tabPredict(ctx,body){const {c}=ctx;const on=!!(c.jyotish&&c.jyoti
     if(changed)list=await api.listPredictions(c.id)}
   const d=wsPredDate||today;const cur=list.find(r=>r.pred_date===d);const text=cur?cur.body:(canGen?gen(d):'');
   body.innerHTML=`<div class="card"><div class="row between" style="gap:8px;flex-wrap:wrap"><h2 style="margin:0">Daily prediction</h2>${on?'<span class="pill supportive">shown to the client</span>':'<span class="pill draft">not shown</span>'}</div>
-   <p class="small muted">Written automatically for every day from the transits on ${team?'each native’s':'this'} chart, in the manner of a daily horoscope — the day’s tone, then work, money, relationships and health, and a line of advice — using the same house readings as the Gochara insight (after Pijan Lama, Charak and Behari) and the classical verdicts from the Moon. The next three weeks are kept ready and refreshed each time you open this tab. Edit any day and your words replace the generated ones for that day.</p>
+   <p class="small muted">Written automatically for each day; edit a day to replace it.</p>
    ${unavailable?'<p class="note small">This needs the latest supabase-setup.sql to be run once in the Supabase SQL Editor.</p>':`
    <label class="chk"><input type="checkbox" id="pd-on" ${on?'checked':''}>Show the daily prediction to ${esc(c.name||'the client')} <span class="small muted">(a “Today’s prediction” card under their calendar)</span></label>
    ${canGen?'':'<p class="small" style="color:var(--sensitive)">Birth details are needed first (Client &amp; access).</p>'}
