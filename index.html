@@ -2506,6 +2506,8 @@ const api={
   async sendAstralMessage(m){return chk(await sb.from('astral_messages').insert({contact_id:m.contact_id,client_id:m.client_id,sender:m.sender||'contact',body:m.body||'',image:m.image||null}).select().single())},
   async markAstralSeen(contactId){chk(await sb.from('astral_messages').update({seen:true}).eq('contact_id',contactId).eq('sender','native').eq('seen',false))},
   async astralUnread(clientId){const r=await sb.from('astral_messages').select('id',{count:'exact',head:true}).eq('client_id',clientId).eq('sender','native').eq('seen',false);if(r.error)throw r.error;return r.count||0},
+  async astralStamp(code){return chk(await sb.rpc('client_astral_stamp',{p_code:code}))},
+  async listAstralMessagesSince(clientId,since){return chk(await sb.from('astral_messages').select('id,contact_id,client_id,sender,body,image,at,seen').eq('client_id',clientId).gt('at',since).order('at').limit(200))},
   async getSetting(key){const r=chk(await sb.from('settings').select('value').eq('key',key).maybeSingle());return r?r.value:null},
   async setSetting(key,value){return chk(await sb.from('settings').upsert({key,value,updated_at:new Date().toISOString()}).select().single())}
 };
@@ -3033,17 +3035,21 @@ function apPixelPad(onDone,opts={}){const CW=48,CH=36,S=8;const cols=['#f4f1ff',
   const dlg=document.createElement('dialog');dlg.className='ap-pad';dlg.innerHTML=`<div class="ap-padh"><strong>${esc(opts.title||'Draw something')}</strong><button type="button" class="ap-btn ap-x" aria-label="Close">${apIcon('x')}</button></div>
    <canvas width="${CW*S}" height="${CH*S}" aria-label="Drawing area"></canvas>
    <div class="ap-palette" role="group" aria-label="Colours">${cols.map((c,i)=>`<button type="button" data-col="${c}" style="background:${c}" aria-pressed="${i===0}" aria-label="Colour ${i+1}"></button>`).join('')}<button type="button" class="ap-eraser" data-erase aria-pressed="false" title="Eraser">${apIcon('x')}</button></div>
-   <div class="row between" style="gap:8px;margin-top:10px"><button type="button" class="ap-btn" data-clear>Clear</button><div class="row" style="gap:8px"><button type="button" class="ap-btn" data-cancel>Cancel</button><button type="button" class="ap-btn pri" data-ok>${esc(opts.ok||'Use this drawing')}</button></div></div>`;
+   <div class="row between" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button type="button" class="ap-btn" data-clear>Clear</button><div class="row" style="gap:8px;flex-wrap:wrap"><button type="button" class="ap-btn" data-cancel>Cancel</button>${opts.onSend?`<button type="button" class="ap-btn" data-ok>Add to message</button><button type="button" class="ap-btn pri" data-send>Send drawing</button>`:`<button type="button" class="ap-btn pri" data-ok>${esc(opts.ok||'Use this drawing')}</button>`}</div></div>`;
   document.body.appendChild(dlg);const cv=dlg.querySelector('canvas'),cx=cv.getContext('2d');
   const paint=()=>{cx.fillStyle='#141c4a';cx.fillRect(0,0,cv.width,cv.height);cx.fillStyle='rgba(255,255,255,.05)';for(let y=0;y<CH;y++)for(let x=0;x<CW;x++)if((x+y)%2)cx.fillRect(x*S,y*S,S,S);for(let i=0;i<cells.length;i++)if(cells[i]){cx.fillStyle=cells[i];cx.fillRect((i%CW)*S,Math.floor(i/CW)*S,S,S)}};
   const at=e=>{const r=cv.getBoundingClientRect();const x=Math.floor((e.clientX-r.left)/r.width*CW),y=Math.floor((e.clientY-r.top)/r.height*CH);if(x<0||y<0||x>=CW||y>=CH)return -1;return y*CW+x};
   const dot=e=>{const i=at(e);if(i<0)return;cells[i]=erase?null:col;paint()};
-  cv.addEventListener('pointerdown',e=>{down=true;cv.setPointerCapture(e.pointerId);dot(e)});cv.addEventListener('pointermove',e=>{if(down)dot(e)});cv.addEventListener('pointerup',()=>down=false);cv.addEventListener('pointercancel',()=>down=false);
+  let usingTouch=false;cv.addEventListener('pointerdown',e=>{if(usingTouch)return;down=true;try{cv.setPointerCapture(e.pointerId)}catch(err){}dot(e);e.preventDefault()});cv.addEventListener('pointermove',e=>{if(down&&!usingTouch)dot(e)});cv.addEventListener('pointerup',()=>down=false);cv.addEventListener('pointercancel',()=>down=false);
+  // iOS Safari: draw from touch events directly so a stroke is never taken for a scroll
+  cv.addEventListener('touchstart',e=>{usingTouch=true;down=true;dot(e.touches[0]);e.preventDefault()},{passive:false});cv.addEventListener('touchmove',e=>{if(down)dot(e.touches[0]);e.preventDefault()},{passive:false});cv.addEventListener('touchend',()=>down=false);
   dlg.querySelectorAll('[data-col]').forEach(b=>b.onclick=()=>{col=b.dataset.col;erase=false;dlg.querySelectorAll('[data-col],[data-erase]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
   dlg.querySelector('[data-erase]').onclick=e=>{erase=true;dlg.querySelectorAll('[data-col],[data-erase]').forEach(x=>x.setAttribute('aria-pressed',x===e.currentTarget))};
   dlg.querySelector('[data-clear]').onclick=()=>{cells.fill(null);paint()};
   const close=()=>{dlg.close();dlg.remove()};dlg.querySelector('.ap-x').onclick=close;dlg.querySelector('[data-cancel]').onclick=close;dlg.addEventListener('cancel',e=>{e.preventDefault();close()});
-  dlg.querySelector('[data-ok]').onclick=()=>{if(!cells.some(Boolean)){toast('Draw something first');return}const out=document.createElement('canvas');out.width=CW*S;out.height=CH*S;const oc=out.getContext('2d');oc.fillStyle='#141c4a';oc.fillRect(0,0,out.width,out.height);for(let i=0;i<cells.length;i++)if(cells[i]){oc.fillStyle=cells[i];oc.fillRect((i%CW)*S,Math.floor(i/CW)*S,S,S)}const data=out.toDataURL('image/png');close();onDone(data)};
+  const picture=()=>{if(!cells.some(Boolean)){toast('Draw something first');return null}const out=document.createElement('canvas');out.width=CW*S;out.height=CH*S;const oc=out.getContext('2d');oc.fillStyle='#141c4a';oc.fillRect(0,0,out.width,out.height);for(let i=0;i<cells.length;i++)if(cells[i]){oc.fillStyle=cells[i];oc.fillRect((i%CW)*S,Math.floor(i/CW)*S,S,S)}return out.toDataURL('image/png')};
+  dlg.querySelector('[data-ok]').onclick=()=>{const data=picture();if(!data)return;close();onDone(data)};
+  const sendBtn=dlg.querySelector('[data-send]');if(sendBtn)sendBtn.onclick=async()=>{const data=picture();if(!data)return;sendBtn.disabled=true;try{await opts.onSend(data);close()}catch(err){sendBtn.disabled=false;toast('Could not send — please try again')}};
   paint();dlg.showModal()}
 // The message composer, shared by the native's phone and Masha's side: text, a picture, or a drawing.
 function apComposerHtml(placeholder){return `<form class="ap-comp"><div class="ap-attp hidden"><img alt=""><button type="button" class="ap-btn tiny" data-unatt aria-label="Remove the picture">${apIcon('x')}</button></div>
@@ -3053,11 +3059,11 @@ function apBindComposer(form,onSend,opts={}){let image=null;const ta=form.queryS
   const grow=()=>{ta.style.height='auto';ta.style.height=Math.min(140,ta.scrollHeight)+'px'};ta.addEventListener('input',grow);
   ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();form.requestSubmit()}});
   form.querySelector('.ap-att input').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{setImg(await shrinkImage(f,720))}catch(err){toast(err.message||'Could not read that picture')}};
-  form.querySelector('.ap-draw').onclick=()=>apPixelPad(setImg,{title:opts.drawTitle||'Draw something for them'});
+  form.querySelector('.ap-draw').onclick=()=>apPixelPad(setImg,{title:opts.drawTitle||'Draw something for them',onSend:async data=>{await onSend('',data)}});
   form.querySelector('[data-unatt]').onclick=()=>setImg(null);
   form.onsubmit=async e=>{e.preventDefault();const body=ta.value.trim();if(!body&&!image)return;const btn=form.querySelector('.ap-send');btn.disabled=true;
     try{await onSend(body,image);ta.value='';grow();setImg(null)}catch(err){toast('Could not send — please try again')}finally{btn.disabled=false;ta.focus()}};
-  return {focus:()=>ta.focus(),draft:()=>ta.value,setDraft:v=>{ta.value=v||'';grow()}}}
+  return {focus:()=>ta.focus(),draft:()=>ta.value,setDraft:v=>{ta.value=v||'';grow()},image:()=>image,setImage:d=>setImg(d||null),active:()=>document.activeElement===ta}}
 // Message bubbles for one thread (day dividers between days).
 function apBubbles(msgs,meSender,names,noDiv){let out='',lastDay='';for(const m of msgs){const d=apDay(m.at);if(!noDiv&&d!==lastDay){out+=`<div class="ap-div"><span>${esc(d)}</span></div>`;lastDay=d}
   const me=m.sender===meSender;out+=`<div class="ap-m ${me?'me':'them'}"><div class="ap-b">${m.image?`<a href="${esc(m.image)}" target="_blank" rel="noopener" class="ap-pic"><img src="${esc(m.image)}" alt="A picture" loading="lazy"></a>`:''}${m.body?`<p>${esc(m.body).replace(/\n/g,'<br>')}</p>`:''}<time>${names?esc(me?names.me:names.them)+' · ':''}${esc(apTime(m.at))}</time></div></div>`}return out}
@@ -3101,10 +3107,13 @@ async function openAstralPhone(opts={}){
     <footer class="ap-foot"><span class="ap-date"></span><span class="ap-moon"></span><button type="button" class="ap-loc" title="Match the sky to where you are">${apIcon('pin')}<span></span></button></footer>
    </div></div>`;
   document.body.appendChild(root);document.body.classList.add('ap-open');
+  // on phones the on-screen keyboard shrinks the visible area: follow it so the composer never slips under the keyboard
+  const vv=window.visualViewport;const fit=()=>{if(!vv||window.innerWidth>760){root.style.height='';root.style.top='';return}root.style.height=vv.height+'px';root.style.top=vv.offsetTop+'px';const box=root.querySelector('.ap-msgs');if(box)box.scrollTop=box.scrollHeight};
+  if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit)}fit();
   const scene=apRunScene(root.querySelector('.ap-sky'),()=>loc);
-  let data={contacts:[],messages:[]},cur=null,sheet=null,poll=null,draft='',dead=false;
+  let data={contacts:[],messages:[]},cur=null,sheet=null,poll=null,draft='',dead=false;const onShowRef={fn:()=>{}};
   const Q=s=>root.querySelector(s);
-  const close=()=>{if(dead)return;dead=true;scene.stop();clearInterval(poll);clearInterval(clock);root.classList.add('closing');setTimeout(()=>root.remove(),260);document.body.classList.remove('ap-open');document.removeEventListener('keydown',onKey);apWin=null;if(opts.onClose)opts.onClose(summary())};
+  const close=()=>{if(dead)return;dead=true;scene.stop();clearInterval(poll);clearInterval(clock);document.removeEventListener('visibilitychange',onShowRef.fn);root.classList.add('closing');if(vv){vv.removeEventListener('resize',fit);vv.removeEventListener('scroll',fit)}setTimeout(()=>root.remove(),260);document.body.classList.remove('ap-open');document.removeEventListener('keydown',onKey);apWin=null;if(opts.onClose)opts.onClose(summary())};
   const onKey=e=>{if(e.key==='Escape'){if(sheet){closeSheet()}else if(!document.querySelector('dialog.ap-pad[open]'))close()}};document.addEventListener('keydown',onKey);
   Q('.ap-x').onclick=close;apWin={close};
   // clock, date, moon
@@ -3126,7 +3135,8 @@ async function openAstralPhone(opts={}){
     const nb=Q('[data-new]');if(nb)nb.onclick=openRequest;
     root.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>openThread(b.dataset.c))};
   let comp=null;
-  const renderThread=(keepScroll)=>{const c=byId(cur);const th=Q('.ap-thread');if(comp)draft=comp.draft();
+  let draftImg=null,hadFocus=false;
+  const renderThread=(keepScroll)=>{const c=byId(cur);const th=Q('.ap-thread');if(comp){draft=comp.draft();draftImg=comp.image();hadFocus=comp.active()}
     if(!c){th.innerHTML=`<div class="ap-idle"><div class="ap-idlecard">${apIcon('phone')}<p>${data.contacts.length?'Choose a contact to open the line.':'When Masha reaches someone for you, they appear here — you will see a notification on this phone.'}</p></div></div>`;comp=null;return}
     const msgs=data.messages.filter(m=>m.contact_id===c.id);const canWrite=!preview&&(c.status==='open'||c.status==='announced');
     th.innerHTML=`<header class="ap-th"><button type="button" class="ap-btn ap-back" aria-label="Back to contacts">${apIcon('back')}</button><button type="button" class="ap-who" data-info>${apAvatar(c)}<span><strong>${esc(apName(c))}</strong><small>${esc(AP_KINDS[c.kind]||'contact')} · details</small></span></button></header>
@@ -3134,7 +3144,7 @@ async function openAstralPhone(opts={}){
      ${canWrite?apComposerHtml('Write to '+apName(c)+'…'):c.status==='closed'?'<p class="ap-closed">This line has been closed.</p>':preview?'<p class="ap-closed">You are looking at the phone as the client sees it; write to them as the contact from the Astral Phone tab.</p>':''}`;
     Q('.ap-back').onclick=()=>{cur=null;root.classList.remove('show-thread');renderList();renderThread()};
     Q('[data-info]').onclick=()=>openInfo(c.id);
-    const f=Q('.ap-comp');comp=f?apBindComposer(f,async(body,image)=>{const m=await api.astralSend(code,c.id,body,image);if(m&&m.id){data.messages.push(m);draft='';comp=null;renderThread();if(ACT.code)ACT.action('astral message',{to:apName(c),picture:!!image})}},{drawTitle:'Draw something for '+apName(c)}):null;if(comp&&draft)comp.setDraft(draft);
+    const f=Q('.ap-comp');comp=f?apBindComposer(f,async(body,image)=>{const m=await api.astralSend(code,c.id,body,image);if(m&&m.id){data.messages.push(m);draft='';draftImg=null;comp=null;renderThread();if(ACT.code)ACT.action('astral message',{to:apName(c),picture:!!image})}},{drawTitle:'Draw something for '+apName(c)}):null;if(comp&&draft)comp.setDraft(draft);if(comp&&draftImg)comp.setImage(draftImg);if(comp&&hadFocus)comp.focus();draftImg=null;hadFocus=false;
     const box=Q('.ap-msgs');box.scrollTop=box.scrollHeight};
   const openThread=async id=>{cur=id;root.classList.add('show-thread');closeSheet();renderList();renderThread();const c=byId(id);
     if(!preview&&c&&(unread(id)||(c.status==='announced'&&!c.seen))){data.messages.forEach(m=>{if(m.contact_id===id&&m.sender==='contact')m.seen=true});if(c.status==='announced'){c.seen=true;c.status='open'}renderList();renderThread();renderBanners();try{await api.astralSeen(code,id)}catch(e){}if(opts.onChange)opts.onChange(summary())}
@@ -3158,17 +3168,26 @@ async function openAstralPhone(opts={}){
   const renderBanners=()=>{const list=data.contacts.filter(c=>c.status==='announced'&&!c.seen);const B=Q('.ap-banners');
     B.innerHTML=list.map(c=>`<div class="ap-ban" data-ban="${esc(c.id)}">${apAvatar(c)}<div class="ap-bt"><strong>${apIcon('bell')} Incoming contact${c.name?' · '+esc(c.name):''}</strong><p>${esc(apDescribe(c))}</p></div><button type="button" class="ap-btn pri small" data-open="${esc(c.id)}">Open</button></div>`).join('');
     B.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{openThread(b.dataset.open);openInfo(b.dataset.open)})};
-  const applyData=(fresh,first)=>{const prevIds=new Set(data.messages.map(m=>m.id)),prevAnn=new Set(data.contacts.filter(c=>c.status==='announced'&&!c.seen).map(c=>c.id));
+  const applyData=(fresh,first)=>{const prevContacts=data.contacts,prevIds=new Set(data.messages.map(m=>m.id)),prevAnn=new Set(data.contacts.filter(c=>c.status==='announced'&&!c.seen).map(c=>c.id));
     data={contacts:Array.isArray(fresh.contacts)?fresh.contacts:[],messages:Array.isArray(fresh.messages)?fresh.messages:[]};
     const newMsgs=data.messages.filter(m=>!prevIds.has(m.id)&&m.sender==='contact'),newAnn=data.contacts.filter(c=>c.status==='announced'&&!c.seen&&!prevAnn.has(c.id));
     if(cur&&!byId(cur)){cur=null;root.classList.remove('show-thread')}
-    renderList();renderThread();renderBanners();
+    const prevCur=prevContacts.find(c=>c.id===cur),nowCur=byId(cur);const box=Q('.ap-msgs');
+    if(!first&&cur&&box&&prevCur&&nowCur&&prevCur.status===nowCur.status&&apName(prevCur)===apName(nowCur)){
+      // the open conversation stays put (composer, draft, picture and focus untouched): only new bubbles are added
+      const add=data.messages.filter(m=>m.contact_id===cur&&!prevIds.has(m.id));
+      if(add.length){box.querySelectorAll('.ap-sys').forEach(x=>x.remove());box.insertAdjacentHTML('beforeend',apBubbles(add,'native',null,true));box.scrollTop=box.scrollHeight}}
+    else renderThread();
+    renderList();renderBanners();
     if(!first&&(newMsgs.length||newAnn.length)){root.classList.add('ring');setTimeout(()=>root.classList.remove('ring'),1600)}
     if(cur&&newMsgs.some(m=>m.contact_id===cur)&&!preview){data.messages.forEach(m=>{if(m.contact_id===cur&&m.sender==='contact')m.seen=true});api.astralSeen(code,cur).catch(()=>{});renderList()}
     if(opts.onChange)opts.onChange(summary())};
   const load=async first=>{if(dead)return;try{const r=await api.astral(code);if(r&&r.ok!==false)applyData(r,first);else if(first)Q('.ap-list').innerHTML=`<p class="ap-empty">${esc((r&&r.why)||'The phone could not connect.')}</p>`}catch(e){if(first)Q('.ap-list').innerHTML='<p class="ap-empty">The phone could not connect. Please try again in a moment.</p>'}};
   Q('.ap-list').innerHTML='<p class="ap-empty">Connecting…</p>';renderThread();
-  await load(true);poll=setInterval(()=>{if(document.visibilityState==='visible')load(false)},15000);
+  await load(true);
+  // near-real-time: every 3 s ask the server for a cheap change stamp and fetch only when it moved (a full fetch every 20 s regardless)
+  let stamp=null,ticks=0;const check=async()=>{if(dead||document.visibilityState!=='visible')return;ticks++;try{if(typeof api.astralStamp==='function'){const s=await api.astralStamp(code);if(s!==stamp||ticks%7===0){stamp=s;await load(false)}}else if(ticks%5===0)await load(false)}catch(e){}};
+  poll=setInterval(check,3000);const onShow=()=>{if(document.visibilityState==='visible')check()};document.addEventListener('visibilitychange',onShow);onShowRef.fn=onShow;
   if(opts.openContact)openThread(opts.openContact);
   if(ACT.code&&!preview)ACT.action('astral phone opened',{contacts:data.contacts.length});
   return apWin}
@@ -3185,7 +3204,7 @@ function bindAstralFold(root,pkg,opts){const box=$('#astralbox',root);if(!box)re
 
 /* The astrologer's "Astral Phone" tab: the client's contacts (their requests, what each may be told about a contact, nicknames and pictures),
    contact notifications, and the conversations — in which she writes as the contact. */
-let wsAstralId=null,wsAstralView='talk';
+let wsAstralId=null,wsAstralView='talk',wsAstralPoll=null;
 const AP_STATUS={requested:['Requested','draft'],announced:['Notified','significant'],open:['Line open','supportive'],closed:['Closed','draft']};
 async function tabAstral(ctx,body){const {c,reload}=ctx;const ent={...ENT_DEFAULT,...(c.entitlements||{})};
   let contacts=[],messages=[],unavailable=false;
@@ -3244,7 +3263,15 @@ async function tabAstral(ctx,body){const {c,reload}=ctx;const ent={...ENT_DEFAUL
     const cl=$('#as-close',body);if(cl)cl.onclick=guard(async()=>{await save({...collect(),status:'closed'});toast('The line is closed');redraw()});
     $('#as-del',body).onclick=guard(async()=>{if(!confirm('Remove '+nameOf(sel)+' and the whole conversation? This cannot be undone.'))return;await api.deleteAstralContact(sel.id);wsAstralId=null;toast('Contact removed');redraw()})}
   const talk=$('.asx-talk',body);
+  if(wsAstralPoll){clearInterval(wsAstralPoll);wsAstralPoll=null}
   if(talk){const box=talk.querySelector('.asx-msgs');box.scrollTop=box.scrollHeight;
+    // near-real-time: pick up the client's new messages every 3 s while this conversation is on screen
+    let since=messages.length?messages[messages.length-1].at:new Date(0).toISOString();
+    wsAstralPoll=setInterval(async()=>{if(!document.body.contains(box)){clearInterval(wsAstralPoll);wsAstralPoll=null;return}if(document.visibilityState!=='visible')return;
+      try{const fresh=await api.listAstralMessagesSince(c.id,since);const seen=new Set(messages.map(m=>m.id));const add=fresh.filter(m=>!seen.has(m.id));if(!add.length)return;
+        for(const m of add){messages.push(m);if(m.at>since)since=m.at;if(m.contact_id===sel.id)box.insertAdjacentHTML('beforeend',apBubbles([m],'contact',{me:nameOf(sel),them:c.name||'client'},true))}
+        box.scrollTop=box.scrollHeight;if(add.some(m=>m.contact_id===sel.id&&m.sender==='native'))api.markAstralSeen(sel.id).catch(()=>{});
+        if(add.some(m=>m.contact_id!==sel.id))body.querySelectorAll('[data-sel]').forEach(b=>{const u=messages.filter(m=>m.contact_id===b.dataset.sel&&m.sender==='native'&&!m.seen).length;let n=b.querySelector('.nbadge');if(u&&!n){b.insertAdjacentHTML('beforeend',`<span class="nbadge"><i></i>${u}</span>`)}else if(n&&u)n.innerHTML=`<i></i>${u}`})}catch(e){}},3000);
     if(unread(sel.id)){api.markAstralSeen(sel.id).then(()=>{messages.forEach(m=>{if(m.contact_id===sel.id&&m.sender==='native')m.seen=true})}).catch(()=>{})}
     const form=talk.querySelector('.ap-comp');if(form)apBindComposer(form,async(bodyText,image)=>{if(sel.status==='requested'){await save({status:'open'})}const m=await api.sendAstralMessage({contact_id:sel.id,client_id:c.id,sender:'contact',body:bodyText,image});messages.push(m);box.insertAdjacentHTML('beforeend',apBubbles([m],'contact',{me:nameOf(sel),them:c.name||'client'},true));box.scrollTop=box.scrollHeight;toast('Sent as '+nameOf(sel))},{drawTitle:'Draw as '+nameOf(sel)})}
 }
